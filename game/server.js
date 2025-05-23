@@ -118,8 +118,31 @@ app.get('/', (req, res) => {
             sessionCookieSecret: process.env.SESSION_COOKIE_SECRET, // Secret should not be client-side
             csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
         };
+app.get('/', (req, res) => {
+    fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8', (err, htmlData) => {
+        if (err) {
+            console.error('Error reading index.html:', err);
+            return res.status(500).send('Error loading game page.');
+        }
+        const clientConfig = {
+            authAppUrl: process.env.AUTH_APP_URL,
+            firebaseConfig: {
+                apiKey: process.env.FIREBASE_API_KEY,
+                authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+                appId: process.env.FIREBASE_APP_ID,
+                measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+            },
+            sessionCookieName: process.env.SESSION_COOKIE_NAME,
+            // Don't send sessionCookieSecret to client!
+            csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
+        };
+        
+        // Replace the config injection placeholder
         const injectedHtml = htmlData.replace(
-            '',
+            '<!-- CONFIG_INJECTION_POINT -->',
             `<script>window.CONFIG = ${JSON.stringify(clientConfig)};</script>`
         );
         res.send(injectedHtml);
