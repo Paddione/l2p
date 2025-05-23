@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  auth_server:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: quiz_auth_server
+    ports:
+      - "3001:3001" # Expose auth server port (host:container)
+    volumes:
+      - ./auth:/usr/src/app # Mount auth server code for live reload
+      - /usr/src/app/node_modules # Anonymous volume to prevent host node_modules from overwriting container's
+      # Mount your service account key for Firebase Admin SDK
+      # Make sure 'service-account.json' is in your ./auth directory
+      - ./auth/service-account.json:/usr/src/app/service-account.json:ro
+    env_file:
+      - ./auth/.env.auth # Load environment variables from .env.auth
+    environment:
+      # Override or set additional environment variables here if needed
+      - NODE_ENV=development
+      # Point to the mounted service account key within the container
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/service-account.json
+    networks:
+      - npm_quiz_network # Connect to the custom network
+    # command: npm run dev # If you want to use nodemon for development
+
+  game_server:
+    build:
+      context: ./game
+      dockerfile: Dockerfile
+    container_name: quiz_game_server
+    ports:
+      - "3000:3000" # Expose game server port (host:container)
+    volumes:
+      - ./game:/usr/src/app # Mount game server code for live reload
+      - /usr/src/app/node_modules # Anonymous volume
+      # Mount your service account key for Firebase Admin SDK
+      # Make sure 'service-account.json' is in your ./game directory
+      - ./game/service-account.json:/usr/src/app/service-account.json:ro
+    env_file:
+      - ./game/.env.game # Load environment variables from .env.game
+    environment:
+      # Override or set additional environment variables here if needed
+      - NODE_ENV=development
+      # Point to the mounted service account key within the container
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/service-account.json
+    networks:
+      - npm_quiz_network # Connect to the custom network
+    depends_on:
+      - auth_server # Optional: ensure auth_server starts first, though services should be resilient
+    # command: npm run dev # If you want to use nodemon for development
+
+networks:
+  npm_quiz_network: # Define the network to be used by services
+    name: npm_network # Specify the actual name of your existing external network
+    external: true # Mark it as an external network
+

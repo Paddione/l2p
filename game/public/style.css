@@ -1,0 +1,160 @@
+/* game/public/style.css */
+body {
+    font-family: 'Inter', sans-serif; /* Using a common Tailwind font, ensure it's loaded or use system default */
+    overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
+}
+
+.screen {
+    /* Basic screen styling, Tailwind handles most of it */
+}
+
+.input-field {
+    @apply w-full px-4 py-2.5 rounded-md bg-slate-700 border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-400 text-slate-100;
+    /* Custom focus style if needed */
+}
+
+.btn {
+    @apply px-5 py-2.5 rounded-md font-semibold shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800;
+    /* Base button style */
+}
+
+.btn-primary {
+    @apply bg-sky-500 hover:bg-sky-600 text-white focus:ring-sky-500;
+}
+
+.btn-secondary {
+    @apply bg-indigo-500 hover:bg-indigo-600 text-white focus:ring-indigo-500;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white focus:ring-red-600;
+}
+
+.btn-success {
+    @apply bg-green-500 hover:bg-green-600 text-white focus:ring-green-500;
+}
+
+.btn-warning {
+    @apply bg-yellow-500 hover:bg-yellow-600 text-black focus:ring-yellow-500;
+}
+
+.btn-neutral {
+    @apply bg-slate-600 hover:bg-slate-500 text-slate-100 focus:ring-slate-500;
+}
+.btn-accent {
+    @apply bg-pink-500 hover:bg-pink-600 text-white focus:ring-pink-500;
+}
+
+
+.btn-outline {
+    @apply bg-transparent border border-current hover:bg-opacity-10;
+}
+.btn-outline.btn-xs {
+    @apply px-2 py-1 text-xs;
+}
+
+
+.btn-sm {
+    @apply px-3 py-1.5 text-sm;
+}
+.btn-xs {
+    @apply px-2 py-1 text-xs;
+}
+
+
+.uppercase-input {
+    text-transform: uppercase;
+}
+.uppercase-input::placeholder {
+    text-transform: none;
+}
+
+/* Custom scrollbar for lists (optional) */
+#player-list-waiting::-webkit-scrollbar,
+#live-scores-list::-webkit-scrollbar,
+#final-scores-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#player-list-waiting::-webkit-scrollbar-track,
+#live-scores-list::-webkit-scrollbar-track,
+#final-scores-list::-webkit-scrollbar-track {
+    @apply bg-slate-600 rounded-full;
+}
+
+#player-list-waiting::-webkit-scrollbar-thumb,
+#live-scores-list::-webkit-scrollbar-thumb,
+#final-scores-list::-webkit-scrollbar-thumb {
+    @apply bg-sky-500 rounded-full;
+}
+#player-list-waiting::-webkit-scrollbar-thumb:hover,
+#live-scores-list::-webkit-scrollbar-thumb:hover,
+#final-scores-list::-webkit-scrollbar-thumb:hover {
+    @apply bg-sky-400;
+}
+
+
+/* Answer option button styling */
+.answer-option-btn {
+    @apply w-full p-3 rounded-lg text-left transition-all duration-150 ease-in-out border-2 border-slate-600 hover:bg-slate-600;
+    background-color: #334155; /* slate-700 */
+}
+.answer-option-btn.selected {
+    @apply ring-2 ring-sky-400 border-sky-400 bg-sky-700;
+}
+.answer-option-btn.correct {
+    @apply bg-green-600 border-green-500 text-white;
+}
+.answer-option-btn.incorrect {
+    @apply bg-red-700 border-red-600 text-white;
+}
+.answer-option-btn.disabled,
+.answer-option-btn:disabled {
+    @apply opacity-60 cursor-not-allowed bg-slate-500;
+}
+
+/* Timer urgency colors */
+#timer-display.urgent-low {
+    color: #fbbf24; /* amber-400 */
+}
+#timer-display.urgent-medium {
+    color: #f97316; /* orange-500 */
+}
+#timer-display.urgent-high {
+    color: #ef4444; /* red-500 */
+}
+
+/* Player list item styling */
+.player-list-item.host .host-badge {
+    @apply inline-block ml-2 px-1.5 py-0.5 text-xs font-semibold bg-sky-500 text-white rounded-full;
+}
+.player-list-item.disconnected .disconnected-badge {
+    @apply inline-block ml-2 px-1.5 py-0.5 text-xs font-semibold bg-slate-500 text-slate-300 rounded-full;
+}
+.player-list-item.current-user {
+    @apply font-bold text-lime-300;
+}
+
+/* Final scores medals */
+.medal-gold { color: #FFD700; }
+.medal-silver { color: #C0C0C0; }
+.medal-bronze { color: #CD7F32; }
+
+/* Basic responsive adjustments (Tailwind handles most) */
+@media (max-width: 640px) {
+    #app-container {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    .text-3xl { @apply text-2xl; }
+    .text-2xl { @apply text-xl; }
+    .text-xl { @apply text-lg; }
+}
+
+#global-notification.error {
+    @apply bg-red-500;
+}
+#global-notification.success {
+    @apply bg-green-500;
+}

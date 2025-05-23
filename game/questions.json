@@ -1,0 +1,70 @@
+{
+  "categories": [
+    {
+      "name": "General Knowledge",
+      "questions": [
+        {
+          "text": "What is the capital of France?",
+          "options": ["Berlin", "Madrid", "Paris", "Rome"],
+          "answer": "Paris",
+          "timeLimit": 20
+        },
+        {
+          "text": "Which planet is known as the Red Planet?",
+          "options": ["Earth", "Mars", "Jupiter", "Saturn"],
+          "answer": "Mars",
+          "timeLimit": 20
+        },
+        {
+          "text": "Who wrote 'Hamlet'?",
+          "options": ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"],
+          "answer": "William Shakespeare",
+          "timeLimit": 25
+        }
+      ]
+    },
+    {
+      "name": "Science",
+      "questions": [
+        {
+          "text": "What is the chemical symbol for water?",
+          "options": ["O2", "H2O", "CO2", "NaCl"],
+          "answer": "H2O",
+          "timeLimit": 15
+        },
+        {
+          "text": "What force keeps planets in orbit around the Sun?",
+          "options": ["Magnetism", "Gravity", "Friction", "Tension"],
+          "answer": "Gravity",
+          "timeLimit": 20
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "questions": [
+        {
+          "text": "In what year did World War II end?",
+          "options": ["1942", "1945", "1950", "1939"],
+          "answer": "1945",
+          "timeLimit": 20
+        },
+        {
+          "text": "Who was the first President of the United States?",
+          "options": ["Abraham Lincoln", "Thomas Jefferson", "George Washington", "John Adams"],
+          "answer": "George Washington",
+          "timeLimit": 20
+        }
+      ]
+    }
+  ],
+  "fallbackQuestions": [
+    {
+      "category": "Fallback",
+      "text": "What is 2 + 2?",
+      "options": ["3", "4", "5", "6"],
+      "answer": "4",
+      "timeLimit": 10
+    }
+  ]
+}
