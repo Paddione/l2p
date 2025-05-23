@@ -75,6 +75,8 @@
         }
     </script>
 
+    <!-- CONFIG_INJECTION_POINT -->
+
     <style>
         /* Critical CSS for faster loading */
         body {
@@ -222,9 +224,6 @@
                 loadingText.style.color = '#ef4444';
             }
         });
-
-        // Configuration injection point (will be replaced by server)
-        // window.CONFIG will be injected here by the server
 
         // Hide initial loading screen when app is ready
         window.hideInitialLoading = function() {
