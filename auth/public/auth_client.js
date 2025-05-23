@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("auth_client.js: CSRF token found:", csrfToken);
     }
 
+    // Get game URL from server-injected config or fallback
+    const gameUrl = window.GAME_CONFIG?.gameUrl || 
+                   (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://game.korczewski.de/game/');
 
     // DOM Elements
     const loginSection = document.getElementById('login-section');
@@ -70,8 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.onAuthStateChanged(user => {
         if (user) {
             // User is signed in. Redirect to the game.
-            console.log("auth_client.js: User logged in (onAuthStateChanged), redirecting to https://game.korczewski.de/game/");
-            window.location.href = 'https://game.korczewski.de/game/'; // Explicitly redirect to the full game URL
+            console.log("auth_client.js: User logged in (onAuthStateChanged), redirecting to", gameUrl);
+            window.location.href = gameUrl;
         } else {
             // User is signed out. Make sure login form is visible if no other section is active.
             if (registerSection && loginSection && forgotPasswordSection &&
@@ -82,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Rest of the file remains the same...
     // --- Login Form ---
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
@@ -99,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
 
     // --- Registration Form ---
     if (registerForm) {
@@ -122,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'CSRF-Token': csrfToken // Send CSRF token
+                        'CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({ displayName, email, password })
                 });
@@ -130,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    // Use error message from server if available, otherwise a generic one
                     throw new Error(data.error || `Serverfehler: ${response.status}`);
                 }
 
@@ -165,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initially show login section if user is not already logged in
-    if (!auth.currentUser && loginSection) { // Ensure loginSection exists
+    if (!auth.currentUser && loginSection) {
         showSection(loginSection);
     }
 });
