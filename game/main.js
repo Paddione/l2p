@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Define Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyDA_KxA8aF_0QSe-eOvpTG7rsa38zuLqAc",
+        apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
         authDomain: "kommillitonen-quiz.firebaseapp.com",
         projectId: "kommillitonen-quiz",
         storageBucket: "kommillitonen-quiz.appspot.com",
