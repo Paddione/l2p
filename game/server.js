@@ -18,10 +18,15 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.CORS_ORIGIN_GAME_CLIENT || "http://localhost:3000", // Allow client (served by this server)
+        origin: [
+            process.env.CORS_ORIGIN_GAME_CLIENT || "https://game.korczewski.de",
+            process.env.AUTH_APP_URL || "https://auth.korczewski.de"
+        ],
         methods: ["GET", "POST"],
         credentials: true
-    }
+    },
+    allowEIO3: true,
+    transports: ['websocket', 'polling']
 });
 
 const PORT = process.env.PORT || 3000;
@@ -54,30 +59,32 @@ const lobbies = {}; // { lobbyId: { players: { playerId: { ..., multiplier: 1 } 
 
 // --- Middleware ---
 app.use(helmet({
-    contentSecurityPolicy: { // Basic CSP, adjust as needed
+    contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: [
+            scriptSrc: ["'self'", "https://www.gstatic.com/firebasejs/", "'unsafe-inline'"],
+            styleSrc: [
                 "'self'",
-                "'unsafe-inline'", // Allow inline scripts for client config injection and Firebase SDK
-                "https://www.gstatic.com/firebasejs/", // Firebase SDK
-                "https://apis.google.com", // Firebase uses this
-                "https://cdn.tailwindcss.com" // If using Tailwind
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com"  // ADD THIS
             ],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com"],
+            fontSrc: [
+                "'self'",
+                "https://fonts.gstatic.com"     // ADD THIS
+            ],
             connectSrc: [
                 "'self'",
-                "ws://localhost:" + PORT, // Socket.IO default dev
-                "wss://localhost:" + PORT, // Socket.IO default dev secure
-                "http://localhost:" + PORT, // For API calls from client to this server
-                process.env.AUTH_APP_URL, // Auth App URL for Hall of Fame
-                "*.firebaseio.com", // Firebase Realtime DB / Firestore
-                "*.googleapis.com"  // Other Google APIs Firebase might use
+                "*.googleapis.com",
+                "*.firebaseio.com",
+                "https://*.firebaseapp.com",
+                "https://auth.korczewski.de",
+                "https://game.korczewski.de"
             ],
-            frameSrc: ["'self'", "*.firebaseapp.com"], // For Firebase Auth popups/iframes
-            imgSrc: ["'self'", "data:", "https://placehold.co"], // Allow self, data URLs, placeholder
-        }
-    }
+            frameSrc: ["'self'", "https://*.firebaseapp.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+    crossOriginEmbedderPolicy: false
 }));
 app.use(cors({ origin: process.env.CORS_ORIGIN_GAME_CLIENT || "http://localhost:3000", credentials: true }));
 app.use(compression()); // Compress responses

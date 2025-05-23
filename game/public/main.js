@@ -66,7 +66,7 @@ function generateQuizPageHTMLContent() {
     head.appendChild(createEl('script', { src: 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js'}));
     head.appendChild(createEl('script', { src: 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js'}));
     head.appendChild(createEl('script', { src: 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js'}));
-    head.appendChild(createEl('script', { src: '/game/socket.io/socket.io.js' }));
+    head.appendChild(createEl('script', { src: '/socket.io/socket.io.js'}));
 
     // --- Configure <body> ---
     const body = document.body;
@@ -276,15 +276,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Define Firebase Configuration
     const firebaseConfig = {
-        apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-        authDomain: "kommillitonen-quiz.firebaseapp.com",
-        projectId: "kommillitonen-quiz",
-        storageBucket: "kommillitonen-quiz.appspot.com",
-        messagingSenderId: "215136246569",
-        appId: "1:215136246569:web:7431d308369d9fb4d17538",
-        measurementId: ""
+        apiKey: window.CONFIG?.firebaseConfig?.apiKey || "AIzaSyDA_KxA8aF_0aQSe-eOvpTG7rsa38zuLqAc",
+        authDomain: window.CONFIG?.firebaseConfig?.authDomain || "kommillitonen-quiz.firebaseapp.com",
+        projectId: window.CONFIG?.firebaseConfig?.projectId || "kommillitonen-quiz",
+        storageBucket: window.CONFIG?.firebaseConfig?.storageBucket || "kommillitonen-quiz.firebasestorage.app",
+        messagingSenderId: window.CONFIG?.firebaseConfig?.messagingSenderId || "215136246569",
+        appId: window.CONFIG?.firebaseConfig?.appId || "1:215136246569:web:7431d308369d9fb4d17538",
+        measurementId: window.CONFIG?.firebaseConfig?.measurementId || ""
     };
-    const authAppUrl = "https://game.korczewski.de";
+    const authAppUrl = window.CONFIG?.authAppUrl || "https://auth.korczewski.de";
 
     // --- Global State ---
     let socket;
