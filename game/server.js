@@ -1,5 +1,5 @@
 // game/server.js
-require('dotenv').config({ path: '.env.game.example' }); // Load environment variables
+require('dotenv').config({ path: '.env.game' }); // Load environment variables
 
 const express = require('express');
 const http = require('http');
@@ -104,28 +104,6 @@ app.get('/', (req, res) => {
         }
         const clientConfig = {
             authAppUrl: process.env.AUTH_APP_URL,
-            firebaseConfig: { // This is what the client-side Firebase SDK needs
-                apiKey: process.env.FIREBASE_API_KEY,
-                authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-                appId: process.env.FIREBASE_APP_ID,
-                measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-            },
-            // These are from the original prompt, may not be needed if Firebase handles sessions
-            sessionCookieName: process.env.SESSION_COOKIE_NAME,
-            sessionCookieSecret: process.env.SESSION_COOKIE_SECRET, // Secret should not be client-side
-            csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
-        };
-app.get('/', (req, res) => {
-    fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8', (err, htmlData) => {
-        if (err) {
-            console.error('Error reading index.html:', err);
-            return res.status(500).send('Error loading game page.');
-        }
-        const clientConfig = {
-            authAppUrl: process.env.AUTH_APP_URL,
             firebaseConfig: {
                 apiKey: process.env.FIREBASE_API_KEY,
                 authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -139,7 +117,7 @@ app.get('/', (req, res) => {
             // Don't send sessionCookieSecret to client!
             csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
         };
-        
+
         // Replace the config injection placeholder
         const injectedHtml = htmlData.replace(
             '<!-- CONFIG_INJECTION_POINT -->',
@@ -148,7 +126,6 @@ app.get('/', (req, res) => {
         res.send(injectedHtml);
     });
 });
-
 
 // --- API Endpoints ---
 app.get('/game/api/categories', (req, res) => {
@@ -187,7 +164,6 @@ app.get('/game/api/user', async (req, res) => {
     // If no token or token invalid, treat as anonymous/guest
     res.json({ isAuthenticated: false, isGuest: true, guestId: 'guest-' + Date.now() }); // Simple guest ID
 });
-
 
 // --- Socket.IO Authentication Middleware ---
 io.use(async (socket, next) => {
@@ -237,7 +213,6 @@ io.use(async (socket, next) => {
     }
 });
 
-
 // --- Socket.IO Event Handlers ---
 io.on('connection', (socket) => {
     console.log(`User connected: ${socket.user.uid} (Socket ID: ${socket.id})`);
@@ -247,13 +222,13 @@ io.on('connection', (socket) => {
             const lobbyData = {
                 id: lobbyId,
                 hostId: lobbies[lobbyId].hostId,
-                players: Object.values(lobbies[lobbyId].players).map(p => ({ 
-                    id: p.id, 
-                    name: p.name, 
-                    score: p.score, 
-                    streak: p.streak, 
+                players: Object.values(lobbies[lobbyId].players).map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    score: p.score,
+                    streak: p.streak,
                     multiplier: p.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER,
-                    disconnected: p.disconnected 
+                    disconnected: p.disconnected
                 })),
                 category: lobbies[lobbyId].category,
                 gameActive: lobbies[lobbyId].gameActive,
@@ -274,15 +249,15 @@ io.on('connection', (socket) => {
 
         lobbies[lobbyId] = {
             players: {
-                [playerId]: { 
-                    id: playerId, 
-                    name: playerName, 
-                    socketId: socket.id, 
-                    score: 0, 
-                    streak: 0, 
+                [playerId]: {
+                    id: playerId,
+                    name: playerName,
+                    socketId: socket.id,
+                    score: 0,
+                    streak: 0,
                     multiplier: GAME_CONFIG.INITIAL_MULTIPLIER,
-                    disconnected: false, 
-                    answers: {} 
+                    disconnected: false,
+                    answers: {}
                 }
             },
             hostId: playerId,
@@ -321,15 +296,15 @@ io.on('connection', (socket) => {
                 console.log(`Player ${playerName} (${playerId}) reconnected to lobby ${lobbyId}`);
             } else {
                 // New player joining
-                lobbies[lobbyId].players[playerId] = { 
-                    id: playerId, 
-                    name: playerName, 
-                    socketId: socket.id, 
-                    score: 0, 
-                    streak: 0, 
+                lobbies[lobbyId].players[playerId] = {
+                    id: playerId,
+                    name: playerName,
+                    socketId: socket.id,
+                    score: 0,
+                    streak: 0,
                     multiplier: GAME_CONFIG.INITIAL_MULTIPLIER,
-                    disconnected: false, 
-                    answers: {} 
+                    disconnected: false,
+                    answers: {}
                 };
                 lobbies[lobbyId].scores[playerId] = 0;
                 console.log(`Player ${playerName} (${playerId}) joined lobby ${lobbyId}`);
@@ -357,7 +332,6 @@ io.on('connection', (socket) => {
                 }
                 socket.emit('updateScores', lobbies[lobbyId].scores, collectStreaks(lobbyId), collectMultipliers(lobbyId));
             }
-
 
         } else {
             socket.emit('joinLobbyError', { message: 'Lobby not found.' });
@@ -443,10 +417,10 @@ io.on('connection', (socket) => {
                 const timeTaken = playerAnswerData.timeTaken || timeLimit;
                 const remainingTime = Math.max(0, timeLimit - timeTaken);
                 pointsEarned = Math.ceil(remainingTime); // Round up to avoid 0 points for last-second answers
-                
+
                 // Apply multiplier
                 pointsEarned = pointsEarned * player.multiplier;
-                
+
                 // Update multiplier: +1 for correct answer
                 player.multiplier = (player.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER) + 1;
                 player.streak = (player.streak || 0) + 1;
@@ -522,7 +496,7 @@ io.on('connection', (socket) => {
         }
         const question = lobby.questions[lobby.currentQuestionIndex];
         const timeLimit = question.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
-        
+
         io.to(lobbyId).emit('question', {
             text: question.text,
             options: question.options,
@@ -542,21 +516,21 @@ io.on('connection', (socket) => {
                 socket.emit('startGameError', { message: 'Invalid category or no questions in category.' });
                 return;
             }
-            
+
             // Shuffle and limit to QUESTIONS_PER_GAME
             let shuffledQuestions = [...selectedCategoryData.questions].sort(() => 0.5 - Math.random());
             lobby.questions = shuffledQuestions.slice(0, GAME_CONFIG.QUESTIONS_PER_GAME);
-            
+
             if (lobby.questions.length === 0) {
                 socket.emit('startGameError', { message: 'No questions found for the selected category after attempting to load.' });
                 return;
             }
-            
+
             lobby.currentQuestionIndex = 0;
             lobby.gameActive = true;
             lobby.isPaused = false;
             lobby.playerAnswers = {}; // Reset answers for new game
-            
+
             // Reset scores, streaks, and multipliers for all players in the lobby
             Object.keys(lobby.players).forEach(pid => {
                 lobby.players[pid].score = 0;
@@ -566,16 +540,16 @@ io.on('connection', (socket) => {
                 lobby.players[pid].answers = {}; // Clear previous game answers
             });
 
-            io.to(lobbyId).emit('gameStarted', { 
-                category: lobby.category, 
-                totalQuestions: lobby.questions.length, 
+            io.to(lobbyId).emit('gameStarted', {
+                category: lobby.category,
+                totalQuestions: lobby.questions.length,
                 players: Object.values(lobby.players).map(p=>({
-                    id: p.id, 
-                    name: p.name, 
-                    score: 0, 
-                    streak: 0, 
+                    id: p.id,
+                    name: p.name,
+                    score: 0,
+                    streak: 0,
                     multiplier: GAME_CONFIG.INITIAL_MULTIPLIER
-                })) 
+                }))
             });
             emitLobbyUpdate(lobbyId); // Update lobby state (gameActive)
             sendQuestion(lobbyId);
@@ -701,15 +675,15 @@ io.on('connection', (socket) => {
                 lobby.scores[pid] = 0;
                 lobby.players[pid].answers = {};
             });
-            io.to(lobbyId).emit('lobbyResetForPlayAgain', { 
-                lobbyId, 
+            io.to(lobbyId).emit('lobbyResetForPlayAgain', {
+                lobbyId,
                 players: Object.values(lobby.players).map(p=>({
-                    id: p.id, 
-                    name: p.name, 
-                    score: 0, 
-                    streak: 0, 
+                    id: p.id,
+                    name: p.name,
+                    score: 0,
+                    streak: 0,
                     multiplier: GAME_CONFIG.INITIAL_MULTIPLIER
-                })) 
+                }))
             });
             emitLobbyUpdate(lobbyId);
             console.log(`Lobby ${lobbyId} reset for play again by host.`);
