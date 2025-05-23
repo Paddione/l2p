@@ -40,17 +40,16 @@ function generateQuizPageHTMLContent() {
         "default-src 'self';",
         "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.tailwindcss.com;",
         "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;",
-        "media-src 'self' https://cdn.jsdelivr.net;", // cdn.jsdelivr.net kept as a fallback or if other assets use it
+        "media-src 'self' https://cdn.jsdelivr.net;",
         "connect-src 'self' wss://*.firebaseio.com ws: https://kommillitonen-quiz.firebaseapp.com https://*.firebaseio.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://game.korczewski.de http://localhost:3000 http://localhost:3001;",
-        "img-src 'self' data: https:;", // Added data: for favicon
+        "img-src 'self' data: https:;",
         "font-src 'self' data: https:;"
     ];
     const cspMeta = createEl('meta', {
         'http-equiv': 'Content-Security-Policy',
-        content: cspParts.join(' ') // Join with spaces as CSP directives are space-separated
+        content: cspParts.join(' ')
     });
     head.appendChild(cspMeta);
-
 
     const titleTag = createEl('title');
     titleTag.textContent = 'Real-Time Quiz Game';
@@ -60,9 +59,8 @@ function generateQuizPageHTMLContent() {
     const faviconLink = createEl('link', { rel: 'icon', href: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>' });
     head.appendChild(faviconLink);
 
-
     head.appendChild(createEl('link', { href: 'https://cdn.tailwindcss.com', rel: 'stylesheet' }));
-    head.appendChild(createEl('link', { rel: 'stylesheet', href: 'style.css' })); // Standard CSS rules from here will apply
+    head.appendChild(createEl('link', { rel: 'stylesheet', href: 'style.css' }));
 
     // Firebase SDK scripts
     head.appendChild(createEl('script', { src: 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js'}));
@@ -73,165 +71,181 @@ function generateQuizPageHTMLContent() {
     // --- Configure <body> ---
     const body = document.body;
     body.innerHTML = '';
-    // Tailwind classes for body background and base font/text color
     body.className = 'bg-slate-900 text-slate-100 font-sans flex flex-col items-center justify-center min-h-screen p-4';
 
     // --- Create App Container ---
-    const appContainer = createEl('div', { id: 'app-container' }, 'bg-slate-800 p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl');
+    const appContainer = createEl('div', { id: 'app-container' }, 'bg-slate-800 p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-2xl border border-slate-700');
     body.appendChild(appContainer);
 
     // --- Global Notification ---
     const globalNotification = createEl('div', { id: 'global-notification' }, 'fixed top-5 right-5 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg hidden z-50', 'Notification message');
-    appContainer.appendChild(globalNotification);
-
-    // --- Base Tailwind classes for elements (replicating @apply from your style.css) ---
-    const inputFieldClasses = 'w-full px-4 py-2.5 rounded-md bg-slate-700 border border-slate-600 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-400 text-slate-100';
-    const btnBaseClasses = 'px-5 py-2.5 rounded-md font-semibold shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800';
-    const btnPrimaryClasses = `${btnBaseClasses} bg-sky-500 hover:bg-sky-600 text-white focus:ring-sky-500`;
-    const btnSecondaryClasses = `${btnBaseClasses} bg-indigo-500 hover:bg-indigo-600 text-white focus:ring-indigo-500`;
-    const btnDangerClasses = `${btnBaseClasses} bg-red-600 hover:bg-red-700 text-white focus:ring-red-600`;
-    const btnSuccessClasses = `${btnBaseClasses} bg-green-500 hover:bg-green-600 text-white focus:ring-green-500`;
-    const btnWarningClasses = `${btnBaseClasses} bg-yellow-500 hover:bg-yellow-600 text-black focus:ring-yellow-500`;
-    const btnNeutralClasses = `${btnBaseClasses} bg-slate-600 hover:bg-slate-500 text-slate-100 focus:ring-slate-500`;
-    const btnAccentClasses = `${btnBaseClasses} bg-pink-500 hover:bg-pink-600 text-white focus:ring-pink-500`;
-    const btnSmClasses = 'px-3 py-1.5 text-sm';
-    const btnXsClasses = 'px-2 py-1 text-xs';
-    const btnOutlineBaseClasses = 'bg-transparent border border-current hover:bg-opacity-10';
-
+    body.appendChild(globalNotification);
 
     // --- Auth Screen ---
     const authScreen = createEl('div', { id: 'auth-screen' }, 'screen');
-    authScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', 'Quiz Game Login'));
-    const authFormContainer = createEl('div', { id: 'auth-form-container' });
-    const loginFormEl = createEl('form', { id: 'login-form' }, 'mb-4');
-    loginFormEl.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', 'Login'));
-    loginFormEl.appendChild(createEl('input', { type: 'email', id: 'login-email', placeholder: 'Email', required: '', autocomplete: 'username' }, `${inputFieldClasses} mb-2`));
-    loginFormEl.appendChild(createEl('input', { type: 'password', id: 'login-password', placeholder: 'Password', required: '', autocomplete: 'current-password' }, `${inputFieldClasses} mb-2`));
-    loginFormEl.appendChild(createEl('button', { type: 'submit' }, `${btnPrimaryClasses} w-full`, 'Login'));
+    authScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', '🎮 Quiz Game Login'));
+
+    const authFormContainer = createEl('div', { id: 'auth-form-container' }, 'space-y-6');
+
+    // Login Form
+    const loginFormEl = createEl('form', { id: 'login-form' }, 'bg-slate-700 p-6 rounded-lg border border-slate-600');
+    loginFormEl.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '🔑 Login'));
+    loginFormEl.appendChild(createEl('input', { type: 'email', id: 'login-email', placeholder: 'Email', required: '', autocomplete: 'username' }, 'input-field mb-3'));
+    loginFormEl.appendChild(createEl('input', { type: 'password', id: 'login-password', placeholder: 'Password', required: '', autocomplete: 'current-password' }, 'input-field mb-4'));
+    loginFormEl.appendChild(createEl('button', { type: 'submit' }, 'btn btn-primary w-full', 'Login'));
     authFormContainer.appendChild(loginFormEl);
-    const registerFormEl = createEl('form', { id: 'register-form' }, 'mb-4');
-    registerFormEl.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', 'Register'));
-    registerFormEl.appendChild(createEl('input', { type: 'text', id: 'register-displayName', placeholder: 'Display Name', required: '', autocomplete: 'name' }, `${inputFieldClasses} mb-2`));
-    registerFormEl.appendChild(createEl('input', { type: 'email', id: 'register-email', placeholder: 'Email', required: '', autocomplete: 'email' }, `${inputFieldClasses} mb-2`));
-    registerFormEl.appendChild(createEl('input', { type: 'password', id: 'register-password', placeholder: 'Password (min 6 chars)', required: '', autocomplete: 'new-password' }, `${inputFieldClasses} mb-2`));
-    registerFormEl.appendChild(createEl('button', { type: 'submit' }, `${btnSecondaryClasses} w-full`, 'Register'));
+
+    // Register Form
+    const registerFormEl = createEl('form', { id: 'register-form' }, 'bg-slate-700 p-6 rounded-lg border border-slate-600');
+    registerFormEl.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '📝 Register'));
+    registerFormEl.appendChild(createEl('input', { type: 'text', id: 'register-displayName', placeholder: 'Display Name', required: '', autocomplete: 'name' }, 'input-field mb-3'));
+    registerFormEl.appendChild(createEl('input', { type: 'email', id: 'register-email', placeholder: 'Email', required: '', autocomplete: 'email' }, 'input-field mb-3'));
+    registerFormEl.appendChild(createEl('input', { type: 'password', id: 'register-password', placeholder: 'Password (min 6 chars)', required: '', autocomplete: 'new-password' }, 'input-field mb-4'));
+    registerFormEl.appendChild(createEl('button', { type: 'submit' }, 'btn btn-secondary w-full', 'Register'));
     authFormContainer.appendChild(registerFormEl);
-    authFormContainer.appendChild(createEl('button', { id: 'google-signin-btn' }, `${btnAccentClasses} w-full mt-2`, 'Sign in with Google'));
+
+    authFormContainer.appendChild(createEl('button', { id: 'google-signin-btn' }, 'btn btn-accent w-full', '🔗 Sign in with Google'));
     authScreen.appendChild(authFormContainer);
-    authScreen.appendChild(createEl('div', { id: 'auth-loading' }, 'hidden text-center py-4', 'Loading authentication...'));
-    const authUserInfo = createEl('div', { id: 'auth-user-info' }, 'hidden text-center');
-    const pUser = createEl('p', {}, '', 'Logged in as: ');
-    pUser.appendChild(createEl('span', { id: 'user-email-display' }, 'font-semibold'));
+
+    authScreen.appendChild(createEl('div', { id: 'auth-loading' }, 'hidden text-center py-4', '⏳ Loading authentication...'));
+
+    const authUserInfo = createEl('div', { id: 'auth-user-info' }, 'hidden text-center bg-slate-700 p-6 rounded-lg border border-slate-600');
+    const pUser = createEl('p', {}, 'mb-4', '👤 Logged in as: ');
+    pUser.appendChild(createEl('span', { id: 'user-email-display' }, 'font-semibold text-sky-300'));
     authUserInfo.appendChild(pUser);
-    authUserInfo.appendChild(createEl('button', { id: 'logout-btn' }, `${btnDangerClasses} mt-4`, 'Logout'));
-    authUserInfo.appendChild(createEl('button', { id: 'proceed-to-lobby-btn' }, `${btnPrimaryClasses} mt-2`, 'Proceed to Lobby'));
+    authUserInfo.appendChild(createEl('button', { id: 'logout-btn' }, 'btn btn-danger mt-2 mr-2', 'Logout'));
+    authUserInfo.appendChild(createEl('button', { id: 'proceed-to-lobby-btn' }, 'btn btn-primary mt-2', 'Proceed to Lobby'));
     authScreen.appendChild(authUserInfo);
+
     authScreen.appendChild(createEl('p', { id: 'auth-error' }, 'text-red-400 mt-3 text-sm text-center'));
     appContainer.appendChild(authScreen);
 
     // --- Lobby Connect Screen ---
-    const lobbyConnectScreen = createEl('div', { id: 'lobby-connect-screen' }, 'screen');
-    lobbyConnectScreen.style.display = 'none';
-    lobbyConnectScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', 'Join or Create Quiz Lobby'));
-    const playerNameDiv = createEl('div', {}, 'mb-4');
-    playerNameDiv.appendChild(createEl('input', { type: 'text', id: 'player-name-input', placeholder: 'Enter Your Name (for Guests)', autocomplete: 'nickname' }, `${inputFieldClasses} mb-2`));
+    const lobbyConnectScreen = createEl('div', { id: 'lobby-connect-screen' }, 'screen hidden');
+    lobbyConnectScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', '🏠 Join or Create Quiz Lobby'));
+
+    const playerNameDiv = createEl('div', {}, 'mb-6 bg-slate-700 p-4 rounded-lg border border-slate-600');
+    playerNameDiv.appendChild(createEl('label', { for: 'player-name-input' }, 'block text-sm font-medium text-sky-300 mb-2', '👤 Player Name (for Guests)'));
+    playerNameDiv.appendChild(createEl('input', { type: 'text', id: 'player-name-input', placeholder: 'Enter Your Name', autocomplete: 'nickname' }, 'input-field'));
     lobbyConnectScreen.appendChild(playerNameDiv);
-    const gridDivLobby = createEl('div', {}, 'grid grid-cols-1 md:grid-cols-2 gap-4');
-    const joinDiv = createEl('div');
-    joinDiv.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', 'Join Lobby'));
-    joinDiv.appendChild(createEl('input', { type: 'text', id: 'lobby-id-input', placeholder: 'Enter Lobby ID' }, `${inputFieldClasses} uppercase-input mb-2`));
-    joinDiv.appendChild(createEl('button', { id: 'join-lobby-btn' }, `${btnPrimaryClasses} w-full`, 'Join Lobby'));
+
+    const gridDivLobby = createEl('div', {}, 'grid grid-cols-1 md:grid-cols-2 gap-6');
+
+    const joinDiv = createEl('div', {}, 'bg-slate-700 p-6 rounded-lg border border-slate-600');
+    joinDiv.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '🚪 Join Lobby'));
+    joinDiv.appendChild(createEl('input', { type: 'text', id: 'lobby-id-input', placeholder: 'Enter Lobby ID' }, 'input-field uppercase-input mb-4'));
+    joinDiv.appendChild(createEl('button', { id: 'join-lobby-btn' }, 'btn btn-primary w-full', 'Join Lobby'));
     gridDivLobby.appendChild(joinDiv);
-    const createDiv = createEl('div');
-    createDiv.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', 'Create Lobby'));
-    createDiv.appendChild(createEl('button', { id: 'create-lobby-btn' }, `${btnSecondaryClasses} w-full`, 'Create New Lobby'));
+
+    const createDiv = createEl('div', {}, 'bg-slate-700 p-6 rounded-lg border border-slate-600');
+    createDiv.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '✨ Create Lobby'));
+    createDiv.appendChild(createEl('p', {}, 'text-slate-400 text-sm mb-4', 'Start a new quiz lobby and invite friends!'));
+    createDiv.appendChild(createEl('button', { id: 'create-lobby-btn' }, 'btn btn-secondary w-full', 'Create New Lobby'));
     gridDivLobby.appendChild(createDiv);
+
     lobbyConnectScreen.appendChild(gridDivLobby);
-    lobbyConnectScreen.appendChild(createEl('p', { id: 'connect-error' }, 'text-red-400 mt-3 text-sm text-center'));
-    lobbyConnectScreen.appendChild(createEl('button', { id: 'back-to-auth-btn' }, `${btnNeutralClasses} mt-6 w-full`, 'Back to Login/User Info'));
+    lobbyConnectScreen.appendChild(createEl('p', { id: 'connect-error' }, 'text-red-400 mt-4 text-sm text-center bg-red-900/20 p-3 rounded-lg border border-red-700 hidden'));
+    lobbyConnectScreen.appendChild(createEl('button', { id: 'back-to-auth-btn' }, 'btn btn-neutral mt-6 w-full', '← Back to Login'));
     appContainer.appendChild(lobbyConnectScreen);
 
     // --- Waiting Room Screen ---
-    const waitingRoomScreen = createEl('div', { id: 'waiting-room-screen' }, 'screen');
-    waitingRoomScreen.style.display = 'none';
-    const waitingHeaderFlex = createEl('div', {}, 'flex justify-between items-center mb-4');
-    waitingHeaderFlex.appendChild(createEl('h1', {}, 'text-2xl md:text-3xl font-bold text-sky-400', 'Waiting Room'));
-    waitingHeaderFlex.appendChild(createEl('button', { id: 'leave-lobby-btn-waiting' }, `${btnDangerClasses} ${btnSmClasses}`, 'Leave Lobby'));
+    const waitingRoomScreen = createEl('div', { id: 'waiting-room-screen' }, 'screen hidden');
+
+    const waitingHeaderFlex = createEl('div', {}, 'flex justify-between items-center mb-6');
+    waitingHeaderFlex.appendChild(createEl('h1', {}, 'text-2xl md:text-3xl font-bold text-sky-400', '⏳ Waiting Room'));
+    waitingHeaderFlex.appendChild(createEl('button', { id: 'leave-lobby-btn-waiting' }, 'btn btn-danger btn-sm', '🚪 Leave'));
     waitingRoomScreen.appendChild(waitingHeaderFlex);
-    const waitingInfoBox = createEl('div', {}, 'bg-slate-700 p-4 rounded-lg mb-4');
-    const pLobbyId = createEl('p', {}, 'text-lg', null, 'Lobby ID: <strong id="lobby-id-display" class="text-yellow-400"></strong>');
-    pLobbyId.appendChild(createEl('button', { id: 'copy-lobby-id-btn' }, `ml-2 text-xs ${btnOutlineBaseClasses} ${btnXsClasses}`, 'Copy'));
+
+    const waitingInfoBox = createEl('div', {}, 'bg-slate-700 p-4 rounded-lg mb-6 border border-slate-600');
+    const pLobbyId = createEl('p', {}, 'text-lg mb-2', null, '🆔 Lobby ID: <strong id="lobby-id-display" class="text-yellow-400 font-mono"></strong>');
+    pLobbyId.appendChild(createEl('button', { id: 'copy-lobby-id-btn' }, 'btn btn-outline btn-xs ml-2', '📋 Copy'));
     waitingInfoBox.appendChild(pLobbyId);
-    waitingInfoBox.appendChild(createEl('p', {}, [], null, 'You are: <strong id="current-player-id-display" class="text-lime-400"></strong> (<span id="current-player-name-display"></span>)'));
+    waitingInfoBox.appendChild(createEl('p', {}, [], null, '👤 You are: <strong id="current-player-id-display" class="text-lime-400 font-mono"></strong> (<span id="current-player-name-display" class="text-sky-300"></span>)'));
     waitingRoomScreen.appendChild(waitingInfoBox);
-    const hostControlsWaiting = createEl('div', { id: 'host-controls-waiting' }, 'mb-4 hidden');
-    hostControlsWaiting.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', 'Host Controls'));
-    hostControlsWaiting.appendChild(createEl('label', { for: 'category-select' }, 'block mb-1', 'Select Category:'));
-    const categorySelectEl = createEl('select', { id: 'category-select' }, `${inputFieldClasses} mb-2 bg-slate-600`);
+
+    // Host Controls
+    const hostControlsWaiting = createEl('div', { id: 'host-controls-waiting' }, 'mb-6 hidden bg-slate-700 p-6 rounded-lg border border-slate-600');
+    hostControlsWaiting.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '👑 Host Controls'));
+    hostControlsWaiting.appendChild(createEl('label', { for: 'category-select' }, 'block mb-2 text-sm font-medium text-slate-300', '📚 Select Category:'));
+    const categorySelectEl = createEl('select', { id: 'category-select' }, 'input-field mb-4');
     categorySelectEl.appendChild(createEl('option', { value: '' }, [], '-- Select a Category --'));
     hostControlsWaiting.appendChild(categorySelectEl);
-    hostControlsWaiting.appendChild(createEl('button', { id: 'start-game-btn', disabled: '' }, `${btnSuccessClasses} w-full`, 'Start Game'));
-    hostControlsWaiting.appendChild(createEl('p', { id: 'start-game-error' }, 'text-red-400 mt-1 text-sm'));
+    hostControlsWaiting.appendChild(createEl('button', { id: 'start-game-btn', disabled: '' }, 'btn btn-success w-full', '🚀 Start Game'));
+    hostControlsWaiting.appendChild(createEl('p', { id: 'start-game-error' }, 'text-red-400 mt-2 text-sm'));
     waitingRoomScreen.appendChild(hostControlsWaiting);
-    const nonHostInfoWaiting = createEl('div', { id: 'non-host-info-waiting' }, 'mb-4 hidden');
-    nonHostInfoWaiting.appendChild(createEl('p', {}, [], 'Waiting for host to select category and start the game.'));
-    nonHostInfoWaiting.appendChild(createEl('p', {}, [], null, 'Selected Category: <strong id="selected-category-display" class="text-amber-400">N/A</strong>'));
+
+    // Non-Host Info
+    const nonHostInfoWaiting = createEl('div', { id: 'non-host-info-waiting' }, 'mb-6 hidden bg-slate-700 p-6 rounded-lg border border-slate-600 text-center');
+    nonHostInfoWaiting.appendChild(createEl('p', {}, 'mb-2', '⏳ Waiting for host to select category and start the game...'));
+    nonHostInfoWaiting.appendChild(createEl('p', {}, [], null, '📚 Selected Category: <strong id="selected-category-display" class="text-amber-400">N/A</strong>'));
     waitingRoomScreen.appendChild(nonHostInfoWaiting);
-    waitingRoomScreen.appendChild(createEl('h2', {}, 'text-xl mb-2 text-sky-300', null, 'Players in Lobby (<span id="player-count">0</span>):'));
-    waitingRoomScreen.appendChild(createEl('ul', { id: 'player-list-waiting' }, 'list-disc list-inside bg-slate-700 p-3 rounded-md h-40 overflow-y-auto'));
+
+    waitingRoomScreen.appendChild(createEl('h2', {}, 'text-xl mb-3 text-sky-300 font-semibold', null, '👥 Players in Lobby (<span id="player-count" class="text-lime-400">0</span>):'));
+    waitingRoomScreen.appendChild(createEl('ul', { id: 'player-list-waiting' }, 'list-none bg-slate-700 p-4 rounded-lg h-40 overflow-y-auto border border-slate-600 space-y-2'));
     appContainer.appendChild(waitingRoomScreen);
 
     // --- Quiz Screen ---
-    const quizScreen = createEl('div', { id: 'quiz-screen' }, 'screen');
-    quizScreen.style.display = 'none';
-    const quizHeaderFlex = createEl('div', {}, 'flex justify-between items-start mb-2');
+    const quizScreen = createEl('div', { id: 'quiz-screen' }, 'screen hidden');
+
+    const quizHeaderFlex = createEl('div', {}, 'flex justify-between items-start mb-4');
     const quizInfoDiv = createEl('div');
-    quizInfoDiv.appendChild(createEl('h2', { id: 'quiz-category-display' }, 'text-xl font-semibold text-sky-400', 'Category'));
+    quizInfoDiv.appendChild(createEl('h2', { id: 'quiz-category-display' }, 'text-xl font-semibold text-sky-400', '📚 Category'));
     quizInfoDiv.appendChild(createEl('p', { id: 'question-counter-display' }, 'text-sm text-slate-400', 'Question X of Y'));
     quizHeaderFlex.appendChild(quizInfoDiv);
+
     const hostGameControlsQuiz = createEl('div', { id: 'host-game-controls-quiz' }, 'hidden space-x-2');
-    hostGameControlsQuiz.appendChild(createEl('button', { id: 'pause-game-btn' }, `${btnWarningClasses} ${btnSmClasses}`, 'Pause'));
-    hostGameControlsQuiz.appendChild(createEl('button', { id: 'skip-to-end-btn' }, `${btnDangerClasses} ${btnSmClasses}`, 'Skip to End'));
+    hostGameControlsQuiz.appendChild(createEl('button', { id: 'pause-game-btn' }, 'btn btn-warning btn-sm', '⏸️ Pause'));
+    hostGameControlsQuiz.appendChild(createEl('button', { id: 'skip-to-end-btn' }, 'btn btn-danger btn-sm', '⏭️ Skip'));
     quizHeaderFlex.appendChild(hostGameControlsQuiz);
     quizScreen.appendChild(quizHeaderFlex);
-    quizScreen.appendChild(createEl('div', { id: 'timer-display' }, 'text-4xl font-bold text-center my-4 text-yellow-400', '30'));
-    const questionTextContainer = createEl('div', {}, 'bg-slate-700 p-4 rounded-lg mb-4 min-h-[80px]');
-    questionTextContainer.appendChild(createEl('p', { id: 'question-text-display' }, 'text-lg md:text-xl', 'Question text will appear here.'));
+
+    quizScreen.appendChild(createEl('div', { id: 'timer-display' }, 'text-5xl font-bold text-center my-6 text-yellow-400 bg-slate-700 rounded-lg p-4 border border-slate-600', '30'));
+
+    const questionTextContainer = createEl('div', {}, 'bg-slate-700 p-6 rounded-lg mb-6 min-h-[100px] border border-slate-600');
+    questionTextContainer.appendChild(createEl('p', { id: 'question-text-display' }, 'text-lg md:text-xl leading-relaxed', 'Question text will appear here...'));
     quizScreen.appendChild(questionTextContainer);
-    quizScreen.appendChild(createEl('div', { id: 'answer-options-container' }, 'grid grid-cols-1 md:grid-cols-2 gap-3 mb-4'));
-    quizScreen.appendChild(createEl('p', { id: 'answer-feedback-text' }, 'text-center text-lg mb-3', null, '&nbsp;'));
-    quizScreen.appendChild(createEl('div', { id: 'player-info-quiz' }, 'text-sm text-center mb-3', null, 'Your Score: <span id="current-player-score-quiz" class="font-bold text-lime-400">0</span> | Streak: <span id="current-player-streak-quiz" class="font-bold text-orange-400">0</span>'));
+
+    quizScreen.appendChild(createEl('div', { id: 'answer-options-container' }, 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'));
+    quizScreen.appendChild(createEl('p', { id: 'answer-feedback-text' }, 'text-center text-lg mb-4 min-h-[2rem]', ''));
+
+    const playerInfoQuiz = createEl('div', { id: 'player-info-quiz' }, 'text-center mb-4 bg-slate-700 p-4 rounded-lg border border-slate-600');
+    playerInfoQuiz.innerHTML = '🏆 Your Score: <span id="current-player-score-quiz" class="font-bold text-lime-400">0</span> | 🔥 Streak: <span id="current-player-streak-quiz" class="font-bold text-orange-400">0</span>';
+    quizScreen.appendChild(playerInfoQuiz);
+
     const liveScoresContainer = createEl('div', { id: 'live-scores-container' }, 'mt-4');
-    liveScoresContainer.appendChild(createEl('h3', {}, 'text-md font-semibold mb-1 text-sky-300', 'Live Scores:'));
-    liveScoresContainer.appendChild(createEl('ul', { id: 'live-scores-list' }, 'text-sm bg-slate-700 p-2 rounded-md max-h-32 overflow-y-auto'));
+    liveScoresContainer.appendChild(createEl('h3', {}, 'text-md font-semibold mb-2 text-sky-300', '📊 Live Scores:'));
+    liveScoresContainer.appendChild(createEl('ul', { id: 'live-scores-list' }, 'text-sm bg-slate-700 p-3 rounded-lg max-h-32 overflow-y-auto border border-slate-600'));
     quizScreen.appendChild(liveScoresContainer);
-    quizScreen.appendChild(createEl('p', { id: 'game-paused-message' }, 'text-center text-yellow-500 font-bold text-xl my-4 hidden', 'Game Paused'));
+
+    quizScreen.appendChild(createEl('p', { id: 'game-paused-message' }, 'text-center text-yellow-500 font-bold text-xl my-4 hidden bg-yellow-900/20 p-4 rounded-lg border border-yellow-600', '⏸️ Game Paused'));
     appContainer.appendChild(quizScreen);
 
     // --- Game Over Screen ---
-    const gameOverScreen = createEl('div', { id: 'game-over-screen' }, 'screen');
-    gameOverScreen.style.display = 'none';
-    gameOverScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', 'Game Over!'));
-    gameOverScreen.appendChild(createEl('h2', {}, 'text-xl mb-3 text-sky-300', 'Final Scores:'));
-    gameOverScreen.appendChild(createEl('ul', { id: 'final-scores-list' }, 'mb-6 bg-slate-700 p-3 rounded-md'));
+    const gameOverScreen = createEl('div', { id: 'game-over-screen' }, 'screen hidden');
+    gameOverScreen.appendChild(createEl('h1', {}, 'text-3xl font-bold mb-6 text-center text-sky-400', '🏁 Game Over!'));
+    gameOverScreen.appendChild(createEl('h2', {}, 'text-xl mb-4 text-sky-300 font-semibold', '🏆 Final Scores:'));
+    gameOverScreen.appendChild(createEl('ul', { id: 'final-scores-list' }, 'mb-6 bg-slate-700 p-4 rounded-lg border border-slate-600 space-y-2'));
+
     const gameOverHostControls = createEl('div', { id: 'game-over-host-controls' }, 'hidden');
-    gameOverHostControls.appendChild(createEl('button', { id: 'play-again-btn' }, `${btnSuccessClasses} w-full mb-3`, 'Play Again'));
+    gameOverHostControls.appendChild(createEl('button', { id: 'play-again-btn' }, 'btn btn-success w-full mb-3', '🔄 Play Again'));
     gameOverScreen.appendChild(gameOverHostControls);
-    const gameOverNonHostMsg = createEl('div', { id: 'game-over-non-host-msg' }, 'hidden text-center mb-3');
-    gameOverNonHostMsg.appendChild(createEl('p', {}, [], 'Waiting for host to start a new game...'));
+
+    const gameOverNonHostMsg = createEl('div', { id: 'game-over-non-host-msg' }, 'hidden text-center mb-4 bg-slate-700 p-4 rounded-lg border border-slate-600');
+    gameOverNonHostMsg.appendChild(createEl('p', {}, [], '⏳ Waiting for host to start a new game...'));
     gameOverScreen.appendChild(gameOverNonHostMsg);
-    gameOverScreen.appendChild(createEl('button', { id: 'submit-hall-of-fame-btn' }, `${btnPrimaryClasses} w-full mb-3`, 'Submit My Score to Hall of Fame'));
-    gameOverScreen.appendChild(createEl('button', { id: 'leave-lobby-btn-gameover' }, `${btnDangerClasses} w-full`, 'Leave Lobby (Back to Connect)'));
+
+    gameOverScreen.appendChild(createEl('button', { id: 'submit-hall-of-fame-btn' }, 'btn btn-primary w-full mb-3', '🌟 Submit Score to Hall of Fame'));
+    gameOverScreen.appendChild(createEl('button', { id: 'leave-lobby-btn-gameover' }, 'btn btn-danger w-full', '🚪 Leave Lobby'));
     appContainer.appendChild(gameOverScreen);
 
     // --- Footer Controls ---
     const footerDiv = createEl('div', {}, 'mt-8 pt-4 border-t border-slate-700 flex justify-between items-center');
-    footerDiv.appendChild(createEl('button', { id: 'mute-toggle-btn' }, `${btnNeutralClasses} ${btnSmClasses}`, 'Mute Sounds'));
+    footerDiv.appendChild(createEl('button', { id: 'mute-toggle-btn' }, 'btn btn-neutral btn-sm', '🔊 Mute Sounds'));
     footerDiv.appendChild(createEl('span', { id: 'connection-status' }, 'text-xs text-slate-500', 'Disconnected'));
     appContainer.appendChild(footerDiv);
     appContainer.appendChild(createEl('div', { id: 'user-id-display-footer' }, 'text-xs text-slate-600 mt-2 text-center', 'UserID: N/A'));
 
-    // --- Audio Elements (Updated to local paths) ---
+    // --- Audio Elements ---
     const audioPath = 'assets/sounds/';
     const audioSources = [
         { id: 'sound-click', src: `${audioPath}click.mp3` },
@@ -250,7 +264,6 @@ function generateQuizPageHTMLContent() {
     });
 }
 
-
 // -----------------------------------------------------------------------------
 // SECTION 2: Application Logic (Quiz Game)
 // -----------------------------------------------------------------------------
@@ -258,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Generate the entire HTML structure for the page
     generateQuizPageHTMLContent();
 
-    // 2. Define Firebase Configuration and Auth App URL using your provided values
+    // 2. Define Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDA_KxA8aF_0QSe-eOvpTG7rsa38zuLqAc",
         authDomain: "kommillitonen-quiz.firebaseapp.com",
@@ -285,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let firestoreDB;
     let currentUser = null;
     let idToken = null;
-    let userHasInteracted = false; // Flag for music autoplay policy
+    let userHasInteracted = false;
 
     // --- DOM Elements ---
     const screens = {
@@ -373,41 +386,41 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     Object.values(sounds).forEach(sound => { if(sound) sound.muted = isMuted; });
 
-    // Function to set userHasInteracted to true
+    // Function to handle user interaction
     const handleUserInteraction = () => {
         if (!userHasInteracted) {
             userHasInteracted = true;
-            // Try to play menu music now if it's supposed to be playing
-            if (screens.auth && screens.auth.style.display === 'block' ||
-                screens.lobbyConnect && screens.lobbyConnect.style.display === 'block' ||
-                screens.waitingRoom && screens.waitingRoom.style.display === 'block' ||
-                screens.gameOver && screens.gameOver.style.display === 'block') {
+            if (screens.auth && !screens.auth.classList.contains('hidden') ||
+                screens.lobbyConnect && !screens.lobbyConnect.classList.contains('hidden') ||
+                screens.waitingRoom && !screens.waitingRoom.classList.contains('hidden') ||
+                screens.gameOver && !screens.gameOver.classList.contains('hidden')) {
                 playSound('menuMusic', true);
             }
-            // Remove this listener after first interaction
             document.body.removeEventListener('click', handleUserInteraction, true);
             document.body.removeEventListener('keydown', handleUserInteraction, true);
         }
     };
-    // Add event listeners for first interaction
     document.body.addEventListener('click', handleUserInteraction, true);
     document.body.addEventListener('keydown', handleUserInteraction, true);
-
 
     // --- Utility Functions ---
     const showScreen = (screenName) => {
         Object.values(screens).forEach(screen => {
             if(screen) {
-                screen.style.display = 'none';
                 screen.classList.add('hidden');
             }
         });
         if (screens[screenName]) {
-            screens[screenName].style.display = 'block';
             screens[screenName].classList.remove('hidden');
         }
+
+        // Show error message properly
+        if (connectErrorP && connectErrorP.textContent.trim()) {
+            connectErrorP.classList.remove('hidden');
+        }
+
         if (['lobbyConnect', 'waitingRoom', 'gameOver', 'auth'].includes(screenName)) {
-            if (userHasInteracted) playSound('menuMusic', true); // Only play if user has interacted
+            if (userHasInteracted) playSound('menuMusic', true);
         } else {
             stopSound('menuMusic');
         }
@@ -418,7 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sounds[soundName]) {
             sounds[soundName].loop = loop;
             sounds[soundName].currentTime = 0;
-            // Attempt to play, and catch errors (especially for autoplay)
             const playPromise = sounds[soundName].play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
@@ -461,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("Speech synthesis error:", e);
         }
     };
+
     if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = () => {
             window.speechSynthesis.getVoices();
@@ -476,19 +489,16 @@ document.addEventListener('DOMContentLoaded', () => {
         else globalNotificationDiv.classList.add('bg-blue-500');
 
         globalNotificationDiv.classList.remove('hidden');
-        globalNotificationDiv.style.display = 'block';
         setTimeout(() => {
             globalNotificationDiv.classList.add('hidden');
-            globalNotificationDiv.style.display = 'none';
         }, duration);
     };
 
     const updateMuteButton = () => {
         if (!muteToggleBtn) return;
-        muteToggleBtn.textContent = isMuted ? 'Unmute Sounds' : 'Mute Sounds';
+        muteToggleBtn.textContent = isMuted ? '🔊 Unmute Sounds' : '🔇 Mute Sounds';
         Object.values(sounds).forEach(sound => { if (sound) sound.muted = isMuted; });
     };
-
 
     // --- Firebase Initialization & Auth ---
     const initializeFirebase = () => {
@@ -528,16 +538,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        authLoadingDiv.style.display = 'block';
         authLoadingDiv.classList.remove('hidden');
-        authFormContainer.style.display = 'none';
         authFormContainer.classList.add('hidden');
-        authUserInfoDiv.style.display = 'none';
         authUserInfoDiv.classList.add('hidden');
 
-
         firebaseAuth.onAuthStateChanged(async user => {
-            authLoadingDiv.style.display = 'none';
             authLoadingDiv.classList.add('hidden');
             if (user) {
                 currentUser = user;
@@ -553,8 +558,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if(userIdDisplayFooter) userIdDisplayFooter.textContent = `UserID: ${user.uid}`;
 
-                    authFormContainer.style.display = 'none'; authFormContainer.classList.add('hidden');
-                    authUserInfoDiv.style.display = 'block'; authUserInfoDiv.classList.remove('hidden');
+                    authFormContainer.classList.add('hidden');
+                    authUserInfoDiv.classList.remove('hidden');
                     if(authErrorP) authErrorP.textContent = '';
 
                     if (socket && socket.connected) {
@@ -573,8 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(authErrorP) authErrorP.textContent = "Session error. Please try logging in again.";
                     currentUser = null;
                     idToken = null;
-                    authFormContainer.style.display = 'block'; authFormContainer.classList.remove('hidden');
-                    authUserInfoDiv.style.display = 'none'; authUserInfoDiv.classList.add('hidden');
+                    authFormContainer.classList.remove('hidden');
+                    authUserInfoDiv.classList.add('hidden');
                     if(playerNameInput) playerNameInput.disabled = false;
                 }
             } else {
@@ -585,8 +590,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(playerNameInput) playerNameInput.disabled = false;
                 if(userIdDisplayFooter) userIdDisplayFooter.textContent = `UserID: ${currentPlayerId} (Guest)`;
 
-                authFormContainer.style.display = 'block'; authFormContainer.classList.remove('hidden');
-                authUserInfoDiv.style.display = 'none'; authUserInfoDiv.classList.add('hidden');
+                authFormContainer.classList.remove('hidden');
+                authUserInfoDiv.classList.add('hidden');
                 if(authErrorP) authErrorP.textContent = '';
 
                 if (socket && socket.connected) {
@@ -670,7 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if(backToAuthBtn) backToAuthBtn.addEventListener('click', () => showScreen('auth'));
-
 
     // --- Socket.IO Connection & Event Handlers ---
     const initSocketConnection = () => {
@@ -781,7 +785,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         socket.on('joinLobbyError', (data) => {
-            if(connectErrorP) connectErrorP.textContent = data.message;
+            if(connectErrorP) {
+                connectErrorP.textContent = data.message;
+                connectErrorP.classList.remove('hidden');
+            }
             showGlobalNotification(data.message, 'error');
         });
 
@@ -793,20 +800,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if(playerListWaitingUl) playerListWaitingUl.innerHTML = '';
             lobbyData.players.forEach(player => {
                 const li = document.createElement('li');
+                li.className = 'player-list-item bg-slate-600 p-3 rounded-lg';
                 li.textContent = `${player.name} (Score: ${player.score || 0}, Streak: ${player.streak || 0})`;
-                li.classList.add('player-list-item', 'py-1');
+
                 if (player.id === lobbyData.hostId) {
-                    li.innerHTML += ' <span class="host-badge">Host</span>';
-                    li.classList.add('host');
+                    const hostBadge = document.createElement('span');
+                    hostBadge.className = 'inline-block ml-2 px-2 py-1 text-xs font-semibold bg-sky-500 text-white rounded-full';
+                    hostBadge.textContent = '👑 Host';
+                    li.appendChild(hostBadge);
                 }
+
                 if (player.id === currentPlayerId) {
-                    li.classList.add('current-user');
+                    li.classList.add('current-user', 'bg-lime-900', 'border', 'border-lime-500');
                     li.textContent += ' (You)';
                 }
+
                 if (player.disconnected) {
-                    li.innerHTML += ' <span class="disconnected-badge">Disconnected</span>';
-                    li.classList.add('text-slate-500', 'italic');
+                    const disconnectedBadge = document.createElement('span');
+                    disconnectedBadge.className = 'inline-block ml-2 px-2 py-1 text-xs font-semibold bg-slate-500 text-slate-300 rounded-full';
+                    disconnectedBadge.textContent = '💤 Disconnected';
+                    li.appendChild(disconnectedBadge);
+                    li.classList.add('opacity-50', 'italic');
                 }
+
                 if(playerListWaitingUl) playerListWaitingUl.appendChild(li);
             });
             if(playerCountSpan) playerCountSpan.textContent = lobbyData.players.filter(p => !p.disconnected).length;
@@ -859,16 +875,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if(quizCategoryDisplay) quizCategoryDisplay.textContent = data.category;
             if(answerFeedbackText) {
                 answerFeedbackText.textContent = '';
-                answerFeedbackText.className = 'text-center text-lg mb-3';
+                answerFeedbackText.className = 'text-center text-lg mb-4 min-h-[2rem]';
             }
 
             if(answerOptionsContainer) answerOptionsContainer.innerHTML = '';
-            data.options.forEach(option => {
+            data.options.forEach((option, index) => {
                 const button = document.createElement('button');
                 button.textContent = option;
-                // Apply base answer option button classes directly
-                button.className = 'w-full p-3 rounded-lg text-left transition-all duration-150 ease-in-out border-2 border-slate-600 hover:bg-slate-600';
-                button.style.backgroundColor = '#334155'; // slate-700
+                button.className = 'answer-option-btn';
+
+                // Add option letters (A, B, C, D)
+                const optionLetter = String.fromCharCode(65 + index); // A, B, C, D
+                button.innerHTML = `<span class="font-bold text-sky-300">${optionLetter}.</span> ${option}`;
 
                 button.onclick = () => {
                     if (button.classList.contains('disabled')) return;
@@ -879,12 +897,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         btn.disabled = true;
                     });
                     button.classList.add('selected');
-                    // Apply selected styles
-                    button.classList.add('ring-2', 'ring-sky-400', 'border-sky-400', 'bg-sky-700');
-                    button.style.backgroundColor = ''; // Clear direct style if Tailwind class handles it
 
                     socket.emit('submitAnswer', { lobbyId: currentLobbyId, questionIndex: currentQuestionIndex, answer: option });
-                    if(answerFeedbackText) answerFeedbackText.textContent = 'Answer submitted... Waiting for results.';
+                    if(answerFeedbackText) answerFeedbackText.textContent = '✅ Answer submitted... Waiting for results.';
                 };
                 if(answerOptionsContainer) answerOptionsContainer.appendChild(button);
             });
@@ -900,9 +915,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimerDisplay(data.timeLeft, questionData ? questionData.timeLimit : 20);
             if (data.timeLeft === 0 && !isGamePaused) {
                 playSound('timeup');
-                if(answerFeedbackText) answerFeedbackText.textContent = "Time's up!";
+                if(answerFeedbackText) answerFeedbackText.textContent = "⏰ Time's up!";
                 document.querySelectorAll('.answer-option-btn').forEach(btn => {
-                    btn.classList.add('disabled'); btn.disabled = true;
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
                 });
             }
         });
@@ -924,36 +940,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if(currentPlayerStreakQuiz) currentPlayerStreakQuiz.textContent = data.streak;
 
             document.querySelectorAll('.answer-option-btn').forEach(btn => {
-                // Clear previous direct styles and selection classes
-                btn.style.backgroundColor = '#334155'; // Reset to base slate-700
-                btn.classList.remove('selected', 'ring-2', 'ring-sky-400', 'border-sky-400', 'bg-sky-700', 'correct', 'incorrect', 'bg-green-600', 'border-green-500', 'bg-red-700', 'border-red-600', 'text-white');
+                btn.classList.remove('selected');
 
-
-                if (btn.textContent === data.yourAnswer) {
+                if (btn.textContent.includes(data.yourAnswer)) {
                     if (data.correct) {
-                        btn.classList.add('correct', 'bg-green-600', 'border-green-500', 'text-white');
-                        btn.style.backgroundColor = ''; // Let Tailwind class take over
+                        btn.classList.add('correct');
                     } else {
-                        btn.classList.add('incorrect', 'bg-red-700', 'border-red-600', 'text-white');
-                        btn.style.backgroundColor = ''; // Let Tailwind class take over
+                        btn.classList.add('incorrect');
                     }
                 }
                 btn.classList.add('disabled');
                 btn.disabled = true;
             });
 
-
             if (data.correct) {
                 if(answerFeedbackText) {
-                    answerFeedbackText.textContent = 'Richtig! (Correct!)';
-                    answerFeedbackText.className = 'text-center text-lg mb-3 text-green-400 font-semibold';
+                    answerFeedbackText.textContent = '✅ Richtig! (Correct!)';
+                    answerFeedbackText.className = 'text-center text-lg mb-4 text-green-400 font-semibold';
                 }
                 playSound('correct');
                 if (data.streak > 1) playSound('streak');
             } else {
                 if(answerFeedbackText) {
-                    answerFeedbackText.textContent = `Leider falsch! (Incorrect!) Correct was: ${data.correctAnswer}`;
-                    answerFeedbackText.className = 'text-center text-lg mb-3 text-red-400 font-semibold';
+                    answerFeedbackText.textContent = `❌ Leider falsch! Correct was: ${data.correctAnswer}`;
+                    answerFeedbackText.className = 'text-center text-lg mb-4 text-red-400 font-semibold';
                 }
                 playSound('incorrect');
             }
@@ -961,18 +971,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         socket.on('questionOver', (data) => {
             document.querySelectorAll('.answer-option-btn').forEach(btn => {
-                btn.classList.add('disabled'); btn.disabled = true;
-                btn.classList.remove('selected', 'ring-2', 'ring-sky-400', 'border-sky-400', 'bg-sky-700'); // Clear selection visual
-                btn.style.backgroundColor = '#334155'; // Reset to base
-                btn.classList.remove('correct', 'incorrect', 'bg-green-600', 'border-green-500', 'bg-red-700', 'border-red-600', 'text-white');
+                btn.classList.add('disabled');
+                btn.disabled = true;
+                btn.classList.remove('selected');
 
-
-                if (btn.textContent === data.correctAnswer) {
-                    btn.classList.add('correct', 'bg-green-600', 'border-green-500', 'text-white');
-                    btn.style.backgroundColor = ''; // Let Tailwind class take over
+                if (btn.textContent.includes(data.correctAnswer)) {
+                    btn.classList.add('correct');
                 } else {
-                    // Optionally mark other non-picked answers, or just leave them as base
-                    btn.classList.add('opacity-60'); // Dim unpicked, non-correct answers
+                    btn.classList.add('opacity-60');
                 }
             });
             speakText(`Die richtige Antwort war: ${data.correctAnswer}`);
@@ -994,8 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isGamePaused = true;
             if(gamePausedMessage) {
                 gamePausedMessage.classList.remove('hidden');
-                gamePausedMessage.style.display = 'block';
-                gamePausedMessage.textContent = `Game Paused. Time left: ${data.timeLeft}s`;
+                gamePausedMessage.textContent = `⏸️ Game Paused. Time left: ${data.timeLeft}s`;
             }
             if(timerDisplay) timerDisplay.classList.add('opacity-50');
             showGlobalNotification('Game Paused by Host', 'warning');
@@ -1006,7 +1011,6 @@ document.addEventListener('DOMContentLoaded', () => {
             isGamePaused = false;
             if(gamePausedMessage) {
                 gamePausedMessage.classList.add('hidden');
-                gamePausedMessage.style.display = 'none';
             }
             if(timerDisplay) {
                 timerDisplay.classList.remove('opacity-50');
@@ -1032,15 +1036,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if(playerListWaitingUl) playerListWaitingUl.innerHTML = '';
             data.players.forEach(player => {
                 const li = document.createElement('li');
+                li.className = 'player-list-item bg-slate-600 p-3 rounded-lg';
                 li.textContent = `${player.name} (Score: 0, Streak: 0)`;
-                li.classList.add('player-list-item', 'py-1'); // Base class
+
                 if (player.id === data.hostId) {
-                    li.innerHTML += ' <span class="inline-block ml-2 px-1.5 py-0.5 text-xs font-semibold bg-sky-500 text-white rounded-full">Host</span>'; // Direct Tailwind for badge
+                    const hostBadge = document.createElement('span');
+                    hostBadge.className = 'inline-block ml-2 px-2 py-1 text-xs font-semibold bg-sky-500 text-white rounded-full';
+                    hostBadge.textContent = '👑 Host';
+                    li.appendChild(hostBadge);
                 }
+
                 if (player.id === currentPlayerId) {
-                    li.classList.add('font-bold', 'text-lime-300'); // Current player highlight
+                    li.classList.add('current-user', 'bg-lime-900', 'border', 'border-lime-500');
                     li.textContent += ' (You)';
                 }
+
                 if(playerListWaitingUl) playerListWaitingUl.appendChild(li);
             });
             if(playerCountSpan) playerCountSpan.textContent = data.players.length;
@@ -1089,44 +1099,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-
     // --- UI Update Functions ---
     const updateWaitingRoomUI = () => {
-        if (!screens.waitingRoom || screens.waitingRoom.style.display === 'none') return; // Check direct style
+        if (!screens.waitingRoom || screens.waitingRoom.classList.contains('hidden')) return;
         if(currentPlayerIdDisplay) currentPlayerIdDisplay.textContent = currentPlayerId;
         if(currentPlayerNameDisplay) currentPlayerNameDisplay.textContent = currentPlayerName;
 
         const showHostControls = isHost;
         if(hostControlsWaitingDiv) {
-            hostControlsWaitingDiv.style.display = showHostControls ? 'block' : 'none';
             hostControlsWaitingDiv.classList.toggle('hidden', !showHostControls);
         }
         if(nonHostInfoWaitingDiv) {
-            nonHostInfoWaitingDiv.style.display = !showHostControls ? 'block' : 'none';
             nonHostInfoWaitingDiv.classList.toggle('hidden', showHostControls);
         }
 
         if (isHost && startGameBtn && categorySelect && playerListWaitingUl) {
-            const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('text-slate-500')).length;
+            const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('opacity-50')).length;
             startGameBtn.disabled = !categorySelect.value || activePlayerCount === 0;
         }
     };
 
     const updateQuizUI = () => {
-        if (!screens.quiz || screens.quiz.style.display === 'none') return; // Check direct style
+        if (!screens.quiz || screens.quiz.classList.contains('hidden')) return;
 
         const showHostControls = isHost;
         if(hostGameControlsQuizDiv) {
-            hostGameControlsQuizDiv.style.display = showHostControls ? 'flex' : 'none'; // Assuming it's a flex container
             hostGameControlsQuizDiv.classList.toggle('hidden', !showHostControls);
         }
 
         if (isHost && pauseGameBtn) {
-            pauseGameBtn.textContent = isGamePaused ? 'Resume' : 'Pause';
+            pauseGameBtn.innerHTML = isGamePaused ? '▶️ Resume' : '⏸️ Pause';
         }
 
         if(gamePausedMessage) {
-            gamePausedMessage.style.display = isGamePaused ? 'block' : 'none';
             gamePausedMessage.classList.toggle('hidden', !isGamePaused);
         }
         if(answerOptionsContainer) answerOptionsContainer.classList.toggle('opacity-50', isGamePaused);
@@ -1163,22 +1168,31 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .sort((a, b) => b.score - a.score);
 
-        sortedPlayers.forEach(player => {
+        sortedPlayers.forEach((player, index) => {
             const li = document.createElement('li');
-            li.textContent = `${player.name}: ${player.score} (Streak: ${player.streak})`;
+            li.className = 'p-2 bg-slate-600 rounded';
+
+            let rank = '';
+            if (index === 0) rank = '🥇 ';
+            else if (index === 1) rank = '🥈 ';
+            else if (index === 2) rank = '🥉 ';
+            else rank = `${index + 1}. `;
+
+            li.textContent = `${rank}${player.name}: ${player.score} (Streak: ${player.streak})`;
             if (player.id === currentPlayerId) {
-                li.classList.add('font-bold', 'text-lime-300');
+                li.classList.add('font-bold', 'text-lime-300', 'bg-lime-900', 'border', 'border-lime-500');
             }
             liveScoresListUl.appendChild(li);
         });
     };
-
 
     const updateGameOverUI = (finalScores) => {
         if(!finalScoresListUl) return;
         finalScoresListUl.innerHTML = '';
         finalScores.forEach((player, index) => {
             const li = document.createElement('li');
+            li.className = 'p-3 bg-slate-600 rounded-lg';
+
             let medal = '';
             if (index === 0) medal = '<span class="medal-gold" role="img" aria-label="Gold Medal">🥇</span> ';
             else if (index === 1) medal = '<span class="medal-silver" role="img" aria-label="Silver Medal">🥈</span> ';
@@ -1186,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             li.innerHTML = `${medal}${player.name}: ${player.score} points`;
             if (player.id === currentPlayerId) {
-                li.classList.add('font-bold', 'text-lime-300');
+                li.classList.add('font-bold', 'text-lime-300', 'bg-lime-900', 'border', 'border-lime-500');
                 li.innerHTML += ' (You)';
                 if(submitHallOfFameBtn) {
                     submitHallOfFameBtn.disabled = !(player.score > 0 && currentUser);
@@ -1202,18 +1216,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const showHostControls = isHost;
         if(gameOverHostControlsDiv) {
-            gameOverHostControlsDiv.style.display = showHostControls ? 'block' : 'none';
             gameOverHostControlsDiv.classList.toggle('hidden', !showHostControls);
         }
         if(gameOverNonHostMsgDiv) {
-            gameOverNonHostMsgDiv.style.display = !showHostControls ? 'block' : 'none';
             gameOverNonHostMsgDiv.classList.toggle('hidden', showHostControls);
         }
         if (submitHallOfFameBtn && !currentUser) {
             submitHallOfFameBtn.disabled = true;
         }
     };
-
 
     // --- Event Listeners ---
     if(playerNameInput) playerNameInput.addEventListener('input', (e) => {
@@ -1227,6 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
     if(lobbyIdInput) lobbyIdInput.addEventListener('input', (e) => e.target.value = e.target.value.toUpperCase());
 
     if(createLobbyBtn) createLobbyBtn.addEventListener('click', () => {
@@ -1236,10 +1248,16 @@ document.addEventListener('DOMContentLoaded', () => {
             initSocketConnection();
             return;
         }
-        if(connectErrorP) connectErrorP.textContent = '';
+        if(connectErrorP) {
+            connectErrorP.textContent = '';
+            connectErrorP.classList.add('hidden');
+        }
         const nameToSend = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : (playerNameInput ? playerNameInput.value : '');
         if (!nameToSend && !currentUser) {
-            if(connectErrorP) connectErrorP.textContent = 'Please enter your name.';
+            if(connectErrorP) {
+                connectErrorP.textContent = 'Please enter your name.';
+                connectErrorP.classList.remove('hidden');
+            }
             return;
         }
         socket.emit('createLobby', { playerName: nameToSend });
@@ -1254,13 +1272,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const lobbyId = lobbyIdInput ? lobbyIdInput.value.trim() : '';
         if (!lobbyId) {
-            if(connectErrorP) connectErrorP.textContent = 'Please enter a Lobby ID.';
+            if(connectErrorP) {
+                connectErrorP.textContent = 'Please enter a Lobby ID.';
+                connectErrorP.classList.remove('hidden');
+            }
             return;
         }
-        if(connectErrorP) connectErrorP.textContent = '';
+        if(connectErrorP) {
+            connectErrorP.textContent = '';
+            connectErrorP.classList.add('hidden');
+        }
         const nameToSend = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : (playerNameInput ? playerNameInput.value : '');
         if (!nameToSend && !currentUser) {
-            if(connectErrorP) connectErrorP.textContent = 'Please enter your name to join as guest.';
+            if(connectErrorP) {
+                connectErrorP.textContent = 'Please enter your name to join as guest.';
+                connectErrorP.classList.remove('hidden');
+            }
             return;
         }
         socket.emit('joinLobby', { lobbyId, playerName: nameToSend });
@@ -1295,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedCat) {
                 socket.emit('hostSelectedCategory', { lobbyId: currentLobbyId, category: selectedCat });
                 if(startGameBtn && playerListWaitingUl) {
-                    const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('text-slate-500')).length;
+                    const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('opacity-50')).length;
                     startGameBtn.disabled = activePlayerCount === 0;
                 }
                 if(startGameErrorP) startGameErrorP.textContent = '';
@@ -1310,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isHost && currentLobbyId && categorySelect && categorySelect.value && socket) {
             if(startGameErrorP) startGameErrorP.textContent = '';
             if(playerListWaitingUl) {
-                const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('text-slate-500')).length;
+                const activePlayerCount = Array.from(playerListWaitingUl.children).filter(li => !li.classList.contains('opacity-50')).length;
                 if (activePlayerCount === 0) {
                     if(startGameErrorP) startGameErrorP.textContent = 'Cannot start with 0 players.';
                     return;
@@ -1409,14 +1436,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
     // --- Initial Setup ---
     const fetchCategories = async () => {
         try {
-            // Ensure the path is correct for your setup
-            // The console log indicates a 404 for /game/api/categories.
-            // This path needs to be correctly served by your game server.
-            console.log("Attempting to fetch categories from: /game/api/categories. Ensure this endpoint is correctly set up on your server.");
+            console.log("Fetching categories from: /game/api/categories");
             const response = await fetch('/game/api/categories');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}, Path: /game/api/categories`);
@@ -1428,9 +1451,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 availableCategories.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat;
-                    option.textContent = cat;
+                    option.textContent = `📚 ${cat}`;
                     categorySelect.appendChild(option);
                 });
+                console.log("Categories loaded:", availableCategories);
             }
         } catch (error) {
             console.error("Failed to fetch categories:", error);
@@ -1439,22 +1463,20 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Final Initialization Calls ---
-    // Attempt to initialize Firebase after a short delay to ensure SDKs might be ready
     setTimeout(() => {
         if (typeof firebase !== 'undefined' &&
             typeof firebase.initializeApp === 'function' &&
-            typeof firebase.auth === 'function' && // Add checks for specific services
+            typeof firebase.auth === 'function' &&
             typeof firebase.firestore === 'function') {
             initializeFirebase();
         } else {
-            console.error("CRITICAL: Firebase SDK (or core methods like initializeApp, auth, firestore) not loaded after delay. Cannot initialize application.");
+            console.error("CRITICAL: Firebase SDK not loaded after delay. Cannot initialize application.");
             showGlobalNotification("Error: Core libraries not loaded. App cannot start.", "error", 10000);
             const appContainer = document.getElementById('app-container');
             if(appContainer) appContainer.innerHTML = "<p style='color:red; text-align:center; padding:20px;'>Failed to load critical application components. Please refresh the page or check your internet connection and ensure browser extensions like AdBlockers are not interfering.</p>";
         }
-    }, 250); // Increased delay slightly to 250ms
+    }, 250);
 
     updateMuteButton();
-    showScreen('auth'); // This will now use direct style manipulation
-
+    showScreen('auth');
 });

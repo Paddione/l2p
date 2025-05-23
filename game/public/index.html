@@ -1,8 +1,335 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-    <meta charset="UTF-UTF-8"> </head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-Time Quiz Game - Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
+    <meta name="keywords" content="Quiz, Game, Realtime, Multiplayer, Trivia, German">
+    <meta name="author" content="Quiz Game Team">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://game.korczewski.de/">
+    <meta property="og:title" content="Real-Time Quiz Game">
+    <meta property="og:description" content="Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
+    <meta property="og:image" content="/favicon-192x192.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://game.korczewski.de/">
+    <meta property="twitter:title" content="Real-Time Quiz Game">
+    <meta property="twitter:description" content="Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
+    <meta property="twitter:image" content="/favicon-192x192.png">
+
+    <title>Real-Time Quiz Game - Spielen Sie mit Freunden!</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Styles -->
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "Real-Time Quiz Game",
+        "description": "Interaktives Multiplayer-Quiz-Spiel in Echtzeit",
+        "url": "https://game.korczewski.de/",
+        "genre": "Quiz Game",
+        "numberOfPlayers": "1-10",
+        "playMode": "MultiPlayer",
+        "applicationCategory": "Game"
+    }
+    </script>
+
+    <!-- Performance hints -->
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+
+    <!-- Service Worker registration -->
+    <script>
+        // Register service worker for offline functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+
+    <style>
+        /* Critical CSS for faster loading */
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .loading-progress {
+            margin-top: 10px;
+            width: 200px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            background: #3b82f6;
+            width: 0%;
+            animation: progress 3s ease-in-out forwards;
+        }
+
+        @keyframes progress {
+            to { width: 100%; }
+        }
+
+        /* Hide content initially */
+        #app-container {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loaded #app-container {
+            opacity: 1;
+        }
+
+        .loaded .loading-screen {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
 <body>
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+    <div class="text-6xl mb-4">🎮</div>
+    <h1 class="text-3xl font-bold mb-4">Quiz Game</h1>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Spiel wird geladen...</div>
+    <div class="loading-progress">
+        <div class="loading-progress-bar"></div>
+    </div>
+    <div class="mt-6 text-sm text-slate-400 text-center max-w-md">
+        <p>🧠 Testen Sie Ihr Wissen in verschiedenen Kategorien</p>
+        <p>👥 Spielen Sie mit bis zu 10 Freunden gleichzeitig</p>
+        <p>⚡ Echzeit-Multiplayer-Erlebnis</p>
+    </div>
+</div>
+
+<!-- Main App Container (populated by JavaScript) -->
+<div id="app-container"></div>
+
+<!-- Audio preloading (optional - sounds will be loaded by JS) -->
+<div style="display: none;" aria-hidden="true">
+    <!-- Preload critical audio files -->
+    <audio preload="metadata" id="preload-click" src="assets/sounds/click.mp3"></audio>
+    <audio preload="metadata" id="preload-correct" src="assets/sounds/correctanswer.mp3"></audio>
+    <audio preload="metadata" id="preload-incorrect" src="assets/sounds/incorrectanswer.mp3"></audio>
+</div>
+
+<!-- Scripts - loaded asynchronously for better performance -->
+<script>
+    // Global error handler
+    window.addEventListener('error', (event) => {
+        console.error('Global error:', event.error);
+        // Could send error to logging service here
+    });
+
+    // Performance monitoring
+    window.addEventListener('load', () => {
+        if (window.performance) {
+            const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+            console.log('Page load time:', loadTime + 'ms');
+        }
+    });
+
+    // Loading progress simulation
+    let loadingProgress = 0;
+    const loadingInterval = setInterval(() => {
+        loadingProgress += Math.random() * 15;
+        if (loadingProgress >= 100) {
+            loadingProgress = 100;
+            clearInterval(loadingInterval);
+        }
+        const progressBar = document.querySelector('.loading-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = loadingProgress + '%';
+        }
+    }, 100);
+
+    // Hide loading screen when everything is ready
+    function hideLoadingScreen() {
+        document.body.classList.add('loaded');
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+        }, 300);
+    }
+
+    // Configuration injection point (will be replaced by server)
+    // window.CONFIG will be injected here by the server
+</script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- Socket.IO -->
+<script src="/game/socket.io/socket.io.js"></script>
+
+<!-- Main Application Script -->
 <script src="main.js"></script>
+
+<!-- Analytics (optional) -->
+<script>
+    // Basic analytics tracking
+    if (typeof gtag !== 'undefined') {
+        gtag('config', 'GA_MEASUREMENT_ID', {
+            page_title: 'Quiz Game',
+            page_location: window.location.href
+        });
+    }
+</script>
+
+<!-- Cleanup and finalization -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Hide loading screen after a minimum display time
+        setTimeout(hideLoadingScreen, 2000);
+
+        // Prefetch important resources
+        const prefetchLinks = [
+            '/assets/sounds/click.mp3',
+            '/assets/sounds/correctanswer.mp3',
+            '/assets/sounds/incorrectanswer.mp3'
+        ];
+
+        prefetchLinks.forEach(url => {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = url;
+            document.head.appendChild(link);
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+/ or Cmd+/ for help
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+            e.preventDefault();
+            console.log('Keyboard shortcuts:\n- Space: Pause/Resume (Host only)\n- Ctrl+/: Show this help');
+        }
+    });
+
+    // Accessibility improvements
+    document.addEventListener('keydown', (e) => {
+        // Escape key to close modals/notifications
+        if (e.key === 'Escape') {
+            const notification = document.getElementById('global-notification');
+            if (notification && !notification.classList.contains('hidden')) {
+                notification.classList.add('hidden');
+            }
+        }
+    });
+
+    // Device orientation handling for mobile
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            window.scrollTo(0, 0);
+        }, 100);
+    });
+
+    // Prevent zoom on double tap (iOS Safari)
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (event) => {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, false);
+
+    // Custom cursor for interactive elements
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.matches('button, .btn, [role="button"]')) {
+            e.target.style.cursor = 'pointer';
+        }
+    });
+</script>
+
+<!-- Error fallback -->
+<noscript>
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; text-align: center; font-family: Arial, sans-serif;">
+        <div>
+            <h1 style="font-size: 2rem; margin-bottom: 1rem;">🎮 Quiz Game</h1>
+            <p>JavaScript ist erforderlich, um dieses Spiel zu spielen.</p>
+            <p>Bitte aktivieren Sie JavaScript in Ihrem Browser.</p>
+        </div>
+    </div>
+</noscript>
 </body>
 </html>
