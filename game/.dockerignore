@@ -1,0 +1,9 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!service-account.json # If it's meant to be copied and not in .gitignore
+.git
+.gitignore
+Dockerfile.txt # Or Dockerfile if renamed
+README.md
