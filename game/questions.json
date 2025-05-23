@@ -1,59 +1,572 @@
 {
   "categories": [
     {
-      "name": "General Knowledge",
+      "name": "Allgemeinwissen",
       "questions": [
         {
-          "text": "What is the capital of France?",
-          "options": ["Berlin", "Madrid", "Paris", "Rome"],
-          "answer": "Paris",
-          "timeLimit": 20
+          "text": "Welches ist das größte Land der Welt nach Fläche?",
+          "options": ["China", "Russland", "USA", "Kanada"],
+          "answer": "Russland",
+          "timeLimit": 60
         },
         {
-          "text": "Which planet is known as the Red Planet?",
-          "options": ["Earth", "Mars", "Jupiter", "Saturn"],
-          "answer": "Mars",
-          "timeLimit": 20
+          "text": "In welchem Jahr fiel die Berliner Mauer?",
+          "options": ["1987", "1989", "1991", "1993"],
+          "answer": "1989",
+          "timeLimit": 60
         },
         {
-          "text": "Who wrote 'Hamlet'?",
-          "options": ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"],
+          "text": "Welcher Planet ist der Sonne am nächsten?",
+          "options": ["Venus", "Merkur", "Erde", "Mars"],
+          "answer": "Merkur",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Kontinente gibt es auf der Erde?",
+          "options": ["5", "6", "7", "8"],
+          "answer": "7",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches chemische Element hat das Symbol 'Au'?",
+          "options": ["Silber", "Gold", "Aluminium", "Argon"],
+          "answer": "Gold",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer malte die Mona Lisa?",
+          "options": ["Michelangelo", "Raphael", "Leonardo da Vinci", "Donatello"],
+          "answer": "Leonardo da Vinci",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches ist das kleinste Land der Welt?",
+          "options": ["Monaco", "Nauru", "Vatikanstadt", "San Marino"],
+          "answer": "Vatikanstadt",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welcher Stadt steht die Freiheitsstatue?",
+          "options": ["Boston", "Philadelphia", "Washington D.C.", "New York"],
+          "answer": "New York",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Organ des menschlichen Körpers produziert Insulin?",
+          "options": ["Leber", "Nieren", "Bauchspeicheldrüse", "Magen"],
+          "answer": "Bauchspeicheldrüse",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Ozean ist der größte?",
+          "options": ["Atlantischer Ozean", "Indischer Ozean", "Pazifischer Ozean", "Arktischer Ozean"],
+          "answer": "Pazifischer Ozean",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Herzen hat ein Oktopus?",
+          "options": ["1", "2", "3", "4"],
+          "answer": "3",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Währung wird in Japan verwendet?",
+          "options": ["Won", "Yuan", "Yen", "Dong"],
+          "answer": "Yen",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer schrieb 'Romeo und Julia'?",
+          "options": ["Charles Dickens", "William Shakespeare", "Mark Twain", "Oscar Wilde"],
           "answer": "William Shakespeare",
-          "timeLimit": 25
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches ist das härteste natürliche Mineral?",
+          "options": ["Quartz", "Rubin", "Diamant", "Saphir"],
+          "answer": "Diamant",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr wurde die erste Mondlandung durchgeführt?",
+          "options": ["1967", "1969", "1971", "1973"],
+          "answer": "1969",
+          "timeLimit": 60
         }
       ]
     },
     {
-      "name": "Science",
+      "name": "Wissenschaft",
       "questions": [
         {
-          "text": "What is the chemical symbol for water?",
-          "options": ["O2", "H2O", "CO2", "NaCl"],
+          "text": "Was ist die chemische Formel für Wasser?",
+          "options": ["H2O", "CO2", "NaCl", "CH4"],
           "answer": "H2O",
-          "timeLimit": 15
+          "timeLimit": 60
         },
         {
-          "text": "What force keeps planets in orbit around the Sun?",
-          "options": ["Magnetism", "Gravity", "Friction", "Tension"],
-          "answer": "Gravity",
-          "timeLimit": 20
+          "text": "Welche Kraft hält die Planeten in ihrer Umlaufbahn um die Sonne?",
+          "options": ["Magnetismus", "Schwerkraft", "Zentrifugalkraft", "Elektromagnetismus"],
+          "answer": "Schwerkraft",
+          "timeLimit": 60
+        },
+        {
+          "text": "Bei welcher Temperatur gefriert Wasser bei Normaldruck?",
+          "options": ["-10°C", "0°C", "10°C", "32°C"],
+          "answer": "0°C",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Gas macht den größten Teil der Erdatmosphäre aus?",
+          "options": ["Sauerstoff", "Kohlendioxid", "Stickstoff", "Argon"],
+          "answer": "Stickstoff",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Chromosomen hat ein normaler Mensch?",
+          "options": ["23", "42", "46", "48"],
+          "answer": "46",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist die Lichtgeschwindigkeit im Vakuum?",
+          "options": ["300.000 km/s", "150.000 km/s", "600.000 km/s", "299.792.458 m/s"],
+          "answer": "299.792.458 m/s",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Element hat die Ordnungszahl 1 im Periodensystem?",
+          "options": ["Helium", "Wasserstoff", "Lithium", "Kohlenstoff"],
+          "answer": "Wasserstoff",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist der pH-Wert von reinem Wasser?",
+          "options": ["6", "7", "8", "9"],
+          "answer": "7",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Wissenschaftler entwickelte die Relativitätstheorie?",
+          "options": ["Isaac Newton", "Albert Einstein", "Galileo Galilei", "Stephen Hawking"],
+          "answer": "Albert Einstein",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist die kleinste Einheit der Materie?",
+          "options": ["Molekül", "Atom", "Elektron", "Quark"],
+          "answer": "Atom",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Organ ist für die Produktion von roten Blutkörperchen verantwortlich?",
+          "options": ["Leber", "Nieren", "Knochenmark", "Milz"],
+          "answer": "Knochenmark",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie nennt man den Prozess, bei dem Pflanzen Licht in Energie umwandeln?",
+          "options": ["Respiration", "Photosynthese", "Osmose", "Diffusion"],
+          "answer": "Photosynthese",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Planet hat die meisten Monde?",
+          "options": ["Jupiter", "Saturn", "Uranus", "Neptun"],
+          "answer": "Saturn",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was misst ein Seismograph?",
+          "options": ["Luftdruck", "Erdbeben", "Temperatur", "Feuchtigkeit"],
+          "answer": "Erdbeben",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Art von Strahlung wird bei Röntgenaufnahmen verwendet?",
+          "options": ["Alpha-Strahlung", "Beta-Strahlung", "Gamma-Strahlung", "Röntgenstrahlung"],
+          "answer": "Röntgenstrahlung",
+          "timeLimit": 60
         }
       ]
     },
     {
-      "name": "History",
+      "name": "Geschichte",
       "questions": [
         {
-          "text": "In what year did World War II end?",
-          "options": ["1942", "1945", "1950", "1939"],
-          "answer": "1945",
-          "timeLimit": 20
+          "text": "Wer war der erste Kaiser des Römischen Reiches?",
+          "options": ["Julius Caesar", "Augustus", "Nero", "Caligula"],
+          "answer": "Augustus",
+          "timeLimit": 60
         },
         {
-          "text": "Who was the first President of the United States?",
-          "options": ["Abraham Lincoln", "Thomas Jefferson", "George Washington", "John Adams"],
+          "text": "In welchem Jahr begann der Erste Weltkrieg?",
+          "options": ["1912", "1914", "1916", "1918"],
+          "answer": "1914",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche antike Zivilisation baute Machu Picchu?",
+          "options": ["Azteken", "Maya", "Inka", "Olmeken"],
+          "answer": "Inka",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer war der erste Präsident der Vereinigten Staaten?",
+          "options": ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
           "answer": "George Washington",
-          "timeLimit": 20
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr endete der Zweite Weltkrieg?",
+          "options": ["1944", "1945", "1946", "1947"],
+          "answer": "1945",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche ägyptische Königin war mit Julius Caesar und Marcus Antonius verbündet?",
+          "options": ["Nofretete", "Hatschepsut", "Kleopatra", "Ankhesenamun"],
+          "answer": "Kleopatra",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer führte die Oktoberrevolution in Russland an?",
+          "options": ["Josef Stalin", "Leo Trotzki", "Wladimir Lenin", "Nikolaus II."],
+          "answer": "Wladimir Lenin",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr wurde die DDR gegründet?",
+          "options": ["1947", "1949", "1951", "1953"],
+          "answer": "1949",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Ereignis löste den Ersten Weltkrieg aus?",
+          "options": ["Invasion Belgiens", "Attentat von Sarajevo", "Versenkung der Lusitania", "Russische Revolution"],
+          "answer": "Attentat von Sarajevo",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer war der letzte Kaiser von Deutschland?",
+          "options": ["Wilhelm I.", "Wilhelm II.", "Friedrich III.", "Otto von Bismarck"],
+          "answer": "Wilhelm II.",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr wurde die Weimarer Republik ausgerufen?",
+          "options": ["1917", "1918", "1919", "1920"],
+          "answer": "1918",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Stadt war die Hauptstadt des Byzantinischen Reiches?",
+          "options": ["Rom", "Athen", "Alexandria", "Konstantinopel"],
+          "answer": "Konstantinopel",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wer schrieb das 'Kommunistische Manifest'?",
+          "options": ["Lenin", "Marx und Engels", "Stalin", "Trotzki"],
+          "answer": "Marx und Engels",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr fand die Französische Revolution statt?",
+          "options": ["1789", "1791", "1793", "1795"],
+          "answer": "1789",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Vertrag beendete den Ersten Weltkrieg?",
+          "options": ["Vertrag von Versailles", "Vertrag von Trianon", "Vertrag von St. Germain", "Vertrag von Sèvres"],
+          "answer": "Vertrag von Versailles",
+          "timeLimit": 60
+        }
+      ]
+    },
+    {
+      "name": "Geographie",
+      "questions": [
+        {
+          "text": "Welche ist die längste Fluss der Welt?",
+          "options": ["Amazon", "Nil", "Jangtse", "Mississippi"],
+          "answer": "Nil",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Berg ist der höchste der Welt?",
+          "options": ["K2", "Mount Everest", "Kangchendzönga", "Lhotse"],
+          "answer": "Mount Everest",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches ist das bevölkerungsreichste Land der Welt?",
+          "options": ["Indien", "China", "USA", "Indonesien"],
+          "answer": "China",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Land liegt die Wüste Sahara hauptsächlich?",
+          "options": ["Ägypten", "Libyen", "Algerien", "Mehrere nordafrikanische Länder"],
+          "answer": "Mehrere nordafrikanische Länder",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Hauptstadt hat Australien?",
+          "options": ["Sydney", "Melbourne", "Canberra", "Perth"],
+          "answer": "Canberra",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land hat die meisten Zeitzonen?",
+          "options": ["USA", "Russland", "China", "Kanada"],
+          "answer": "Russland",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher See ist der tiefste der Welt?",
+          "options": ["Kaspisches Meer", "Baikalsee", "Tanganjikasee", "Totes Meer"],
+          "answer": "Baikalsee",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land liegt sowohl in Europa als auch in Asien?",
+          "options": ["Türkei", "Russland", "Kasachstan", "Alle genannten"],
+          "answer": "Alle genannten",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Insel ist die größte der Welt?",
+          "options": ["Grönland", "Neuguinea", "Borneo", "Madagaskar"],
+          "answer": "Grönland",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Kontinent hat die meisten Länder?",
+          "options": ["Asien", "Europa", "Afrika", "Südamerika"],
+          "answer": "Afrika",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land hat die längste Küstenlinie?",
+          "options": ["Russland", "Kanada", "Norwegen", "Chile"],
+          "answer": "Kanada",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Gebirge liegt der Mount Everest?",
+          "options": ["Himalaya", "Karakorum", "Hindu Kusch", "Anden"],
+          "answer": "Himalaya",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches ist das trockenste Nicht-Polar-Gebiet der Welt?",
+          "options": ["Sahara", "Atacama-Wüste", "Gobi-Wüste", "Kalahari"],
+          "answer": "Atacama-Wüste",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Straße verbindet Europa und Asien?",
+          "options": ["Suez-Kanal", "Bosporus", "Gibraltar", "Dardanellen"],
+          "answer": "Bosporus",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land liegt zwischen Deutschland und Polen?",
+          "options": ["Tschechien", "Slowakei", "Keines", "Österreich"],
+          "answer": "Keines",
+          "timeLimit": 60
+        }
+      ]
+    },
+    {
+      "name": "Sport",
+      "questions": [
+        {
+          "text": "Wie oft finden die Olympischen Sommerspiele statt?",
+          "options": ["Alle 2 Jahre", "Alle 4 Jahre", "Alle 6 Jahre", "Alle 8 Jahre"],
+          "answer": "Alle 4 Jahre",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Fußballverein hat die meisten Champions League Titel gewonnen?",
+          "options": ["FC Barcelona", "Real Madrid", "AC Milan", "Bayern München"],
+          "answer": "Real Madrid",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welcher Sportart ist Tiger Woods bekannt?",
+          "options": ["Tennis", "Golf", "Basketball", "Baseball"],
+          "answer": "Golf",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Spieler sind in einer Basketballmannschaft auf dem Feld?",
+          "options": ["4", "5", "6", "7"],
+          "answer": "5",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land gewann die FIFA-Weltmeisterschaft 2018?",
+          "options": ["Deutschland", "Brasilien", "Frankreich", "Argentinien"],
+          "answer": "Frankreich",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie lang ist ein Marathon?",
+          "options": ["40,2 km", "42,195 km", "45 km", "50 km"],
+          "answer": "42,195 km",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welcher Sportart gibt es einen 'Slam Dunk'?",
+          "options": ["Volleyball", "Basketball", "Handball", "Tennis"],
+          "answer": "Basketball",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher deutsche Fußballverein wird 'Der BVB' genannt?",
+          "options": ["Bayern München", "Borussia Dortmund", "Schalke 04", "Bayer Leverkusen"],
+          "answer": "Borussia Dortmund",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Grand Slam Turniere gibt es im Tennis?",
+          "options": ["3", "4", "5", "6"],
+          "answer": "4",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Farbe hat das Trikot des Führenden bei der Tour de France?",
+          "options": ["Grün", "Gelb", "Rot", "Blau"],
+          "answer": "Gelb",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welcher Sportart gibt es eine 'Butterfly'-Technik?",
+          "options": ["Schwimmen", "Turnen", "Eiskunstlauf", "Gymnastik"],
+          "answer": "Schwimmen",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie heißt der höchste Rang im Judo?",
+          "options": ["9. Dan", "10. Dan", "12. Dan", "Unbegrenzt"],
+          "answer": "10. Dan",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Land hat die meisten Olympischen Goldmedaillen gewonnen?",
+          "options": ["Sowjetunion", "Deutschland", "USA", "China"],
+          "answer": "USA",
+          "timeLimit": 60
+        },
+        {
+          "text": "Wie viele Punkte gibt es für einen Touchdown im American Football?",
+          "options": ["3", "6", "7", "8"],
+          "answer": "6",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welcher Boxer war als 'The Greatest' bekannt?",
+          "options": ["Mike Tyson", "Muhammad Ali", "George Foreman", "Joe Frazier"],
+          "answer": "Muhammad Ali",
+          "timeLimit": 60
+        }
+      ]
+    },
+    {
+      "name": "Technologie",
+      "questions": [
+        {
+          "text": "Wer gründete Microsoft?",
+          "options": ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Larry Page"],
+          "answer": "Bill Gates",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was bedeutet 'WWW' im Internet?",
+          "options": ["World Wide Web", "World Wide Window", "World Wide Work", "World Wide Way"],
+          "answer": "World Wide Web",
+          "timeLimit": 60
+        },
+        {
+          "text": "In welchem Jahr wurde das iPhone erstmals veröffentlicht?",
+          "options": ["2005", "2006", "2007", "2008"],
+          "answer": "2007",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist HTML?",
+          "options": ["Eine Programmiersprache", "Eine Markup-Sprache", "Ein Betriebssystem", "Eine Datenbank"],
+          "answer": "Eine Markup-Sprache",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Unternehmen entwickelte das Android-Betriebssystem?",
+          "options": ["Apple", "Microsoft", "Google", "Samsung"],
+          "answer": "Google",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist die Hauptfunktion einer CPU?",
+          "options": ["Daten speichern", "Berechnungen durchführen", "Internet bereitstellen", "Grafiken rendern"],
+          "answer": "Berechnungen durchführen",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Programmiersprache wird hauptsächlich für Webentwicklung verwendet?",
+          "options": ["C++", "Java", "JavaScript", "Python"],
+          "answer": "JavaScript",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was bedeutet 'AI' in der Technologie?",
+          "options": ["Artificial Intelligence", "Automated Interface", "Advanced Internet", "Application Integration"],
+          "answer": "Artificial Intelligence",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Unternehmen stellte den ersten kommerziellen Computer her?",
+          "options": ["IBM", "Apple", "UNIVAC", "Intel"],
+          "answer": "UNIVAC",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist Bitcoin?",
+          "options": ["Eine Kreditkarte", "Eine Kryptowährung", "Eine Bank", "Ein Computerspiel"],
+          "answer": "Eine Kryptowährung",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches soziale Netzwerk wurde von Mark Zuckerberg gegründet?",
+          "options": ["Twitter", "LinkedIn", "Facebook", "Instagram"],
+          "answer": "Facebook",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist Cloud Computing?",
+          "options": ["Wettervorhersage", "Internetbasierte Datenverarbeitung", "Computerspiele", "Softwareentwicklung"],
+          "answer": "Internetbasierte Datenverarbeitung",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welche Technologie wird für bargeldlose Zahlungen mit dem Smartphone verwendet?",
+          "options": ["Bluetooth", "WiFi", "NFC", "GPS"],
+          "answer": "NFC",
+          "timeLimit": 60
+        },
+        {
+          "text": "Was ist ein Algorithmus?",
+          "options": ["Ein Computer", "Eine Schritt-für-Schritt-Anleitung", "Eine Website", "Ein Programm"],
+          "answer": "Eine Schritt-für-Schritt-Anleitung",
+          "timeLimit": 60
+        },
+        {
+          "text": "Welches Unternehmen entwickelte die erste Maus für Computer?",
+          "options": ["IBM", "Apple", "SRI International", "Microsoft"],
+          "answer": "SRI International",
+          "timeLimit": 60
         }
       ]
     }
@@ -61,10 +574,10 @@
   "fallbackQuestions": [
     {
       "category": "Fallback",
-      "text": "What is 2 + 2?",
+      "text": "Was ist 2 + 2?",
       "options": ["3", "4", "5", "6"],
       "answer": "4",
-      "timeLimit": 10
+      "timeLimit": 60
     }
   ]
 }

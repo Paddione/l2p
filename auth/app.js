@@ -5,12 +5,12 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const cookieParser = require('cookie-parser'); // Require cookie-parser
-const csurf = require('csurf'); // Require csurf
+const cookieParser = require('cookie-parser');
+const csurf = require('csurf');
 const helmet = require('helmet');
-const path = require('path'); // For serving static files
+const path = require('path');
 
-const { db, auth: adminAuth, admin } = require('./firebaseAdmin'); // Firebase Admin SDK
+const { db, auth: adminAuth, admin } = require('./firebaseAdmin');
 const hallOfFameRoutes = require('./routes/hallOfFame');
 
 const app = express();
@@ -41,7 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const corsOptions = {
     origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
         if (corsOrigins.indexOf(origin) === -1) {
             const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
             return callback(new Error(msg), false);
@@ -54,14 +54,12 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Use cookie-parser BEFORE session and csurf
 app.use(cookieParser());
 
 app.use(
     session({
-        name: (process.env.SESSION_COOKIE_NAME || '_app_session'), // Using a distinct name for the session cookie
-        secret: process.env.SESSION_SECRET || 'fallback_secret_auth_super_secure_!@#', // IMPORTANT: Ensure SESSION_SECRET is set in .env.auth
+        name: (process.env.SESSION_COOKIE_NAME || '_app_session'),
+        secret: process.env.SESSION_SECRET || 'fallback_secret_auth_super_secure_!@#',
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -73,24 +71,22 @@ app.use(
     })
 );
 
-// Initialize csurf middleware AFTER cookieParser and session
 const csrfProtection = csurf({
-    cookie: { // This configures csurf to store its secret in a cookie
-        key: process.env.CSRF_SECRET_COOKIE_NAME || '_csrf_secret', // Using a distinct name for the CSRF secret cookie
+    cookie: {
+        key: process.env.CSRF_SECRET_COOKIE_NAME || '_csrf_secret',
         sameSite: 'lax',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
     }
 });
-app.use(csrfProtection); // Apply CSRF protection globally
+app.use(csrfProtection);
 
-// Serve static files from 'public' directory.
-// GET requests for static files are ignored by csurf by default.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Dynamic HTML Generation Function ---
-function generateIndexHtml(clientFirebaseConfig, csrfToken) {
+function generateIndexHtml(clientFirebaseConfig, gameConfig, csrfToken) {
     const firebaseConfigJson = JSON.stringify(clientFirebaseConfig);
+    const gameConfigJson = JSON.stringify(gameConfig);
     return `
 <!DOCTYPE html>
 <html lang="de">
@@ -107,7 +103,9 @@ function generateIndexHtml(clientFirebaseConfig, csrfToken) {
     <script>
         console.log('Server-generated HTML: FIREBASE_CONFIG is about to be set.');
         window.FIREBASE_CONFIG = ${firebaseConfigJson};
+        window.GAME_CONFIG = ${gameConfigJson};
         console.log('Server-generated HTML: window.FIREBASE_CONFIG set:', window.FIREBASE_CONFIG ? "Object present" : "Still undefined/falsy", JSON.stringify(window.FIREBASE_CONFIG));
+        console.log('Server-generated HTML: window.GAME_CONFIG set:', window.GAME_CONFIG ? "Object present" : "Still undefined/falsy", JSON.stringify(window.GAME_CONFIG));
     </script>
 </head>
 <body>
@@ -213,14 +211,26 @@ app.get('/', (req, res, next) => {
             measurementId: process.env.FIREBASE_MEASUREMENT_ID,
         };
 
+        // Determine game URL based on environment
+        const gameUrl = process.env.GAME_APP_URL || 
+                       (process.env.NODE_ENV === 'production' 
+                        ? 'https://game.korczewski.de/game/' 
+                        : 'http://localhost:3000');
+
+        const gameConfig = {
+            gameUrl: gameUrl
+        };
+
         console.log("Auth Server: Client Firebase Config to be embedded:", JSON.stringify(clientFirebaseConfig));
+        console.log("Auth Server: Game Config to be embedded:", JSON.stringify(gameConfig));
+        
         if (!clientFirebaseConfig.apiKey || !clientFirebaseConfig.authDomain || !clientFirebaseConfig.projectId) {
             console.error("CRITICAL SERVER-SIDE ERROR: Essential Firebase client configuration is missing from environment variables. The login page will not function correctly.");
             return res.status(500).send('Server configuration error. Please contact administrator.');
         }
 
         const csrfToken = req.csrfToken();
-        const htmlContent = generateIndexHtml(clientFirebaseConfig, csrfToken);
+        const htmlContent = generateIndexHtml(clientFirebaseConfig, gameConfig, csrfToken);
         res.send(htmlContent);
     } catch (routeError) {
         console.error("Error in '/' route handler:", routeError);

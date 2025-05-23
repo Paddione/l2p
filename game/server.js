@@ -26,6 +26,13 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
+// --- Game Configuration ---
+const GAME_CONFIG = {
+    QUESTIONS_PER_GAME: 10,
+    DEFAULT_TIME_LIMIT: 60, // 60 seconds per question
+    INITIAL_MULTIPLIER: 1
+};
+
 // --- Load Questions ---
 let allQuestionsData = { categories: [], fallbackQuestions: [] };
 try {
@@ -38,14 +45,12 @@ try {
         text: "Default question due to loading error. What is 1+1?",
         options: ["1", "2", "3"],
         answer: "2",
-        timeLimit: 10
+        timeLimit: GAME_CONFIG.DEFAULT_TIME_LIMIT
     });
 }
 
-// --- Global Game State (Consider moving to Firestore for scalability) ---
-// For a more robust solution, lobby and game states should be in Firestore.
-// This in-memory store is simpler for example purposes but won't scale across multiple server instances.
-const lobbies = {}; // { lobbyId: { players: { playerId: { ... } }, hostId: '', category: '', questions: [], currentQuestionIndex: -1, scores: {}, gameActive: false, paused: false, timerInterval: null, questionTimer: 0 } }
+// --- Global Game State ---
+const lobbies = {}; // { lobbyId: { players: { playerId: { ..., multiplier: 1 } }, hostId: '', category: '', questions: [], currentQuestionIndex: -1, scores: {}, gameActive: false, paused: false, timerInterval: null, questionTimer: 0 } }
 
 // --- Middleware ---
 app.use(helmet({
@@ -113,8 +118,31 @@ app.get('/', (req, res) => {
             sessionCookieSecret: process.env.SESSION_COOKIE_SECRET, // Secret should not be client-side
             csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
         };
+app.get('/', (req, res) => {
+    fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8', (err, htmlData) => {
+        if (err) {
+            console.error('Error reading index.html:', err);
+            return res.status(500).send('Error loading game page.');
+        }
+        const clientConfig = {
+            authAppUrl: process.env.AUTH_APP_URL,
+            firebaseConfig: {
+                apiKey: process.env.FIREBASE_API_KEY,
+                authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+                appId: process.env.FIREBASE_APP_ID,
+                measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+            },
+            sessionCookieName: process.env.SESSION_COOKIE_NAME,
+            // Don't send sessionCookieSecret to client!
+            csrfTokenHeaderName: process.env.CSRF_TOKEN_HEADER_NAME,
+        };
+        
+        // Replace the config injection placeholder
         const injectedHtml = htmlData.replace(
-            '',
+            '<!-- CONFIG_INJECTION_POINT -->',
             `<script>window.CONFIG = ${JSON.stringify(clientConfig)};</script>`
         );
         res.send(injectedHtml);
@@ -219,7 +247,14 @@ io.on('connection', (socket) => {
             const lobbyData = {
                 id: lobbyId,
                 hostId: lobbies[lobbyId].hostId,
-                players: Object.values(lobbies[lobbyId].players).map(p => ({ id: p.id, name: p.name, score: p.score, streak: p.streak, disconnected: p.disconnected })),
+                players: Object.values(lobbies[lobbyId].players).map(p => ({ 
+                    id: p.id, 
+                    name: p.name, 
+                    score: p.score, 
+                    streak: p.streak, 
+                    multiplier: p.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER,
+                    disconnected: p.disconnected 
+                })),
                 category: lobbies[lobbyId].category,
                 gameActive: lobbies[lobbyId].gameActive,
                 isPaused: lobbies[lobbyId].isPaused,
@@ -239,7 +274,16 @@ io.on('connection', (socket) => {
 
         lobbies[lobbyId] = {
             players: {
-                [playerId]: { id: playerId, name: playerName, socketId: socket.id, score: 0, streak: 0, disconnected: false, answers: {} }
+                [playerId]: { 
+                    id: playerId, 
+                    name: playerName, 
+                    socketId: socket.id, 
+                    score: 0, 
+                    streak: 0, 
+                    multiplier: GAME_CONFIG.INITIAL_MULTIPLIER,
+                    disconnected: false, 
+                    answers: {} 
+                }
             },
             hostId: playerId,
             category: null,
@@ -277,7 +321,16 @@ io.on('connection', (socket) => {
                 console.log(`Player ${playerName} (${playerId}) reconnected to lobby ${lobbyId}`);
             } else {
                 // New player joining
-                lobbies[lobbyId].players[playerId] = { id: playerId, name: playerName, socketId: socket.id, score: 0, streak: 0, disconnected: false, answers: {} };
+                lobbies[lobbyId].players[playerId] = { 
+                    id: playerId, 
+                    name: playerName, 
+                    socketId: socket.id, 
+                    score: 0, 
+                    streak: 0, 
+                    multiplier: GAME_CONFIG.INITIAL_MULTIPLIER,
+                    disconnected: false, 
+                    answers: {} 
+                };
                 lobbies[lobbyId].scores[playerId] = 0;
                 console.log(`Player ${playerName} (${playerId}) joined lobby ${lobbyId}`);
             }
@@ -294,15 +347,15 @@ io.on('connection', (socket) => {
                         options: currentQ.options,
                         index: lobbies[lobbyId].currentQuestionIndex,
                         totalQuestions: lobbies[lobbyId].questions.length,
-                        timeLimit: currentQ.timeLimit,
+                        timeLimit: currentQ.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT,
                         category: lobbies[lobbyId].category
                     });
                     // Send current timer state
                     const timeElapsed = (Date.now() - lobbies[lobbyId].questionStartTime) / 1000;
-                    const timeRemaining = Math.max(0, currentQ.timeLimit - timeElapsed);
+                    const timeRemaining = Math.max(0, (currentQ.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT) - timeElapsed);
                     socket.emit('timerUpdate', { timeLeft: Math.round(timeRemaining) });
                 }
-                socket.emit('updateScores', lobbies[lobbyId].scores, collectStreaks(lobbyId));
+                socket.emit('updateScores', lobbies[lobbyId].scores, collectStreaks(lobbyId), collectMultipliers(lobbyId));
             }
 
 
@@ -312,17 +365,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('checkExistingSession', () => {
-        // This logic is now partly handled by client checking its auth state
-        // and server middleware authenticating the socket.
-        // If a player was in a lobby and disconnected, they'd need to rejoin with lobbyId.
-        // Client could store lastLobbyId in localStorage.
-        // For now, we assume client handles rejoining explicitly.
         console.log(`Player ${socket.user.uid} requested checkExistingSession.`);
-        // Potentially, search `lobbies` for `socket.user.uid` if a more robust rejoin is needed.
-        // For now, client needs to explicitly rejoin.
         socket.emit('sessionCheckResult', { inGame: false }); // Simplified
     });
-
 
     socket.on('hostSelectedCategory', ({ lobbyId, category }) => {
         if (lobbies[lobbyId] && lobbies[lobbyId].hostId === socket.user.uid) {
@@ -342,7 +387,8 @@ io.on('connection', (socket) => {
         const question = lobby.questions[lobby.currentQuestionIndex];
         if (!question) return;
 
-        lobby.questionTimer = question.timeLimit;
+        const timeLimit = question.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
+        lobby.questionTimer = timeLimit;
         lobby.questionStartTime = Date.now(); // Record when question started
 
         if (lobby.timerInterval) clearInterval(lobby.timerInterval); // Clear existing timer
@@ -380,33 +426,51 @@ io.on('connection', (socket) => {
 
         const correctAnswer = question.answer;
         const questionPlayerAnswers = lobby.playerAnswers[lobby.currentQuestionIndex] || {};
+        const timeLimit = question.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
 
-        // Calculate scores for the current question
+        // Calculate scores for the current question with new system
         Object.keys(lobby.players).forEach(playerId => {
             const player = lobby.players[playerId];
             if (player.disconnected) return;
 
             const playerAnswerData = questionPlayerAnswers[playerId];
             let isCorrect = false;
+            let pointsEarned = 0;
+
             if (playerAnswerData && playerAnswerData.answer === correctAnswer) {
                 isCorrect = true;
-                player.score += 10; // Base points for correct answer
-                // Bonus for speed (e.g., max 5 points)
-                const timeTaken = playerAnswerData.timeTaken || question.timeLimit; // seconds
-                const speedBonus = Math.max(0, Math.round((question.timeLimit - timeTaken) / question.timeLimit * 5));
-                player.score += speedBonus;
+                // Points = remaining time on clock
+                const timeTaken = playerAnswerData.timeTaken || timeLimit;
+                const remainingTime = Math.max(0, timeLimit - timeTaken);
+                pointsEarned = Math.ceil(remainingTime); // Round up to avoid 0 points for last-second answers
+                
+                // Apply multiplier
+                pointsEarned = pointsEarned * player.multiplier;
+                
+                // Update multiplier: +1 for correct answer
+                player.multiplier = (player.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER) + 1;
                 player.streak = (player.streak || 0) + 1;
             } else {
+                // Wrong answer or no answer
+                pointsEarned = 0;
+                // Update multiplier: -1 for wrong answer (minimum 1)
+                player.multiplier = Math.max(1, (player.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER) - 1);
                 player.streak = 0; // Reset streak
             }
+
+            player.score += pointsEarned;
             lobby.scores[playerId] = player.score;
-            // Send individual answer result
+
+            // Send individual answer result with new data
             io.to(player.socketId).emit('answerResult', {
                 correct: isCorrect,
                 correctAnswer: correctAnswer,
                 yourAnswer: playerAnswerData ? playerAnswerData.answer : null,
                 score: player.score,
-                streak: player.streak
+                streak: player.streak,
+                multiplier: player.multiplier,
+                pointsEarned: pointsEarned,
+                remainingTime: playerAnswerData ? Math.max(0, timeLimit - playerAnswerData.timeTaken) : 0
             });
         });
 
@@ -414,7 +478,8 @@ io.on('connection', (socket) => {
         io.to(lobbyId).emit('questionOver', {
             correctAnswer: correctAnswer,
             scores: lobby.scores,
-            streaks: collectStreaks(lobbyId)
+            streaks: collectStreaks(lobbyId),
+            multipliers: collectMultipliers(lobbyId)
         });
 
         // Wait a bit before next question or game over
@@ -422,7 +487,7 @@ io.on('connection', (socket) => {
             if (lobby.isPaused) return; // If paused during the timeout
 
             lobby.currentQuestionIndex++;
-            if (lobby.currentQuestionIndex < lobby.questions.length) {
+            if (lobby.currentQuestionIndex < lobby.questions.length && lobby.currentQuestionIndex < GAME_CONFIG.QUESTIONS_PER_GAME) {
                 sendQuestion(lobbyId);
             } else {
                 endGame(lobbyId);
@@ -440,6 +505,15 @@ io.on('connection', (socket) => {
         return streaks;
     };
 
+    const collectMultipliers = (lobbyId) => {
+        const lobby = lobbies[lobbyId];
+        if (!lobby) return {};
+        const multipliers = {};
+        Object.values(lobby.players).forEach(p => {
+            multipliers[p.id] = p.multiplier || GAME_CONFIG.INITIAL_MULTIPLIER;
+        });
+        return multipliers;
+    };
 
     const sendQuestion = (lobbyId) => {
         const lobby = lobbies[lobbyId];
@@ -447,12 +521,14 @@ io.on('connection', (socket) => {
             return;
         }
         const question = lobby.questions[lobby.currentQuestionIndex];
+        const timeLimit = question.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
+        
         io.to(lobbyId).emit('question', {
             text: question.text,
             options: question.options,
             index: lobby.currentQuestionIndex,
-            totalQuestions: lobby.questions.length,
-            timeLimit: question.timeLimit,
+            totalQuestions: Math.min(lobby.questions.length, GAME_CONFIG.QUESTIONS_PER_GAME),
+            timeLimit: timeLimit,
             category: lobby.category
         });
         startQuestionTimer(lobbyId);
@@ -466,27 +542,44 @@ io.on('connection', (socket) => {
                 socket.emit('startGameError', { message: 'Invalid category or no questions in category.' });
                 return;
             }
-            lobby.questions = [...selectedCategoryData.questions].sort(() => 0.5 - Math.random()); // Shuffle questions
+            
+            // Shuffle and limit to QUESTIONS_PER_GAME
+            let shuffledQuestions = [...selectedCategoryData.questions].sort(() => 0.5 - Math.random());
+            lobby.questions = shuffledQuestions.slice(0, GAME_CONFIG.QUESTIONS_PER_GAME);
+            
             if (lobby.questions.length === 0) {
                 socket.emit('startGameError', { message: 'No questions found for the selected category after attempting to load.' });
                 return;
             }
+            
             lobby.currentQuestionIndex = 0;
             lobby.gameActive = true;
             lobby.isPaused = false;
             lobby.playerAnswers = {}; // Reset answers for new game
-            // Reset scores and streaks for all players in the lobby
+            
+            // Reset scores, streaks, and multipliers for all players in the lobby
             Object.keys(lobby.players).forEach(pid => {
                 lobby.players[pid].score = 0;
                 lobby.players[pid].streak = 0;
+                lobby.players[pid].multiplier = GAME_CONFIG.INITIAL_MULTIPLIER;
                 lobby.scores[pid] = 0;
                 lobby.players[pid].answers = {}; // Clear previous game answers
             });
 
-            io.to(lobbyId).emit('gameStarted', { category: lobby.category, totalQuestions: lobby.questions.length, players: Object.values(lobby.players).map(p=>({id: p.id, name: p.name, score:0, streak:0})) });
+            io.to(lobbyId).emit('gameStarted', { 
+                category: lobby.category, 
+                totalQuestions: lobby.questions.length, 
+                players: Object.values(lobby.players).map(p=>({
+                    id: p.id, 
+                    name: p.name, 
+                    score: 0, 
+                    streak: 0, 
+                    multiplier: GAME_CONFIG.INITIAL_MULTIPLIER
+                })) 
+            });
             emitLobbyUpdate(lobbyId); // Update lobby state (gameActive)
             sendQuestion(lobbyId);
-            console.log(`Game started in lobby ${lobbyId} with category ${lobby.category}`);
+            console.log(`Game started in lobby ${lobbyId} with category ${lobby.category} (${lobby.questions.length} questions)`);
         } else {
             socket.emit('startGameError', { message: 'Only host can start game or category not selected.' });
         }
@@ -546,14 +639,14 @@ io.on('connection', (socket) => {
                 id,
                 name: lobby.players[id] ? lobby.players[id].name : 'Unknown Player',
                 score,
+                multiplier: lobby.players[id] ? lobby.players[id].multiplier : 1,
                 disconnected: lobby.players[id] ? lobby.players[id].disconnected : true,
             }))
             .sort((a, b) => b.score - a.score); // Sort descending by score
 
         io.to(lobbyId).emit('gameOver', { finalScores });
         emitLobbyUpdate(lobbyId); // Update lobby state (gameActive = false)
-        console.log(`Game over in lobby ${lobbyId}`);
-        // Optionally, clean up lobby.questions, lobby.playerAnswers etc. here or on playAgain/leave
+        console.log(`Game over in lobby ${lobbyId} after ${lobby.currentQuestionIndex} questions`);
     };
 
     socket.on('hostTogglePause', ({ lobbyId }) => {
@@ -564,13 +657,16 @@ io.on('connection', (socket) => {
                 if (lobby.timerInterval) { // If timer is running, capture remaining time
                     const timeElapsed = (Date.now() - lobby.questionStartTime) / 1000;
                     const currentQuestion = lobby.questions[lobby.currentQuestionIndex];
-                    lobby.questionTimer = Math.max(0, currentQuestion.timeLimit - timeElapsed); // Store remaining time
+                    const timeLimit = currentQuestion.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
+                    lobby.questionTimer = Math.max(0, timeLimit - timeElapsed); // Store remaining time
                 }
                 io.to(lobbyId).emit('gamePaused', { timeLeft: Math.round(lobby.questionTimer) });
                 console.log(`Game paused in lobby ${lobbyId}`);
             } else {
                 // Resuming: restart timer with remaining time
-                lobby.questionStartTime = Date.now() - ((lobby.questions[lobby.currentQuestionIndex].timeLimit - lobby.questionTimer) * 1000);
+                const currentQuestion = lobby.questions[lobby.currentQuestionIndex];
+                const timeLimit = currentQuestion.timeLimit || GAME_CONFIG.DEFAULT_TIME_LIMIT;
+                lobby.questionStartTime = Date.now() - ((timeLimit - lobby.questionTimer) * 1000);
                 startQuestionTimer(lobbyId); // This will use the updated lobby.questionTimer if it was paused mid-question
                 io.to(lobbyId).emit('gameResumed', { timeLeft: Math.round(lobby.questionTimer) });
                 console.log(`Game resumed in lobby ${lobbyId}`);
@@ -601,10 +697,20 @@ io.on('connection', (socket) => {
             Object.keys(lobby.players).forEach(pid => {
                 lobby.players[pid].score = 0;
                 lobby.players[pid].streak = 0;
+                lobby.players[pid].multiplier = GAME_CONFIG.INITIAL_MULTIPLIER;
                 lobby.scores[pid] = 0;
                 lobby.players[pid].answers = {};
             });
-            io.to(lobbyId).emit('lobbyResetForPlayAgain', { lobbyId, players: Object.values(lobby.players).map(p=>({id:p.id, name:p.name, score:0, streak:0})) });
+            io.to(lobbyId).emit('lobbyResetForPlayAgain', { 
+                lobbyId, 
+                players: Object.values(lobby.players).map(p=>({
+                    id: p.id, 
+                    name: p.name, 
+                    score: 0, 
+                    streak: 0, 
+                    multiplier: GAME_CONFIG.INITIAL_MULTIPLIER
+                })) 
+            });
             emitLobbyUpdate(lobbyId);
             console.log(`Lobby ${lobbyId} reset for play again by host.`);
         }
@@ -644,7 +750,6 @@ io.on('connection', (socket) => {
             socket.emit('leaveLobbyError', {message: 'Lobby not found.'});
         }
     });
-
 
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.user.uid} (Socket ID: ${socket.id})`);
@@ -699,6 +804,7 @@ server.listen(PORT, () => {
     console.log('Serving client from:', path.join(__dirname, 'public'));
     console.log('Auth App URL configured as:', process.env.AUTH_APP_URL);
     console.log('Available categories:', allQuestionsData.categories.map(c => c.name));
+    console.log(`Game Configuration: ${GAME_CONFIG.QUESTIONS_PER_GAME} questions per game, ${GAME_CONFIG.DEFAULT_TIME_LIMIT}s per question`);
 });
 
 // Graceful shutdown
