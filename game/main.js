@@ -170,6 +170,7 @@ function generateQuizPageHTMLContent() {
     const categorySelectEl = createEl('select', { id: 'category-select' }, 'input-field mb-4');
     categorySelectEl.appendChild(createEl('option', { value: '' }, [], '-- Select a Category --'));
     hostControlsWaiting.appendChild(categorySelectEl);
+    hostControlsWaiting.appendChild(createEl('div', {}, 'text-sm text-slate-400 mb-4', '🎯 Game Format: 10 questions, 60 seconds each'));
     hostControlsWaiting.appendChild(createEl('button', { id: 'start-game-btn', disabled: '' }, 'btn btn-success w-full', '🚀 Start Game'));
     hostControlsWaiting.appendChild(createEl('p', { id: 'start-game-error' }, 'text-red-400 mt-2 text-sm'));
     waitingRoomScreen.appendChild(hostControlsWaiting);
@@ -178,6 +179,7 @@ function generateQuizPageHTMLContent() {
     const nonHostInfoWaiting = createEl('div', { id: 'non-host-info-waiting' }, 'mb-6 hidden bg-slate-700 p-6 rounded-lg border border-slate-600 text-center');
     nonHostInfoWaiting.appendChild(createEl('p', {}, 'mb-2', '⏳ Waiting for host to select category and start the game...'));
     nonHostInfoWaiting.appendChild(createEl('p', {}, [], null, '📚 Selected Category: <strong id="selected-category-display" class="text-amber-400">N/A</strong>'));
+    nonHostInfoWaiting.appendChild(createEl('div', {}, 'text-sm text-slate-400 mt-3', '🎯 Game Format: 10 questions, 60 seconds each'));
     waitingRoomScreen.appendChild(nonHostInfoWaiting);
 
     waitingRoomScreen.appendChild(createEl('h2', {}, 'text-xl mb-3 text-sky-300 font-semibold', null, '👥 Players in Lobby (<span id="player-count" class="text-lime-400">0</span>):'));
@@ -199,7 +201,7 @@ function generateQuizPageHTMLContent() {
     quizHeaderFlex.appendChild(hostGameControlsQuiz);
     quizScreen.appendChild(quizHeaderFlex);
 
-    quizScreen.appendChild(createEl('div', { id: 'timer-display' }, 'text-5xl font-bold text-center my-6 text-yellow-400 bg-slate-700 rounded-lg p-4 border border-slate-600', '30'));
+    quizScreen.appendChild(createEl('div', { id: 'timer-display' }, 'text-5xl font-bold text-center my-6 text-yellow-400 bg-slate-700 rounded-lg p-4 border border-slate-600', '60'));
 
     const questionTextContainer = createEl('div', {}, 'bg-slate-700 p-6 rounded-lg mb-6 min-h-[100px] border border-slate-600');
     questionTextContainer.appendChild(createEl('p', { id: 'question-text-display' }, 'text-lg md:text-xl leading-relaxed', 'Question text will appear here...'));
@@ -208,8 +210,9 @@ function generateQuizPageHTMLContent() {
     quizScreen.appendChild(createEl('div', { id: 'answer-options-container' }, 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'));
     quizScreen.appendChild(createEl('p', { id: 'answer-feedback-text' }, 'text-center text-lg mb-4 min-h-[2rem]', ''));
 
+    // Updated player info with multiplier
     const playerInfoQuiz = createEl('div', { id: 'player-info-quiz' }, 'text-center mb-4 bg-slate-700 p-4 rounded-lg border border-slate-600');
-    playerInfoQuiz.innerHTML = '🏆 Your Score: <span id="current-player-score-quiz" class="font-bold text-lime-400">0</span> | 🔥 Streak: <span id="current-player-streak-quiz" class="font-bold text-orange-400">0</span>';
+    playerInfoQuiz.innerHTML = '🏆 Your Score: <span id="current-player-score-quiz" class="font-bold text-lime-400">0</span> | 🔥 Streak: <span id="current-player-streak-quiz" class="font-bold text-orange-400">0</span> | ⚡ Multiplier: <span id="current-player-multiplier-quiz" class="font-bold text-purple-400">1</span>x';
     quizScreen.appendChild(playerInfoQuiz);
 
     const liveScoresContainer = createEl('div', { id: 'live-scores-container' }, 'mt-4');
@@ -358,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const answerFeedbackText = document.getElementById('answer-feedback-text');
     const currentPlayerScoreQuiz = document.getElementById('current-player-score-quiz');
     const currentPlayerStreakQuiz = document.getElementById('current-player-streak-quiz');
+    const currentPlayerMultiplierQuiz = document.getElementById('current-player-multiplier-quiz');
     const liveScoresContainer = document.getElementById('live-scores-container');
     const liveScoresListUl = document.getElementById('live-scores-list');
     const gamePausedMessage = document.getElementById('game-paused-message');
@@ -801,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lobbyData.players.forEach(player => {
                 const li = document.createElement('li');
                 li.className = 'player-list-item bg-slate-600 p-3 rounded-lg';
-                li.textContent = `${player.name} (Score: ${player.score || 0}, Streak: ${player.streak || 0})`;
+                li.textContent = `${player.name} (Score: ${player.score || 0}, Streak: ${player.streak || 0}, Multiplier: ${player.multiplier || 1}x)`;
 
                 if (player.id === lobbyData.hostId) {
                     const hostBadge = document.createElement('span');
@@ -864,7 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const getCurrentQuestionData = () => {
-            return { timeLimit: (timerDisplay && timerDisplay.dataset.initialTime) ? parseInt(timerDisplay.dataset.initialTime) : 20 };
+            return { timeLimit: (timerDisplay && timerDisplay.dataset.initialTime) ? parseInt(timerDisplay.dataset.initialTime) : 60 };
         };
 
         socket.on('question', (data) => {
@@ -912,7 +916,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         socket.on('timerUpdate', (data) => {
             const questionData = getCurrentQuestionData();
-            updateTimerDisplay(data.timeLeft, questionData ? questionData.timeLimit : 20);
+            updateTimerDisplay(data.timeLeft, questionData ? questionData.timeLimit : 60);
             if (data.timeLeft === 0 && !isGamePaused) {
                 playSound('timeup');
                 if(answerFeedbackText) answerFeedbackText.textContent = "⏰ Time's up!";
@@ -938,6 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('answerResult', (data) => {
             if(currentPlayerScoreQuiz) currentPlayerScoreQuiz.textContent = data.score;
             if(currentPlayerStreakQuiz) currentPlayerStreakQuiz.textContent = data.streak;
+            if(currentPlayerMultiplierQuiz) currentPlayerMultiplierQuiz.textContent = data.multiplier || 1;
 
             document.querySelectorAll('.answer-option-btn').forEach(btn => {
                 btn.classList.remove('selected');
@@ -954,8 +959,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (data.correct) {
+                const pointsMessage = data.pointsEarned ? ` (+${data.pointsEarned} points)` : '';
                 if(answerFeedbackText) {
-                    answerFeedbackText.textContent = '✅ Richtig! (Correct!)';
+                    answerFeedbackText.textContent = `✅ Richtig!${pointsMessage}`;
                     answerFeedbackText.className = 'text-center text-lg mb-4 text-green-400 font-semibold';
                 }
                 playSound('correct');
@@ -982,11 +988,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             speakText(`Die richtige Antwort war: ${data.correctAnswer}`);
-            updateLiveScores(data.scores, data.streaks);
+            updateLiveScores(data.scores, data.streaks, data.multipliers);
         });
 
-        socket.on('updateScores', (scores, streaks) => {
-            updateLiveScores(scores, streaks || {});
+        socket.on('updateScores', (scores, streaks, multipliers) => {
+            updateLiveScores(scores, streaks || {}, multipliers || {});
         });
 
         socket.on('gameOver', (data) => {
@@ -1037,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data.players.forEach(player => {
                 const li = document.createElement('li');
                 li.className = 'player-list-item bg-slate-600 p-3 rounded-lg';
-                li.textContent = `${player.name} (Score: 0, Streak: 0)`;
+                li.textContent = `${player.name} (Score: 0, Streak: 0, Multiplier: ${player.multiplier || 1}x)`;
 
                 if (player.id === data.hostId) {
                     const hostBadge = document.createElement('span');
@@ -1157,14 +1163,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let playerMap = {};
 
-    const updateLiveScores = (scoresData, streaksData) => {
+    const updateLiveScores = (scoresData, streaksData, multipliersData) => {
         if(!liveScoresListUl) return;
         liveScoresListUl.innerHTML = '';
 
         const sortedPlayers = Object.entries(scoresData)
             .map(([id, score]) => {
                 const name = playerMap[id] || (id === currentPlayerId ? currentPlayerName : `P-${id.substring(0, 5)}`);
-                return { id, name, score, streak: (streaksData && streaksData[id]) ? streaksData[id] : 0 };
+                return { 
+                    id, 
+                    name, 
+                    score, 
+                    streak: (streaksData && streaksData[id]) ? streaksData[id] : 0,
+                    multiplier: (multipliersData && multipliersData[id]) ? multipliersData[id] : 1
+                };
             })
             .sort((a, b) => b.score - a.score);
 
@@ -1178,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (index === 2) rank = '🥉 ';
             else rank = `${index + 1}. `;
 
-            li.textContent = `${rank}${player.name}: ${player.score} (Streak: ${player.streak})`;
+            li.textContent = `${rank}${player.name}: ${player.score} (Streak: ${player.streak}, Multiplier: ${player.multiplier}x)`;
             if (player.id === currentPlayerId) {
                 li.classList.add('font-bold', 'text-lime-300', 'bg-lime-900', 'border', 'border-lime-500');
             }
@@ -1198,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (index === 1) medal = '<span class="medal-silver" role="img" aria-label="Silver Medal">🥈</span> ';
             else if (index === 2) medal = '<span class="medal-bronze" role="img" aria-label="Bronze Medal">🥉</span> ';
 
-            li.innerHTML = `${medal}${player.name}: ${player.score} points`;
+            li.innerHTML = `${medal}${player.name}: ${player.score} points (Multiplier: ${player.multiplier || 1}x)`;
             if (player.id === currentPlayerId) {
                 li.classList.add('font-bold', 'text-lime-300', 'bg-lime-900', 'border', 'border-lime-500');
                 li.innerHTML += ' (You)';
