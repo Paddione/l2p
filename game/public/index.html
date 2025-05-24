@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kommilitonen Quiz</title>
+    <title>Kommilitonen Quiz - Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="/socket.io.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+    <script src="/socket.io/socket.io.js" defer></script>
 
-    <!-- WICHTIG: Dieser Platzhalter wird vom Server ersetzt -->
-    <!-- CONFIG_INJECTION_POINT -->
-
+    <link rel="stylesheet" href="/style.css">
     <style>
-        /* Ihre CSS-Styles hier */
         .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
         .hidden { display: none; }
-        /* Weitere Styles... */
+        .input-field { /* Basic styling for new inputs */
+            @apply mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm;
+        }
+        .btn-lobby { /* Basic styling for new buttons */
+            @apply w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-<!-- Loading Screen -->
+<body class="bg-gray-900 text-white min-h-screen font-sans">
+
 <div id="loading-screen" class="loading">
     <div class="text-center">
         <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
@@ -28,52 +30,106 @@
     </div>
 </div>
 
-<!-- Main Game Interface (initially hidden) -->
 <div id="game-container" class="hidden">
-    <!-- Ihr Game-Interface hier -->
-    <div id="auth-section" class="container mx-auto p-4">
-        <h1 class="text-4xl font-bold text-center mb-8">🎮 Kommilitonen Quiz</h1>
 
-        <!-- Auth/Guest Login -->
-        <div class="max-w-md mx-auto bg-gray-800 rounded-lg p-6">
-            <div id="auth-options" class="space-y-4">
-                <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Mit Account anmelden
+    <div id="auth-section" class="container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
+        <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-8 space-y-6">
+            <h1 class="text-3xl font-bold text-center text-sky-400 mb-6">🎮 Kommilitonen Quiz</h1>
+            <form id="email-login-form" class="space-y-4">
+                <div>
+                    <label for="login-email-input" class="block text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="login-email-input" name="email" required class="input-field">
+                </div>
+                <div>
+                    <label for="login-password-input" class="block text-sm font-medium text-gray-300">Passwort</label>
+                    <input type="password" id="login-password-input" name="password" required class="input-field">
+                </div>
+                <button type="submit" id="login-submit-btn" class="btn-lobby bg-sky-600 hover:bg-sky-700 focus:ring-sky-500">
+                    Mit Email anmelden
                 </button>
-                <button id="guest-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                <p id="auth-error-message" class="text-red-400 text-sm text-center h-4"></p>
+            </form>
+            <div class="text-center text-sm text-gray-400">oder</div>
+            <div id="auth-options">
+                <button id="guest-btn" class="btn-lobby bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300 focus:ring-sky-500">
                     Als Gast spielen
                 </button>
             </div>
-
-            <!-- Guest Name Input -->
-            <div id="guest-form" class="hidden space-y-4">
-                <input type="text" id="guest-name" placeholder="Dein Name"
-                       class="w-full px-3 py-2 bg-gray-700 text-white rounded-md">
-                <button id="guest-continue" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                    Weiter
+            <div id="guest-form" class="hidden space-y-4 pt-4">
+                <input type="text" id="guest-name" placeholder="Dein Gastname" class="input-field">
+                <button id="guest-continue" class="btn-lobby bg-green-600 hover:bg-green-700 focus:ring-green-500">
+                    Als Gast fortfahren
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Lobby Section -->
-    <div id="lobby-section" class="hidden container mx-auto p-4">
-        <!-- Lobby Interface -->
+    <div id="lobby-section" class="hidden container mx-auto p-4 flex flex-col items-center justify-center min-h-screen">
+        <div class="w-full max-w-md bg-gray-800 rounded-lg shadow-xl p-8 space-y-6">
+            <h2 class="text-2xl font-semibold text-center text-sky-400 mb-6">Lobby</h2>
+            <div class="space-y-4">
+                <button id="create-lobby-btn" class="btn-lobby bg-green-600 hover:bg-green-700 focus:ring-green-500">
+                    Neue Lobby erstellen
+                </button>
+            </div>
+            <div class="text-center text-sm text-gray-400 my-4">oder</div>
+            <div class="space-y-4">
+                <label for="join-lobby-id-input" class="block text-sm font-medium text-gray-300">Lobby ID beitreten</label>
+                <input type="text" id="join-lobby-id-input" placeholder="Lobby ID eingeben" class="input-field uppercase tracking-wider">
+                <button id="join-lobby-submit-btn" class="btn-lobby bg-blue-600 hover:bg-blue-700 focus:ring-blue-500">
+                    Lobby beitreten
+                </button>
+                <p id="lobby-error-message" class="text-red-400 text-sm text-center h-4"></p>
+            </div>
+            <button id="logout-btn-lobby" class="mt-8 w-full btn-lobby bg-red-700 hover:bg-red-800 focus:ring-red-500">Logout</button>
+        </div>
     </div>
 
-    <!-- Game Section -->
-    <div id="game-section" class="hidden container mx-auto p-4">
-        <!-- Game Interface -->
+    <div id="game-section" class="hidden container mx-auto p-6">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="game-section-title" class="text-2xl md:text-3xl font-bold text-sky-400">Warteraum</h2>
+                <button id="leave-lobby-btn" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md text-sm">Lobby verlassen</button>
+            </div>
+
+            <div class="mb-6 bg-gray-700 p-4 rounded-lg border border-gray-600">
+                <p class="text-lg">Lobby ID: <strong id="display-lobby-id" class="text-yellow-400 font-mono">N/A</strong>
+                    <button id="copy-lobby-id-btn" class="ml-2 text-xs bg-gray-600 hover:bg-gray-500 px-2 py-1 rounded-md">📋 Kopieren</button>
+                </p>
+                <p>Dein Name: <strong id="display-player-name" class="text-lime-400">N/A</strong></p>
+            </div>
+
+            <div id="host-controls" class="hidden mb-6 space-y-4 bg-gray-700 p-4 rounded-lg border border-gray-600">
+                <h3 class="text-xl font-semibold text-sky-300">Host Einstellungen</h3>
+                <div>
+                    <label for="category-select" class="block text-sm font-medium text-gray-300 mb-1">Kategorie wählen:</label>
+                    <select id="category-select" class="input-field">
+                        <option value="">-- Kategorie --</option>
+                    </select>
+                </div>
+                <button id="start-game-btn" class="btn-lobby bg-green-600 hover:bg-green-700 focus:ring-green-500" disabled>Spiel starten</button>
+                <p id="start-game-error" class="text-red-400 text-sm h-4"></p>
+            </div>
+
+            <div id="non-host-info" class="hidden mb-6 text-center bg-gray-700 p-4 rounded-lg border border-gray-600">
+                <p>Warte auf Host, um das Spiel zu starten...</p>
+                <p>Gewählte Kategorie: <strong id="display-selected-category" class="text-amber-400">N/A</strong></p>
+            </div>
+
+            <div>
+                <h3 class="text-xl font-semibold text-sky-300 mb-2">Spieler (<span id="player-count">0</span>):</h3>
+                <ul id="player-list" class="list-none bg-gray-700 p-3 rounded-lg border border-gray-600 min-h-[100px] space-y-1">
+                </ul>
+            </div>
+            <button id="logout-btn-game" class="mt-8 w-full max-w-xs mx-auto btn-lobby bg-red-700 hover:bg-red-800 focus:ring-red-500">Logout</button>
+        </div>
     </div>
+
+</div> <div id="debug-info" class="fixed bottom-4 right-4 bg-gray-800 p-2 rounded text-xs text-gray-400">
+    <div>Status: <span id="connection-status">Verbinde...</span></div>
+    <div>Config: <span id="config-status">Lade...</span></div>
 </div>
 
-<!-- Debug Information -->
-<div id="debug-info" class="fixed bottom-4 right-4 bg-gray-800 p-2 rounded text-xs">
-    <div>Status: <span id="connection-status">Connecting...</span></div>
-    <div>Config: <span id="config-status">Loading...</span></div>
-</div>
-
-<!-- Main JavaScript -->
-<script src="/main.js"></script>
+<script src="/main.js" defer></script>
 </body>
 </html>
