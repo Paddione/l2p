@@ -109,7 +109,19 @@ function generateQuizPageHTMLContent() {
     lobbyConnectScreen.appendChild(createEl('p', { id: 'connect-error' }, 'text-red-400 mt-4 text-sm text-center bg-red-900/20 p-3 rounded-lg border border-red-700 hidden'));
     lobbyConnectScreen.appendChild(createEl('button', { id: 'back-to-auth-btn' }, 'btn btn-neutral mt-6 w-full', '← Back to Login'));
     appContainer.appendChild(lobbyConnectScreen);
+    window.hideInitialLoading = function() {
+        const loadingScreen = document.getElementById('loading-screen');
+        const gameContainer = document.getElementById('game-container');
 
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+        if (gameContainer) {
+            gameContainer.classList.remove('hidden');
+        }
+
+        console.log('✅ Initial loading screen hidden');
+    };
     // --- Waiting Room Screen ---
     const waitingRoomScreen = createEl('div', { id: 'waiting-room-screen' }, 'screen hidden');
 
@@ -230,8 +242,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🌐 Auth App URL:', authAppUrl);
 
     // Hide initial loading screen now that we have valid config
-    if (window.hideInitialLoading) {
-        window.hideInitialLoading();
+    const loadingScreen = document.getElementById('loading-screen');
+    const gameContainer = document.getElementById('game-container');
+
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        console.log('✅ Loading screen hidden');
+    }
+    if (gameContainer) {
+        gameContainer.classList.remove('hidden');
+        console.log('✅ Game container shown');
+    } else {
+        console.warn('⚠️ Game container not found, app container should be visible');
     }
 
     // --- Global State ---

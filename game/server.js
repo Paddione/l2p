@@ -66,13 +66,14 @@ app.use(helmet({
                 "'self'",
                 "'unsafe-inline'",
                 "https://www.gstatic.com/firebasejs/",
-                "https://cdn.tailwindcss.com"
+                "https://cdn.tailwindcss.com",
+                "https://cdn.socket.io"  // CRITICAL: Add this for Socket.IO
             ],
             styleSrc: [
                 "'self'",
                 "'unsafe-inline'",
                 "https://fonts.googleapis.com",
-                "https://cdn.tailwindcss.com"  // ADD THIS - This was missing!
+                "https://cdn.tailwindcss.com"
             ],
             fontSrc: [
                 "'self'",
@@ -95,7 +96,12 @@ app.use(helmet({
     },
     crossOriginEmbedderPolicy: false
 }));
-app.use(cors({ origin: process.env.CORS_ORIGIN_GAME_CLIENT || "http://localhost:3000", credentials: true }));
+
+app.use(cors({
+    origin: process.env.CORS_ORIGIN_GAME_CLIENT || "http://localhost:3000",
+    credentials: true
+}));
+
 app.use(compression()); // Compress responses
 app.use(express.json()); // Parse JSON bodies
 
@@ -109,7 +115,63 @@ const apiLimiter = rateLimit({
 app.use('/game/api/', apiLimiter);
 
 // --- Static File Serving ---
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        // Set correct MIME type for JavaScript files
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+        // Set correct MIME type for CSS files
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+        // Cache static assets for 1 hour in production
+        if (process.env.NODE_ENV === 'production') {
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+    }
+}));
 
+// Also update your CSP to include Socket.IO CDN
+// Replace the existing helmet configuration with this:
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://www.gstatic.com/firebasejs/",
+                "https://cdn.tailwindcss.com",
+                "https://cdn.socket.io"  // ADD THIS LINE
+            ],
+            styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
+                "https://cdn.tailwindcss.com"
+            ],
+            fontSrc: [
+                "'self'",
+                "https://fonts.gstatic.com"
+            ],
+            connectSrc: [
+                "'self'",
+                "*.googleapis.com",
+                "*.firebaseio.com",
+                "https://*.firebaseapp.com",
+                "https://auth.korczewski.de",
+                "https://game.korczewski.de",
+                "wss://*.firebaseio.com",
+                "ws://localhost:*",
+                "http://localhost:*"
+            ],
+            frameSrc: ["'self'", "https://*.firebaseapp.com"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+    crossOriginEmbedderPolicy: false
+}));
 
 // Enhanced Config Injection Route
 app.get('/', (req, res) => {
@@ -232,7 +294,16 @@ Config received: \${JSON.stringify(window.GAME_CONFIG, null, 2)}
         res.send(injectedHtml);
     });
 });
-
+app.get('/debug/files', (req, res) => {
+    const publicPath = path.join(__dirname, 'public');
+    const files = fs.readdirSync(publicPath);
+    res.json({
+        publicPath,
+        files,
+        mainJsExists: fs.existsSync(path.join(publicPath, 'main.js')),
+        indexExists: fs.existsSync(path.join(publicPath, 'index.html'))
+    });
+});
 // Fallback HTML generator
 function generateFallbackHTML() {
     const gameConfig = {
