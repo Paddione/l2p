@@ -19,6 +19,7 @@ function generateQuizPageHTMLContent() {
             el.innerHTML = innerHTML;
         }
         return el;
+        console.log('✅ HTML structure generated successfully');
     }
 
     // --- Configure <body> (Don't modify <head> - it's already set up) ---
@@ -110,15 +111,19 @@ function generateQuizPageHTMLContent() {
     lobbyConnectScreen.appendChild(createEl('button', { id: 'back-to-auth-btn' }, 'btn btn-neutral mt-6 w-full', '← Back to Login'));
     appContainer.appendChild(lobbyConnectScreen);
     window.hideInitialLoading = function() {
+        console.log('🔄 Hiding initial loading screen...');
         const loadingScreen = document.getElementById('loading-screen');
         const gameContainer = document.getElementById('game-container');
 
         if (loadingScreen) {
             loadingScreen.style.display = 'none';
+            console.log('✅ Loading screen hidden');
         }
         if (gameContainer) {
             gameContainer.classList.remove('hidden');
+            console.log('✅ Game container shown');
         }
+    };
 
         console.log('✅ Initial loading screen hidden');
     };

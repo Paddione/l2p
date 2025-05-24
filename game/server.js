@@ -133,7 +133,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 // Also update your CSP to include Socket.IO CDN
-// Replace the existing helmet configuration with this:
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -141,10 +140,12 @@ app.use(helmet({
             scriptSrc: [
                 "'self'",
                 "'unsafe-inline'",
+                "'unsafe-hashes'", // ADD THIS for inline event handlers
                 "https://www.gstatic.com/firebasejs/",
                 "https://cdn.tailwindcss.com",
-                "https://cdn.socket.io"  // ADD THIS LINE
+                "https://cdn.socket.io"
             ],
+            scriptSrcAttr: ["'unsafe-inline'"], // ADD THIS for onclick handlers
             styleSrc: [
                 "'self'",
                 "'unsafe-inline'",
@@ -175,7 +176,9 @@ app.use(helmet({
 
 // Enhanced Config Injection Route
 app.get('/', (req, res) => {
-    // Validierung der Environment-Variablen
+    console.log('🔍 Main route hit, checking environment variables...');
+
+    // Validation of Environment Variables
     const requiredEnvVars = [
         'AUTH_APP_URL',
         'FIREBASE_API_KEY',
@@ -188,6 +191,13 @@ app.get('/', (req, res) => {
 
     const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
+    // Log all env vars for debugging
+    console.log('🔧 Environment variables check:');
+    requiredEnvVars.forEach(varName => {
+        const value = process.env[varName];
+        console.log(`  ${varName}: ${value ? '✅ SET' : '❌ MISSING'} ${value ? `(${value.substring(0,20)}...)` : ''}`);
+    });
+
     if (missingVars.length > 0) {
         console.error('❌ CRITICAL: Missing required environment variables:', missingVars);
         return res.status(500).send(`
@@ -195,17 +205,23 @@ app.get('/', (req, res) => {
                 <h1>🚨 Configuration Error</h1>
                 <p>Missing environment variables: ${missingVars.join(', ')}</p>
                 <p>Please check your .env.game file</p>
+                <pre>Required variables: ${requiredEnvVars.join(', ')}</pre>
             </body></html>
         `);
     }
 
-    fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8', (err, htmlData) => {
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    console.log(`📄 Reading index.html from: ${indexPath}`);
+    console.log(`📁 File exists: ${fs.existsSync(indexPath)}`);
+
+    fs.readFile(indexPath, 'utf8', (err, htmlData) => {
         if (err) {
             console.error('❌ Error reading index.html:', err);
-
-            // Fallback: Generate complete HTML if file missing
             return res.send(generateFallbackHTML());
         }
+
+        console.log('✅ index.html read successfully');
+        console.log(`📏 HTML length: ${htmlData.length} characters`);
 
         // Build config object
         const gameConfig = {
@@ -222,75 +238,71 @@ app.get('/', (req, res) => {
             debugMode: process.env.NODE_ENV !== 'production'
         };
 
-        console.log('✅ Injecting config from .env.game:', {
+        console.log('🔧 Built game config:', {
             authAppUrl: gameConfig.authAppUrl,
             projectId: gameConfig.firebaseConfig.projectId,
             authDomain: gameConfig.firebaseConfig.authDomain,
-            hasAllKeys: Object.values(gameConfig.firebaseConfig).every(Boolean)
+            hasAllKeys: Object.values(gameConfig.firebaseConfig).filter(Boolean).length
         });
 
-        // Create injection script with extensive error handling
+        // Create injection script with enhanced error handling
         const configScript = `
             <script>
                 console.log('🔧 Server config injection starting...');
+                console.log('🕐 Injection timestamp:', new Date().toISOString());
                 
                 // Set global config
                 window.GAME_CONFIG = ${JSON.stringify(gameConfig)};
                 
-                // Debug logging
+                // Extensive validation logging
                 console.log('✅ GAME_CONFIG loaded:', window.GAME_CONFIG);
                 console.log('🔍 Config validation:');
-                console.log('  - authAppUrl:', window.GAME_CONFIG?.authAppUrl ? '✅' : '❌');
-                console.log('  - firebaseConfig:', window.GAME_CONFIG?.firebaseConfig ? '✅' : '❌');
-                console.log('  - apiKey:', window.GAME_CONFIG?.firebaseConfig?.apiKey ? '✅' : '❌');
-                console.log('  - projectId:', window.GAME_CONFIG?.firebaseConfig?.projectId ? '✅' : '❌');
+                console.log('  - window.GAME_CONFIG exists:', !!window.GAME_CONFIG);
+                console.log('  - authAppUrl:', window.GAME_CONFIG?.authAppUrl || 'MISSING');
+                console.log('  - firebaseConfig exists:', !!window.GAME_CONFIG?.firebaseConfig);
+                console.log('  - apiKey exists:', !!window.GAME_CONFIG?.firebaseConfig?.apiKey);
+                console.log('  - projectId:', window.GAME_CONFIG?.firebaseConfig?.projectId || 'MISSING');
                 
-                // Ensure config is available before main.js loads
-                if (!window.GAME_CONFIG || !window.GAME_CONFIG.firebaseConfig || !window.GAME_CONFIG.firebaseConfig.apiKey) {
-                    console.error('❌ CRITICAL: Configuration incomplete!', window.GAME_CONFIG);
-                    document.addEventListener('DOMContentLoaded', () => {
-                        document.body.innerHTML = \`
-                            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #1f2937; color: white; font-family: Arial;">
-                                <div style="text-align: center; max-width: 500px; padding: 20px;">
-                                    <h1 style="color: #ef4444;">🚨 Configuration Error</h1>
-                                    <p>Game configuration is incomplete. Please contact the administrator.</p>
-                                    <details style="margin-top: 20px; text-align: left;">
-                                        <summary>Technical Details</summary>
-                                        <pre style="background: #374151; padding: 10px; border-radius: 5px; margin-top: 10px; overflow: auto;">
-Config received: \${JSON.stringify(window.GAME_CONFIG, null, 2)}
-                                        </pre>
-                                    </details>
-                                </div>
-                            </div>
-                        \`;
-                    });
+                // Test config accessibility
+                try {
+                    const testConfig = window.GAME_CONFIG.firebaseConfig.apiKey;
+                    console.log('✅ Config accessible, API key length:', testConfig?.length || 0);
+                } catch (e) {
+                    console.error('❌ Config access error:', e);
                 }
             </script>
         `;
 
-        // Try multiple injection strategies
+        // Enhanced injection strategy
         let injectedHtml = htmlData;
+        let injectionSuccess = false;
 
         // Strategy 1: Replace CONFIG_INJECTION_POINT placeholder
         if (htmlData.includes('<!-- CONFIG_INJECTION_POINT -->')) {
             injectedHtml = htmlData.replace('<!-- CONFIG_INJECTION_POINT -->', configScript);
+            injectionSuccess = true;
             console.log('✅ Config injected via CONFIG_INJECTION_POINT placeholder');
         }
         // Strategy 2: Insert before </head>
         else if (htmlData.includes('</head>')) {
             injectedHtml = htmlData.replace('</head>', configScript + '\n</head>');
+            injectionSuccess = true;
             console.log('✅ Config injected before </head>');
         }
         // Strategy 3: Insert after <head>
         else if (htmlData.includes('<head>')) {
             injectedHtml = htmlData.replace('<head>', '<head>' + configScript);
+            injectionSuccess = true;
             console.log('✅ Config injected after <head>');
         }
-        else {
-            console.warn('⚠️ No suitable injection point found, using fallback');
+
+        if (!injectionSuccess) {
+            console.error('❌ No suitable injection point found in HTML');
+            console.log('HTML preview:', htmlData.substring(0, 500));
             return res.send(generateFallbackHTML());
         }
 
+        console.log('📤 Sending HTML response with injected config');
         res.send(injectedHtml);
     });
 });
@@ -391,13 +403,17 @@ app.get('/game/api/user', async (req, res) => {
     // If no token or token invalid, treat as anonymous/guest
     res.json({ isAuthenticated: false, isGuest: true, guestId: 'guest-' + Date.now() }); // Simple guest ID
 });
-app.get('/debug/config', (req, res) => {
-    res.json({
-        configExists: !!process.env.FIREBASE_API_KEY,
-        authAppUrl: process.env.AUTH_APP_URL,
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        timestamp: new Date().toISOString()
-    });
+app.get('/debug/env', (req, res) => {
+    const envCheck = {
+        NODE_ENV: process.env.NODE_ENV,
+        PORT: process.env.PORT,
+        AUTH_APP_URL: process.env.AUTH_APP_URL ? 'SET' : 'MISSING',
+        FIREBASE_API_KEY: process.env.FIREBASE_API_KEY ? 'SET' : 'MISSING',
+        FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN ? 'SET' : 'MISSING',
+        FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID ? 'SET' : 'MISSING',
+        // Add other Firebase vars...
+    };
+    res.json(envCheck);
 });
 // --- Socket.IO Authentication Middleware ---
 io.use(async (socket, next) => {
