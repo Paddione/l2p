@@ -109,11 +109,12 @@ const apiLimiter = rateLimit({
 app.use('/game/api/', apiLimiter);
 
 // --- Static File Serving ---
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Enhanced Config Injection Route
 app.get('/', (req, res) => {
     // First, validate that all required env vars are loaded
+app.use(express.static(path.join(__dirname, 'public')));
     const requiredEnvVars = [
         'AUTH_APP_URL',
         'FIREBASE_API_KEY',
