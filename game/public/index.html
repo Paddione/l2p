@@ -3,248 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Real-Time Quiz Game - Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
-    <meta name="keywords" content="Quiz, Game, Realtime, Multiplayer, Trivia, German">
-    <meta name="author" content="Quiz Game Team">
+    <title>Kommilitonen Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://game.korczewski.de/"> <meta property="og:title" content="Real-Time Quiz Game">
-    <meta property="og:description" content="Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
-    <meta property="og:image" content="/favicon-192x192.png"> <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://game.korczewski.de/"> <meta property="twitter:title" content="Real-Time Quiz Game">
-    <meta property="twitter:description" content="Spielen Sie interaktive Quiz-Spiele mit Freunden in Echtzeit">
-    <meta property="twitter:image" content="/favicon-192x192.png"> <title>Real-Time Quiz Game - Spielen Sie mit Freunden!</title>
+    <!-- WICHTIG: Dieser Platzhalter wird vom Server ersetzt -->
+    <!-- CONFIG_INJECTION_POINT -->
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"> <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest"> <meta name="theme-color" content="#0f172a">
-
-    <link rel="preconnect" href="https://www.gstatic.com">
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
-
-    <link rel="stylesheet" href="style.css">
-
-
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Game",
-        "name": "Real-Time Quiz Game",
-        "description": "Interaktives Multiplayer-Quiz-Spiel in Echtzeit",
-        "url": "https://game.korczewski.de/",
-        "genre": "Quiz Game",
-        "numberOfPlayers": "1-10",
-        "playMode": "MultiPlayer",
-        "applicationCategory": "Game"
-    }
-    </script>
-
-    <link rel="dns-prefetch" href="//www.gstatic.com">
     <style>
-        /* Critical CSS for faster loading (remains the same) */
-        body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            color: #e2e8f0; /* Default text color for better contrast */
-        }
-        .initial-loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999; color: white; opacity: 1; transition: opacity 0.5s ease-out;
-        }
-        .initial-loading.fade-out { opacity: 0; pointer-events: none; }
-        .loading-spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(59, 130, 246, 0.3);
-            border-radius: 50%; border-top-color: #3b82f6; animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-text { margin-top: 20px; font-size: 18px; font-weight: 500; }
-        .loading-features { margin-top: 20px; text-align: center; max-width: 400px; }
-        .loading-features p { margin: 8px 0; font-size: 14px; color: #94a3b8; }
-        .game-info { text-align: center; margin-bottom: 20px; }
-        .game-title { font-size: 3rem; margin-bottom: 10px; }
-        .game-subtitle { font-size: 1.5rem; font-weight: 600; margin-bottom: 20px; color: #3b82f6; }
-        body:not(.app-loaded) #app-container { display: none; }
-        body.app-loaded .initial-loading { display: none; }
-        @media (max-width: 768px) {
-            .game-title { font-size: 2rem; } .game-subtitle { font-size: 1.2rem; }
-            .loading-features { max-width: 300px; padding: 0 20px; }
-        }
+        /* Ihre CSS-Styles hier */
+        .loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .hidden { display: none; }
+        /* Weitere Styles... */
     </style>
 </head>
-<body>
-<div class="initial-loading" id="initialLoading">
-    <div class="game-info">
-        <div class="game-title">🎮</div>
-        <h1 class="game-subtitle">Quiz Game</h1>
-    </div>
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Spiel wird initialisiert...</div>
-    <div class="loading-features">
-        <p>🧠 10 Fragen pro Spiel</p>
-        <p>⏱️ Zeitlimit pro Frage</p>
-        <p>⚡ Multiplier-Punktesystem</p>
-        <p>👥 Multiplayer-Modus</p>
-        <p>🏆 Hall of Fame</p>
+<body class="bg-gray-900 text-white min-h-screen">
+<!-- Loading Screen -->
+<div id="loading-screen" class="loading">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+        <p class="mt-4 text-xl">Lade Quiz-Spiel...</p>
     </div>
 </div>
 
-<div id="app-container">
-</div>
+<!-- Main Game Interface (initially hidden) -->
+<div id="game-container" class="hidden">
+    <!-- Ihr Game-Interface hier -->
+    <div id="auth-section" class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold text-center mb-8">🎮 Kommilitonen Quiz</h1>
 
-<div style="display: none;" aria-hidden="true">
-    <audio preload="auto" id="sound-click" src="assets/sounds/click.mp3"></audio>
-    <audio preload="auto" id="sound-correct" src="assets/sounds/correctanswer.mp3"></audio>
-    <audio preload="auto" id="sound-incorrect" src="assets/sounds/incorrectanswer.mp3"></audio>
-    <audio preload="auto" id="sound-streak" src="assets/sounds/streak.mp3"></audio>
-    <audio preload="auto" id="sound-timeup" src="assets/sounds/timesup.mp3"></audio>
-    <audio preload="auto" id="sound-join" src="assets/sounds/newquestion.mp3"></audio> <audio preload="auto" id="sound-start" src="assets/sounds/newquestion.mp3"></audio>
-    <audio preload="auto" id="music-menu" src="assets/sounds/menumusic.mp3" loop></audio>
-</div>
+        <!-- Auth/Guest Login -->
+        <div class="max-w-md mx-auto bg-gray-800 rounded-lg p-6">
+            <div id="auth-options" class="space-y-4">
+                <button id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Mit Account anmelden
+                </button>
+                <button id="guest-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Als Gast spielen
+                </button>
+            </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script src="/socket.io/socket.io.js"></script>
-
-
-<script>
-    // Global error handler
-    window.addEventListener('error', (event) => {
-        console.error('Global error:', event.error, 'at', event.filename, event.lineno, ':', event.colno);
-        const loadingText = document.querySelector('.loading-text');
-        if (loadingText && loadingText.closest('#initialLoading')) { // Only if initial loading is visible
-            loadingText.textContent = 'Fehler beim Laden. Bitte Seite neu laden.';
-            loadingText.style.color = '#ef4444'; // Red color
-        }
-    });
-
-    // Hide initial loading screen when app is ready
-    window.hideInitialLoading = function() {
-        document.body.classList.add('app-loaded');
-        const initialLoadingEl = document.getElementById('initialLoading');
-        if (initialLoadingEl) {
-            initialLoadingEl.classList.add('fade-out');
-            setTimeout(() => {
-                initialLoadingEl.style.display = 'none';
-            }, 500); // Match CSS transition
-        }
-    };
-
-    // Fallback: hide loading screen after maximum wait time
-    const loadingTimeout = setTimeout(() => {
-        if (!document.body.classList.contains('app-loaded')) {
-            console.warn('App loading timeout - forcefully hiding loading screen');
-            window.hideInitialLoading();
-        }
-    }, 10000); // 10 second timeout
-
-    // Clear timeout if app loads faster
-    window.addEventListener('appready', () => { // Custom event to be fired by main.js
-        clearTimeout(loadingTimeout);
-        window.hideInitialLoading();
-    });
-</script>
-
-<script src="main.js"></script>
-
-```
-<!--
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    // gtag('config', 'YOUR_GA_MEASUREMENT_ID'); // Replace with your ID
-</script>
--->
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-                e.preventDefault();
-                // Consider a more user-friendly way to show help, e.g., a modal
-                console.log('Keyboard shortcuts:\n- Space: Pause/Resume (Host only, in game)\n- Ctrl+/: Show this help\n- Escape: Close notifications/modals');
-            }
-        });
-
-        // Accessibility improvements for Esc key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const notification = document.getElementById('global-notification');
-                if (notification && !notification.classList.contains('hidden')) {
-                    notification.classList.add('hidden');
-                }
-                // Add similar logic for any modals if they are implemented
-            }
-        });
-
-        // Device orientation handling for mobile (optional, can cause reflows)
-        // window.addEventListener('orientationchange', () => {
-        //     setTimeout(() => { window.scrollTo(0, 0); }, 100);
-        // });
-
-        // Prevent zoom on double tap (iOS Safari) - often good for web apps
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', (event) => {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-    });
-
-    // Performance monitoring
-    window.addEventListener('load', () => {
-        if (window.performance && window.performance.timing) {
-            const loadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
-            console.log('Page load time:', loadTime + 'ms');
-        }
-        // Fire appready event after main.js has likely run its course (or main.js can fire it)
-        if (!document.body.classList.contains('app-loaded')) {
-            window.dispatchEvent(new CustomEvent('appready'));
-        }
-    });
-</script>
-
-<noscript>
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; color: white; display: flex; flex-direction:column; align-items: center; justify-content: center; text-align: center; font-family: Arial, sans-serif; z-index: 10000;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">🎮</div>
-        <h1 style="font-size: 2rem; margin-bottom: 1rem;">Real-Time Quiz Game</h1>
-        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">JavaScript ist erforderlich, um dieses Spiel zu spielen.</p>
-        <p style="color: #94a3b8;">Bitte aktivieren Sie JavaScript in Ihrem Browser und laden Sie die Seite neu.</p>
+            <!-- Guest Name Input -->
+            <div id="guest-form" class="hidden space-y-4">
+                <input type="text" id="guest-name" placeholder="Dein Name"
+                       class="w-full px-3 py-2 bg-gray-700 text-white rounded-md">
+                <button id="guest-continue" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Weiter
+                </button>
+            </div>
+        </div>
     </div>
-</noscript>
 
-<!--
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js') // Ensure sw.js is in the root of the 'public' folder
-                .then(registration => {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                })
-                .catch(error => {
-                    console.log('ServiceWorker registration failed: ', error);
-                });
-        });
-    }
-</script>
--->
+    <!-- Lobby Section -->
+    <div id="lobby-section" class="hidden container mx-auto p-4">
+        <!-- Lobby Interface -->
+    </div>
+
+    <!-- Game Section -->
+    <div id="game-section" class="hidden container mx-auto p-4">
+        <!-- Game Interface -->
+    </div>
+</div>
+
+<!-- Debug Information -->
+<div id="debug-info" class="fixed bottom-4 right-4 bg-gray-800 p-2 rounded text-xs">
+    <div>Status: <span id="connection-status">Connecting...</span></div>
+    <div>Config: <span id="config-status">Loading...</span></div>
+</div>
+
+<!-- Main JavaScript -->
+<script src="/main.js"></script>
 </body>
 </html>
