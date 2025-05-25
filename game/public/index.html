@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Spiel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Load Socket.IO client BEFORE any modules -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Load Firebase BEFORE modules -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modern-card {
+            background-color: rgba(31, 41, 55, 0.8); /* bg-gray-800 with opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5); /* border-gray-700 with opacity */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-lobby {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            color: white;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* blue-500 */
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* gray-500 */
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .btn-danger {
+            background-color: #ef4444; /* red-500 */
+        }
+        .btn-danger:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+        .answer-option-btn.selected {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #0ea5e9; /* sky-500 */
+            --tw-gradient-to: rgba(14, 165, 233, 0);
+            border-color: #0ea5e9; /* sky-500 */
+            color: white;
+            transform: scale(1.02);
+        }
+        .answer-option-btn.correct {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #22c55e; /* green-500 */
+            --tw-gradient-to: rgba(34, 197, 94, 0);
+            border-color: #22c55e; /* green-500 */
+            color: white;
+        }
+        .answer-option-btn.incorrect {
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #ef4444; /* red-500 */
+            --tw-gradient-to: rgba(239, 68, 68, 0);
+            border-color: #ef4444; /* red-500 */
+            color: white;
+        }
+        .answer-option-btn.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none; /* Important to prevent clicks after selection */
+        }
+        /* Urgent timer colors - these are illustrative, actual classes are set by JS */
+        .urgent-high { animation: pulse-red 1s infinite; }
+        .urgent-medium { animation: pulse-orange 1.5s infinite; }
+        .urgent-low {} /* Default yellow, no pulse or handled by JS directly */
+
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes pulse-orange { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-sky-500 selection:text-white">
+
+<div id="loading-screen" class="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
+    <div class="text-3xl font-bold text-sky-400 mb-4 animate-pulse">Quiz Spiel wird geladen...</div>
+    <div class="w-1/2 h-2 bg-gray-700 rounded-full overflow-hidden mb-2">
+        <div class="h-full bg-sky-500 animate-pulse" style="width: 50%;"></div> </div>
+    <p class="text-sm text-gray-400">Status: <span id="config-status" class="text-yellow-400">Prüfe Konfiguration...</span></p>
+</div>
+
+<div id="game-container" class="w-full max-w-4xl mx-auto hidden">
+    <header class="mb-8 text-center">
+        <h1 id="game-section-title" class="text-4xl font-bold bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
+            Quiz Spiel
+        </h1>
+        <p class="text-sm text-gray-400">Verbindungsstatus: <span id="connection-status" class="text-yellow-500">Initialisiere...</span></p>
+    </header>
+
+    <section id="auth-section" class="modern-card p-6 md:p-8 hidden">
+        <h2 class="text-2xl font-semibold mb-6 text-center text-sky-300">Anmelden oder als Gast spielen</h2>
+        <div id="auth-options">
+            <form id="email-login-form" class="space-y-4 mb-6">
+                <div>
+                    <label for="login-email-input" class="block text-sm font-medium text-gray-300">Email</label>
+                    <input type="email" id="login-email-input" required class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-3 focus:ring-sky-500 focus:border-sky-500">
+                </div>
+                <div>
+                    <label for="login-password-input" class="block text-sm font-medium text-gray-300">Passwort</label>
+                    <input type="password" id="login-password-input" required class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-3 focus:ring-sky-500 focus:border-sky-500">
+                </div>
+                <button type="submit" class="w-full btn-lobby bg-sky-600 hover:bg-sky-700 focus:ring-sky-500">Anmelden</button>
+                <p id="auth-error-message" class="text-red-400 text-sm text-center"></p>
+            </form>
+            <div class="text-center my-4">
+                <span class="text-gray-400">oder</span>
+            </div>
+            <button id="guest-btn" class="w-full btn-lobby bg-teal-600 hover:bg-teal-700 focus:ring-teal-500">Als Gast fortfahren</button>
+        </div>
+        <form id="guest-form" class="space-y-4 hidden">
+            <h3 class="text-xl font-semibold mb-2 text-center text-teal-300">Gast Name</h3>
+            <div>
+                <label for="guest-name" class="block text-sm font-medium text-gray-300">Dein Name als Gast</label>
+                <input type="text" id="guest-name" placeholder="Gast123" class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-3 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <button type="button" id="guest-continue" class="w-full btn-lobby bg-teal-600 hover:bg-teal-700 focus:ring-teal-500">Weiter</button>
+        </form>
+    </section>
+
+    <section id="lobby-section" class="modern-card p-6 md:p-8 hidden">
+        <h2 class="text-2xl font-semibold mb-6 text-center text-sky-300">Lobby beitreten oder erstellen</h2>
+        <div class="space-y-6">
+            <div>
+                <label for="join-lobby-id-input" class="block text-sm font-medium text-gray-300">Lobby ID beitreten</label>
+                <div class="mt-1 flex rounded-md shadow-sm">
+                    <input type="text" id="join-lobby-id-input" placeholder="ABCDE" class="flex-1 block w-full min-w-0 bg-gray-700 border-gray-600 text-white rounded-none rounded-l-md p-3 focus:ring-sky-500 focus:border-sky-500 uppercase">
+                    <button id="join-lobby-submit-btn" type="button" class="inline-flex items-center px-4 py-2 border border-l-0 border-sky-500 rounded-r-md bg-sky-600 text-white hover:bg-sky-700 focus:ring-sky-500">Beitreten</button>
+                </div>
+            </div>
+            <div class="text-center">
+                <span class="text-gray-400">oder</span>
+            </div>
+            <button id="create-lobby-btn" class="w-full btn-lobby bg-green-600 hover:bg-green-700 focus:ring-green-500">Neue Lobby erstellen</button>
+            <p id="lobby-error-message" class="text-red-400 text-sm text-center"></p>
+            <button id="logout-btn-lobby" class="w-full btn-lobby bg-gray-600 hover:bg-gray-700 mt-4">Logout</button>
+        </div>
+    </section>
+
+    <section id="game-section" class="hidden">
+        <div id="waiting-room-container" class="modern-card p-6 md:p-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-sky-300">Lobby ID: <span id="display-lobby-id" class="text-yellow-400 font-mono"></span></h3>
+                    <button id="copy-lobby-id-btn" class="ml-2 text-xs bg-sky-700 hover:bg-sky-600 p-1 rounded">Kopieren</button>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-400">Dein Name: <span id="display-player-name" class="text-lime-400"></span></p>
+                    <p class="text-sm text-gray-400">Spieler: <span id="player-count" class="text-white">0</span></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2 modern-card p-4">
+                    <h4 class="font-semibold text-sky-300 mb-2">Spieler in der Lobby:</h4>
+                    <ul id="player-list" class="space-y-2 max-h-60 overflow-y-auto">
+                    </ul>
+                </div>
+                <div class="modern-card p-4">
+                    <div id="host-controls" class="hidden space-y-4">
+                        <h4 class="font-semibold text-sky-300">Host Einstellungen</h4>
+                        <div>
+                            <label for="category-select" class="block text-sm font-medium text-gray-300">Kategorie:</label>
+                            <select id="category-select" class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-3 focus:ring-sky-500 focus:border-sky-500">
+                                <option value="">-- Kategorie wählen --</option>
+                            </select>
+                        </div>
+                        <button id="start-game-btn" class="btn-lobby bg-green-600 hover:bg-green-700 focus:ring-green-500 w-full" disabled>Spiel starten</button>
+                        <p id="start-game-error" class="text-red-400 text-sm"></p>
+                    </div>
+                    <div id="non-host-info">
+                        <h4 class="font-semibold text-sky-300 mb-2">Warte auf Host...</h4>
+                        <p class="text-sm text-gray-400">Der Host wählt die Kategorie und startet das Spiel.</p>
+                        <p class="text-sm text-gray-300 mt-2">Ausgewählte Kategorie: <span id="display-selected-category" class="text-yellow-400">N/A</span></p>
+                    </div>
+                </div>
+            </div>
+            <button id="leave-lobby-btn" class="mt-6 btn-lobby bg-red-600 hover:bg-red-700 focus:ring-red-500 w-full md:w-auto">Lobby verlassen</button>
+        </div>
+    </section>
+</div>
+
+<!-- Firebase configuration will be injected here by the server -->
+
+<!-- Verify Socket.IO is loaded before modules -->
+<script>
+    console.log('🔧 Pre-module check - Socket.IO available:', typeof io !== 'undefined');
+    console.log('🔧 Pre-module check - Firebase available:', typeof firebase !== 'undefined');
+
+    // Wait for both Socket.IO and Firebase to be available before loading modules
+    function waitForDependencies() {
+        if (typeof io !== 'undefined' && typeof firebase !== 'undefined') {
+            console.log('✅ All dependencies loaded, starting main module');
+            // Load the main module
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'js/main.js';
+            document.body.appendChild(script);
+        } else {
+            console.log('⏳ Waiting for dependencies...');
+            setTimeout(waitForDependencies, 50);
+        }
+    }
+
+    // Start dependency check after a short delay
+    setTimeout(waitForDependencies, 100);
+</script>
+
+</body>
+</html>

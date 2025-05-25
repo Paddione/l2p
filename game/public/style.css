@@ -1,0 +1,278 @@
+/* Modern UI Improvements - Add to game/public/style.css */
+
+/* Modern Input Fields */
+.input-field, select {
+    @apply w-full px-4 py-3 bg-gray-700 text-white border border-gray-600 rounded-xl;
+    @apply focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500;
+    @apply transition-all duration-300 shadow-lg;
+    @apply placeholder-gray-400;
+}
+
+.input-field:hover, select:hover {
+    @apply border-gray-500 shadow-xl;
+    transform: translateY(-1px);
+}
+
+.input-field:focus, select:focus {
+    @apply bg-gray-600 border-sky-400;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1), 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Modern Select Dropdown */
+select {
+    @apply appearance-none bg-gray-700 text-white;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 20px;
+    padding-right: 44px;
+}
+
+select option {
+    @apply bg-gray-700 text-white;
+    padding: 12px 16px;
+}
+
+/* Modern Button Styles */
+.btn-lobby {
+    @apply px-6 py-3 rounded-xl font-semibold text-white;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800;
+    @apply transition-all duration-300 shadow-lg;
+    @apply transform hover:scale-105 active:scale-95;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-lobby::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.btn-lobby:hover::before {
+    left: 100%;
+}
+
+/* Specific Button Colors */
+.btn-lobby.bg-green-600 {
+    @apply bg-gradient-to-r from-green-600 to-green-500;
+    @apply hover:from-green-700 hover:to-green-600;
+    @apply shadow-green-500/25;
+}
+
+.btn-lobby.bg-blue-600 {
+    @apply bg-gradient-to-r from-blue-600 to-blue-500;
+    @apply hover:from-blue-700 hover:to-blue-600;
+    @apply shadow-blue-500/25;
+}
+
+.btn-lobby.bg-red-600, .btn-lobby.bg-red-700 {
+    @apply bg-gradient-to-r from-red-600 to-red-500;
+    @apply hover:from-red-700 hover:to-red-600;
+    @apply shadow-red-500/25;
+}
+
+.btn-lobby.bg-gray-600 {
+    @apply bg-gradient-to-r from-gray-600 to-gray-500;
+    @apply hover:from-gray-700 hover:to-gray-600;
+    @apply shadow-gray-500/25;
+}
+
+.btn-lobby.bg-sky-600 {
+    @apply bg-gradient-to-r from-sky-600 to-sky-500;
+    @apply hover:from-sky-700 hover:to-sky-600;
+    @apply shadow-sky-500/25;
+}
+
+/* Disabled Button State */
+.btn-lobby:disabled {
+    @apply opacity-50 cursor-not-allowed transform-none;
+    @apply bg-gray-600 hover:bg-gray-600;
+    box-shadow: none;
+}
+
+.btn-lobby:disabled::before {
+    display: none;
+}
+
+/* Modern Cards */
+.modern-card {
+    @apply bg-gradient-to-br from-gray-800 to-gray-900;
+    @apply border border-gray-700 rounded-2xl shadow-2xl;
+    @apply backdrop-blur-sm;
+    position: relative;
+}
+
+.modern-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.5), transparent);
+    border-radius: 16px 16px 0 0;
+}
+
+/* Modern Container Updates */
+.auth-container, .lobby-container, .game-container {
+    @apply modern-card p-8;
+    backdrop-filter: blur(10px);
+}
+
+/* Modern Headers */
+h1, h2, h3 {
+    @apply bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent;
+    @apply font-bold tracking-tight;
+}
+
+/* Modern Lobby ID Display */
+#display-lobby-id {
+    @apply font-mono text-2xl font-bold text-yellow-400;
+    @apply bg-gray-800 px-4 py-2 rounded-lg border border-yellow-400/30;
+    @apply shadow-yellow-400/20 shadow-lg;
+    letter-spacing: 0.2em;
+}
+
+/* Modern Player List */
+#player-list li {
+    @apply bg-gradient-to-r from-gray-700 to-gray-600;
+    @apply border border-gray-600 rounded-lg mb-2 p-3;
+    @apply shadow-lg transition-all duration-300;
+    @apply hover:from-gray-600 hover:to-gray-500;
+    @apply hover:shadow-xl hover:scale-105;
+}
+
+#player-list li.bg-sky-600 {
+    @apply bg-gradient-to-r from-sky-600 to-sky-500;
+    @apply border-sky-400 shadow-sky-500/30;
+    @apply hover:from-sky-700 hover:to-sky-600;
+}
+
+/* Modern Notifications */
+#global-notification {
+    @apply rounded-xl shadow-2xl border;
+    @apply backdrop-blur-md;
+    @apply transform transition-all duration-300;
+}
+
+#global-notification.bg-green-500 {
+    @apply bg-green-500/90 border-green-400;
+}
+
+#global-notification.bg-red-500 {
+    @apply bg-red-500/90 border-red-400;
+}
+
+#global-notification.bg-blue-500 {
+    @apply bg-blue-500/90 border-blue-400;
+}
+
+#global-notification.bg-yellow-500 {
+    @apply bg-yellow-500/90 border-yellow-400 text-gray-900;
+}
+
+/* Modern Copy Button */
+#copy-lobby-id-btn {
+    @apply bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white;
+    @apply border border-gray-600 hover:border-gray-500;
+    @apply px-3 py-1 rounded-lg text-sm transition-all duration-200;
+    @apply hover:shadow-lg transform hover:scale-105;
+}
+
+/* Modern Form Styling */
+.auth-section form, .lobby-section form {
+    @apply space-y-6;
+}
+
+.auth-section label, .lobby-section label {
+    @apply text-gray-300 font-medium mb-2 block;
+}
+
+/* Modern Loading States */
+.loading-pulse {
+    @apply bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700;
+    background-size: 200% 200%;
+    animation: loading-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-gray-800 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-sky-500 to-blue-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply from-sky-400 to-blue-500;
+}
+
+/* Glass Effect for Containers */
+.glass-effect {
+    background: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hover Effects for Interactive Elements */
+.interactive-hover {
+    @apply transition-all duration-300 cursor-pointer;
+}
+
+.interactive-hover:hover {
+    @apply transform scale-105 shadow-xl;
+}
+
+/* Modern Grid Layouts */
+.modern-grid {
+    @apply grid gap-6 p-6;
+}
+
+.modern-grid-item {
+    @apply modern-card p-6 transition-all duration-300;
+    @apply hover:shadow-2xl hover:scale-105;
+}
+
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+    .btn-lobby {
+        @apply px-4 py-3 text-sm;
+    }
+
+    .modern-card {
+        @apply p-6;
+    }
+
+    #display-lobby-id {
+        @apply text-xl px-3 py-2;
+    }
+
+    h1 {
+        @apply text-2xl;
+    }
+
+    h2 {
+        @apply text-xl;
+    }
+}
