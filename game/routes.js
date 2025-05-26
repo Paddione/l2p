@@ -18,15 +18,66 @@ const { getGameConfigForClient } = require('./config');
 function setupRoutes(app, questionsData) {
     console.log('🛤️ Setting up routes...');
 
+    // Debug route to check file system
+    app.get('/debug/files', (req, res) => {
+        const publicPath = path.join(__dirname, 'public');
+        const indexPath = path.join(publicPath, 'index.html');
+
+        try {
+            const publicExists = fs.existsSync(publicPath);
+            const indexExists = fs.existsSync(indexPath);
+            const publicContents = publicExists ? fs.readdirSync(publicPath) : [];
+
+            res.json({
+                __dirname,
+                publicPath,
+                indexPath,
+                publicExists,
+                indexExists,
+                publicContents,
+                cwd: process.cwd()
+            });
+        } catch (error) {
+            res.status(500).json({
+                error: error.message,
+                stack: error.stack
+            });
+        }
+    });
+
     // Main route - serves HTML with injected config
     app.get('/', (req, res, next) => {
         console.log('🔍 Game Server: Main route / hit');
 
         const indexPath = path.join(__dirname, 'public', 'index.html');
+
+        // Debug: Check if file exists before trying to read
+        if (!fs.existsSync(indexPath)) {
+            console.error('❌ Game Server: index.html does not exist at:', indexPath);
+            console.log('🔍 Current working directory:', process.cwd());
+            console.log('🔍 __dirname:', __dirname);
+
+            // Try to list contents of current directory and public directory
+            try {
+                console.log('🔍 Contents of __dirname:', fs.readdirSync(__dirname));
+                const publicPath = path.join(__dirname, 'public');
+                if (fs.existsSync(publicPath)) {
+                    console.log('🔍 Contents of public directory:', fs.readdirSync(publicPath));
+                } else {
+                    console.log('❌ Public directory does not exist at:', publicPath);
+                }
+            } catch (dirError) {
+                console.error('❌ Error reading directories:', dirError.message);
+            }
+
+            // Return fallback HTML
+            return res.send(generateFallbackHTML('Game loading error: index.html not found'));
+        }
+
         fs.readFile(indexPath, 'utf8', (err, htmlData) => {
             if (err) {
                 console.error('❌ Game Server: Error reading index.html:', err.stack);
-                return next(err);
+                return res.send(generateFallbackHTML('Game loading error: Could not read index.html'));
             }
 
             const gameConfig = getGameConfigForClient();
@@ -120,6 +171,7 @@ function setupApiRoutes(app, questionsData) {
             next(authError);
         }
     });
+
     /**
      * Health check endpoint for Docker and Traefik
      */
@@ -142,10 +194,27 @@ function setupApiRoutes(app, questionsData) {
 function generateFallbackHTML(message = "Failed to load game.") {
     return `<!DOCTYPE html>
 <html>
-<head><title>Error</title></head>
+<head>
+    <title>Game Loading Error</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #1a1a1a; color: #fff; }
+        .error { background: #ff4444; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 600px; }
+        .debug { background: #444; padding: 15px; border-radius: 5px; margin: 20px auto; max-width: 800px; font-family: monospace; text-align: left; }
+    </style>
+</head>
 <body>
-    <h1>${message}</h1>
-    <p>Please ensure public/index.html exists and server has permissions to read it.</p>
+    <h1>Quiz Game - Loading Error</h1>
+    <div class="error">
+        <h2>${message}</h2>
+        <p>The game could not load properly. Please contact the administrator.</p>
+    </div>
+    <div class="debug">
+        <h3>Debug Information:</h3>
+        <p><strong>Timestamp:</strong> ${new Date().toISOString()}</p>
+        <p><strong>Issue:</strong> index.html file not found in public directory</p>
+        <p><strong>Expected Location:</strong> /usr/src/app/public/index.html</p>
+        <p><strong>Check:</strong> <a href="/debug/files" style="color: #4CAF50;">/debug/files</a> for filesystem debug info</p>
+    </div>
 </body>
 </html>`;
 }

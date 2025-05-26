@@ -33,11 +33,14 @@ COPY package*.json ./
 # Copy node_modules from builder stage
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 
-# Copy application code
+# Copy application code (this includes public directory)
 COPY . .
 
+# Verify public directory exists and has content
+RUN ls -la public/ && echo "✅ Public directory contents verified"
+
 # Create necessary directories and set permissions
-RUN mkdir -p logs public/assets/sounds && \
+RUN mkdir -p logs && \
     chown -R appuser:appuser /usr/src/app
 
 # Switch to non-root user
