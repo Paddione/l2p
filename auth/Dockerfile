@@ -1,28 +1,49 @@
 # auth/Dockerfile
+# Multi-stage build for optimized production image
 
-# Use an official Node.js runtime as a parent image
-# Choose a version that matches your development environment or project requirements
-FROM node:18-slim
+# Build stage
+FROM node:18-slim AS builder
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install app dependencies
-# Using --omit=dev for a smaller production image, but for dev with nodemon, you might need devDependencies
-# For simplicity here, installing all. Adjust if needed.
-RUN npm install
+# Install all dependencies (including devDependencies for build)
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy the rest of your application's code into the container
+# Production stage
+FROM node:18-slim AS production
+
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Copy node_modules from builder stage
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Copy application code
 COPY . .
 
-# Your auth server listens on port 3001 (as per your setup)
+# Create necessary directories and set permissions
+RUN mkdir -p logs && \
+    chown -R appuser:appuser /usr/src/app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 3001
 
-# Define the command to run your app
-# Use "npm run dev" for development with nodemon (if nodemon is a devDependency and script exists)
-# Use "npm start" for production
-CMD [ "npm", "run", "dev" ]
-# Or for production: CMD [ "npm", "start" ]
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+
+# Use production command
+CMD ["npm", "start"]

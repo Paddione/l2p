@@ -3,13 +3,17 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
+      # Use build args for better caching
+      args:
+        NODE_ENV: production
     container_name: quiz_auth_server
     ports:
       - "3001:3001"
     volumes:
-      - ./auth:/usr/src/app
-      - /usr/src/app/node_modules
+      # Only mount what's necessary in production
       - ./auth/service-account.json:/usr/src/app/service-account.json:ro
+      # Mount logs directory for log persistence
+      - auth_logs:/usr/src/app/logs
     env_file:
       - ./auth/.env.auth
     environment:
@@ -23,17 +27,37 @@ services:
       - "traefik.http.routers.auth.tls=true"
       - "traefik.http.routers.auth.tls.certresolver=letsencrypt"
       - "traefik.http.services.auth.loadbalancer.server.port=3001"
+      # Health check configuration for Traefik
+      - "traefik.http.services.auth.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.auth.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.auth.loadbalancer.healthcheck.timeout=5s"
     restart: unless-stopped
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Better logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   game_server:
     build:
       context: ./game
       dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
     container_name: quiz_game_server
     volumes:
-      - ./game:/usr/src/app
-      - /usr/src/app/node_modules
       - ./game/service-account.json:/usr/src/app/service-account.json:ro
+      - game_logs:/usr/src/app/logs
     env_file:
       - ./game/.env.game
     environment:
@@ -42,15 +66,34 @@ services:
     networks:
       - quiz_network
     depends_on:
-      - auth_server
-      - traefik
+      auth_server:
+        condition: service_healthy
+      traefik:
+        condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.game.rule=Host(`game.korczewski.de`)"
       - "traefik.http.routers.game.tls=true"
       - "traefik.http.routers.game.tls.certresolver=letsencrypt"
       - "traefik.http.services.game.loadbalancer.server.port=3000"
+      # Health check configuration
+      - "traefik.http.services.game.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.game.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.game.loadbalancer.healthcheck.timeout=5s"
       # Security headers
       - "traefik.http.middlewares.game-headers.headers.frameDeny=true"
       - "traefik.http.middlewares.game-headers.headers.contentTypeNosniff=true"
@@ -66,7 +109,7 @@ services:
 
   # Reverse Proxy with SSL
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.0
     container_name: quiz_traefik
     command:
       - --api.dashboard=true
@@ -79,6 +122,11 @@ services:
       - --certificatesresolvers.letsencrypt.acme.email=patrick@korczewski.de
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # Enable health checks
+      - --ping=true
+      # Improved logging
+      - --log.level=INFO
+      - --accesslog=true
     ports:
       - "80:80"
       - "443:443"
@@ -89,7 +137,34 @@ services:
     networks:
       - quiz_network
     restart: unless-stopped
+    # Health check for Traefik
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Named volumes for log persistence
+volumes:
+  auth_logs:
+    driver: local
+  game_logs:
+    driver: local
 
 networks:
   quiz_network:
     external: false
+    driver: bridge
