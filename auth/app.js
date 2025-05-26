@@ -21,9 +21,35 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            "script-src": ["'self'", "https://www.gstatic.com/firebasejs/", "'unsafe-inline'"],
-            "frame-src": ["'self'", "https://*.firebaseapp.com"],
-            "connect-src": ["'self'", "*.googleapis.com", "*.firebaseio.com", "https://*.firebaseapp.com", `http://localhost:${PORT}`],
+            "script-src": [
+                "'self'",
+                "https://www.gstatic.com/firebasejs/",
+                "https://apis.google.com",  // Added for Firebase Auth
+                "'unsafe-inline'"
+            ],
+            "frame-src": [
+                "'self'",
+                "https://*.firebaseapp.com",
+                "https://accounts.google.com"  // Added for Google Sign-In
+            ],
+            "connect-src": [
+                "'self'",
+                "*.googleapis.com",
+                "*.firebaseio.com",
+                "https://*.firebaseapp.com",
+                "https://identitytoolkit.googleapis.com",  // Added for Firebase Auth API
+                "https://securetoken.googleapis.com",      // Added for Firebase Auth tokens
+                `http://localhost:${PORT}`
+            ],
+            "style-src": [
+                "'self'",
+                "'unsafe-inline'",  // Firebase Auth may need inline styles
+                "https://fonts.googleapis.com"
+            ],
+            "font-src": [
+                "'self'",
+                "https://fonts.gstatic.com"
+            ]
         },
     },
 }));
@@ -124,11 +150,11 @@ function generateIndexHtml(clientFirebaseConfig, gameConfig, csrfToken) {
         <form id="login-form">
             <div>
                 <label for="login-email">Email:</label>
-                <input type="email" id="login-email" name="email" required>
+                <input type="email" id="login-email" name="email" autocomplete="email" required>
             </div>
             <div>
                 <label for="login-password">Passwort:</label>
-                <input type="password" id="login-password" name="password" required>
+                <input type="password" id="login-password" name="password" autocomplete="current-password" required>
             </div>
             <button type="submit" class="btn">Login</button>
         </form>
@@ -144,15 +170,15 @@ function generateIndexHtml(clientFirebaseConfig, gameConfig, csrfToken) {
         <form id="register-form">
             <div>
                 <label for="register-display-name">Anzeigename:</label>
-                <input type="text" id="register-display-name" name="displayName" required>
+                <input type="text" id="register-display-name" name="displayName" autocomplete="name" required>
             </div>
             <div>
                 <label for="register-email">Email:</label>
-                <input type="email" id="register-email" name="email" required>
+                <input type="email" id="register-email" name="email" autocomplete="email" required>
             </div>
             <div>
                 <label for="register-password">Passwort (min. 6 Zeichen):</label>
-                <input type="password" id="register-password" name="password" required>
+                <input type="password" id="register-password" name="password" autocomplete="new-password" required>
             </div>
             <button type="submit" class="btn">Registrieren</button>
         </form>
@@ -168,7 +194,7 @@ function generateIndexHtml(clientFirebaseConfig, gameConfig, csrfToken) {
         <form id="forgot-password-form">
             <div>
                 <label for="forgot-email">Email:</label>
-                <input type="email" id="forgot-email" name="email" required>
+                <input type="email" id="forgot-email" name="email" autocomplete="email" required>
             </div>
             <button type="submit" class="btn">Reset-Link senden</button>
         </form>
@@ -231,10 +257,10 @@ app.get('/', (req, res, next) => {
         };
 
         // Determine game URL based on environment
-        const gameUrl = process.env.GAME_APP_URL || 
-                       (process.env.NODE_ENV === 'production' 
-                        ? 'https://game.korczewski.de/game/' 
-                        : 'http://localhost:3000');
+        const gameUrl = process.env.GAME_APP_URL ||
+            (process.env.NODE_ENV === 'production'
+                ? 'https://game.korczewski.de/game/'
+                : 'http://localhost:3000');
 
         const gameConfig = {
             gameUrl: gameUrl
@@ -242,7 +268,7 @@ app.get('/', (req, res, next) => {
 
         console.log("Auth Server: Client Firebase Config to be embedded:", clientFirebaseConfig ? "Object present" : "Undefined/falsy"); // Avoid logging sensitive keys
         console.log("Auth Server: Game Config to be embedded:", JSON.stringify(gameConfig));
-        
+
         if (!clientFirebaseConfig.apiKey || !clientFirebaseConfig.authDomain || !clientFirebaseConfig.projectId) {
             console.error("CRITICAL SERVER-SIDE ERROR: Essential Firebase client configuration is missing from environment variables. The login page will not function correctly.");
             return res.status(500).send('Server configuration error. Please contact administrator.');
@@ -439,10 +465,10 @@ async function isAdmin(req, res, next) {
             console.log('Auth Server: isAdmin check - Role not in claims, checking Firestore for user:', req.user.uid);
             const userDoc = await db.collection('users').doc(req.user.uid).get();
             if (userDoc.exists && userDoc.data().role === 'admin') {
-                 console.log('Auth Server: isAdmin check - Admin role found in Firestore for user:', req.user.uid);
+                console.log('Auth Server: isAdmin check - Admin role found in Firestore for user:', req.user.uid);
                 return next();
             }
-             console.log('Auth Server: isAdmin check - Admin role NOT found in Firestore for user:', req.user.uid);
+            console.log('Auth Server: isAdmin check - Admin role NOT found in Firestore for user:', req.user.uid);
         } catch (dbError) {
             console.error("Auth Server: Error fetching user role from DB for admin check:", dbError.message, '(User ID:', req.user.uid, ')');
         }
