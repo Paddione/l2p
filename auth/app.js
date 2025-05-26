@@ -242,6 +242,19 @@ async function verifyFirebaseToken(req, res, next) {
  * @param {object} res - Express response object.
  * @param {function} next - Express next middleware function.
  */
+/**
+ * Health check endpoint for Docker and Traefik
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        service: 'auth-server',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
 app.get('/', (req, res, next) => {
     try {
         console.log("Auth Server: '/' route hit. Generating dynamic HTML.");

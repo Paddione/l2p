@@ -120,6 +120,18 @@ function setupApiRoutes(app, questionsData) {
             next(authError);
         }
     });
+    /**
+     * Health check endpoint for Docker and Traefik
+     */
+    app.get('/api/health', (req, res) => {
+        res.status(200).json({
+            status: 'healthy',
+            service: 'game-server',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            questionsLoaded: !!questionsData
+        });
+    });
 }
 
 /**

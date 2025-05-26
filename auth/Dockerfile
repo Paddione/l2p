@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 # Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies for build)
+# Install dependencies
 RUN npm ci --only=production && npm cache clean --force
 
 # Production stage
@@ -41,8 +41,8 @@ USER appuser
 # Expose port
 EXPOSE 3001
 
-# Add health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Add health check (this will be overridden by docker-compose but good to have)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
 
 # Use production command
