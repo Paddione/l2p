@@ -1,8 +1,8 @@
 // game/middleware.js
 
 /**
- * @fileoverview Express middleware configuration for the game server.
- */
+  * @fileoverview Express middleware configuration for the game server.
+  */
 
 const express = require('express'); // Add this import
 const helmet = require('helmet');
@@ -12,9 +12,9 @@ const cors = require('cors');
 const { getCorsOrigins } = require('./config');
 
 /**
- * Sets up all Express middleware.
- * @param {express.Application} app - The Express application instance.
- */
+  * Sets up all Express middleware.
+  * @param {express.Application} app - The Express application instance.
+  */
 function setupMiddleware(app) {
     console.log('🔧 Setting up middleware...');
 
@@ -25,15 +25,14 @@ function setupMiddleware(app) {
                 defaultSrc: ["'self'"],
                 scriptSrc: [
                     "'self'",
-                    "'unsafe-inline'", // For config script
                     "https://www.gstatic.com/firebasejs/", // Firebase JS SDK
-                    "https://cdn.tailwindcss.com",      // Tailwind CSS
-                    "https://cdn.socket.io",            // Socket.IO client from CDN
+                    "https://cdn.tailwindcss.com",      // Tailwind CSS
+                    "https://cdn.socket.io",            // Socket.IO client from CDN
+                    "https://apis.google.com",          // Added for Google API/Firebase needs
                 ],
-                scriptSrcAttr: ["'unsafe-inline'"], // For inline event handlers if any
+                scriptSrcAttr: ["'unsafe-inline'"], // Added 'unsafe-inline' as requested
                 styleSrc: [
                     "'self'",
-                    "'unsafe-inline'",
                     "https://fonts.googleapis.com",
                     "https://cdn.tailwindcss.com"
                 ],

@@ -31,6 +31,11 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
+/**
+ * Starts the game server, including environment validation, loading questions,
+ * setting up middleware, routes, and Socket.IO handlers.
+ * Handles critical errors during startup.
+ */
 async function startServer() {
     try {
         // Validate environment variables
@@ -63,12 +68,15 @@ async function startServer() {
         });
 
     } catch (error) {
-        console.error('❌ Failed to start server:', error);
+        console.error('❌ Failed to start server:', error.message, '(Code:', error.code, ')');
         process.exit(1);
     }
 }
 
 // Graceful shutdown
+/**
+ * Handles SIGINT signal for graceful server shutdown.
+ */
 process.on('SIGINT', () => {
     console.log('🛑 SIGINT received, shutting down gracefully...');
     io.close(() => {
@@ -79,6 +87,9 @@ process.on('SIGINT', () => {
     });
 });
 
+/**
+ * Handles SIGTERM signal for graceful server shutdown.
+ */
 process.on('SIGTERM', () => {
     console.log('🛑 SIGTERM received, shutting down gracefully...');
     io.close(() => {

@@ -187,24 +187,57 @@ export function showScreen(screenName) {
 
     switch (screenName) {
         case 'auth':
+            console.log('UI: Case: auth screen');
             sectionToShow = domElements.authSection;
             resetAuthForm();
             break;
         case 'lobbyConnect':
+            console.log('UI: Case: lobbyConnect screen');
             sectionToShow = domElements.lobbySection;
             title = 'Lobby Verbindung';
             clearLobbyErrors();
+            // Ensure lobby input is cleared
+            if (domElements.joinLobbyIdInput) {
+                domElements.joinLobbyIdInput.value = '';
+            }
+            // Optionally clear any previous lobby state display
+            if (domElements.displayLobbyId) {
+                 domElements.displayLobbyId.textContent = '';
+            }
+            if (domElements.playerListUl) {
+                domElements.playerListUl.innerHTML = '';
+            }
+            if (domElements.playerCountSpan) {
+                 domElements.playerCountSpan.textContent = '0';
+            }
+            if (domElements.displaySelectedCategory) {
+                 domElements.displaySelectedCategory.textContent = 'N/A';
+            }
+            if (domElements.startGameBtn) {
+                domElements.startGameBtn.disabled = true;
+            }
+            if (domElements.hostControlsDiv) {
+                domElements.hostControlsDiv.classList.add('hidden');
+            }
+            if (domElements.nonHostInfoDiv) {
+                 domElements.nonHostInfoDiv.classList.remove('hidden');
+            }
+            if (domElements.startGameError) {
+                domElements.startGameError.textContent = '';
+            }
             break;
         case 'waitingRoom':
+            console.log('UI: Case: waitingRoom screen');
             sectionToShow = domElements.gamePlaySection;
             if (domElements.waitingRoomContainer) {
                 domElements.waitingRoomContainer.classList.remove('hidden');
             }
             clearGamePlayArea();
-            renderWaitingRoom();
+            renderWaitingRoom(); // This populates the waiting room UI based on gameState
             title = 'Warteraum';
             break;
         case 'game':
+            console.log('UI: Case: game screen');
             sectionToShow = domElements.gamePlaySection;
             if (domElements.waitingRoomContainer) {
                 domElements.waitingRoomContainer.classList.add('hidden');
@@ -212,22 +245,26 @@ export function showScreen(screenName) {
             title = 'Quiz Spiel';
             break;
         case 'loading':
+            console.log('UI: Case: loading screen');
             if (domElements.loadingScreen) {
                 domElements.loadingScreen.style.display = 'flex';
             }
             if (domElements.gameContainer) {
                 domElements.gameContainer.classList.add('hidden');
             }
-            return;
+            return; // Exit early for loading screen
         default:
             console.warn(`UI: Screen '${screenName}' not recognized. Defaulting to auth.`);
             sectionToShow = domElements.authSection;
+            resetAuthForm();
             break;
     }
 
     if (sectionToShow) {
         sectionToShow.classList.remove('hidden');
         console.log(`UI: Section for '${screenName}' is now visible.`);
+    } else {
+         console.error(`UI: No section found to show for screen: ${screenName}`);
     }
 
     if (domElements.gameSectionTitle) {
@@ -239,6 +276,8 @@ export function showScreen(screenName) {
  * Resets the authentication form to default state
  */
 function resetAuthForm() {
+    if (domElements.emailLoginForm) domElements.emailLoginForm.reset();
+    if (domElements.guestNameInput) domElements.guestNameInput.value = '';
     if (domElements.guestForm) domElements.guestForm.classList.add('hidden');
     if (domElements.authOptionsDiv) domElements.authOptionsDiv.classList.remove('hidden');
     if (domElements.authErrorMessage) domElements.authErrorMessage.textContent = '';

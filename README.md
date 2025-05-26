@@ -10,10 +10,15 @@ Dies ist ein vollständiger Multiplayer-Quiz-Anwendung mit zwei Hauptservern (Au
 
 ### **Root-Verzeichnis**
 - **docker-compose.yml** - Docker-Orchestrierung für Production-Deployment
-- **README.md** - Projektdokumentation (leer)
-- **Tasks.md** - Aufgabenliste
-- **Funktionskatalog.md** - Funktionsübersicht
+- **README.md** - Projektdokumentation und Analyse
 - **.gitignore** - Git-Ignore-Regeln
+- **rebuild.sh** - Skript zum Neuerstellen der Docker-Container
+- **docs/** - Projektdokumentation
+    - **operational-guidelines.md** - Richtlinien für Entwicklung und Betrieb
+    - **project-structure.md** - Beschreibung der Projektstruktur
+    - **tech-stack.md** - Übersicht der verwendeten Technologien
+    - **checklists/**
+        - **story-dod-checklist.txt** - Definition of Done Checklist für Stories
 
 ### **🔐 Auth-Server (/auth/)**
 - **app.js** - Hauptserver für Authentifizierung

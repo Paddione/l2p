@@ -77,12 +77,14 @@ export function setupAuthStateListener(dependencies) {
 
                 // Initialize socket connection with auth
                 if (dependencies.socketHandlers?.initSocketConnection) {
+                    console.log('Auth: Initializing socket connection via dependencies...');
                     dependencies.socketHandlers.initSocketConnection(dependencies);
                 } else {
                     console.error('Auth: socketHandlers.initSocketConnection not found in dependencies.');
                 }
 
                 if (dependencies.ui?.showScreen) {
+                    console.log('Auth: Showing lobbyConnect screen...');
                     dependencies.ui.showScreen('lobbyConnect');
                 }
 

@@ -196,29 +196,8 @@
 
 <!-- Firebase configuration will be injected here by the server -->
 
-<!-- Verify Socket.IO is loaded before modules -->
-<script>
-    console.log('🔧 Pre-module check - Socket.IO available:', typeof io !== 'undefined');
-    console.log('🔧 Pre-module check - Firebase available:', typeof firebase !== 'undefined');
-
-    // Wait for both Socket.IO and Firebase to be available before loading modules
-    function waitForDependencies() {
-        if (typeof io !== 'undefined' && typeof firebase !== 'undefined') {
-            console.log('✅ All dependencies loaded, starting main module');
-            // Load the main module
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'js/main.js';
-            document.body.appendChild(script);
-        } else {
-            console.log('⏳ Waiting for dependencies...');
-            setTimeout(waitForDependencies, 50);
-        }
-    }
-
-    // Start dependency check after a short delay
-    setTimeout(waitForDependencies, 100);
-</script>
+<!-- Load dependency check script -->
+<script src="js/dependencyCheck.js"></script>
 
 </body>
 </html>

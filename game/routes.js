@@ -4,7 +4,7 @@
  * @fileoverview Express route handlers for the game server.
  */
 
-const express = require('express'); // Add this import
+const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { auth, db } = require('./firebaseAdmin');
@@ -19,14 +19,14 @@ function setupRoutes(app, questionsData) {
     console.log('🛤️ Setting up routes...');
 
     // Main route - serves HTML with injected config
-    app.get('/', (req, res) => {
+    app.get('/', (req, res, next) => {
         console.log('🔍 Game Server: Main route / hit');
 
         const indexPath = path.join(__dirname, 'public', 'index.html');
         fs.readFile(indexPath, 'utf8', (err, htmlData) => {
             if (err) {
-                console.error('❌ Game Server: Error reading index.html:', err);
-                return res.send(generateFallbackHTML("Error reading main page."));
+                console.error('❌ Game Server: Error reading index.html:', err.stack);
+                return next(err);
             }
 
             const gameConfig = getGameConfigForClient();
@@ -75,28 +75,33 @@ function setupRoutes(app, questionsData) {
  */
 function setupApiRoutes(app, questionsData) {
     // Categories endpoint
-    app.get('/api/categories', (req, res) => {
-        console.log('📚 Categories requested');
+    app.get('/api/categories', (req, res, next) => {
+        console.log('📚 Categories requested', '(Path:', req.path, ')');
         if (questionsData && questionsData.categories) {
             const categories = questionsData.categories.map(cat => cat.name);
-            console.log('📚 Returning categories:', categories);
+            console.log('📚 Returning', categories.length, 'categories');
             res.json({ categories });
         } else {
-            console.error('❌ Categories not loaded');
-            res.status(500).json({ error: "Categories not loaded" });
+            console.error('❌ Categories not loaded or questionsData is null/undefined', '(Path:', req.path, ')');
+            const error = new Error("Categories not loaded");
+            error.status = 500;
+            next(error);
         }
     });
 
     // User info endpoint (requires authentication)
-    app.get('/api/user', async (req, res) => {
+    app.get('/api/user', async (req, res, next) => {
+        console.log('👤 User info requested', '(Path:', req.path, ')');
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.warn('👤 User info - No token provided', '(Path:', req.path, ')');
             return res.status(401).json({ error: 'No token provided' });
         }
 
         const token = authHeader.split('Bearer ')[1];
         try {
             const decodedToken = await auth.verifyIdToken(token);
+            console.log('👤 User info - Token verified for user:', decodedToken.uid);
             const userDoc = await db.collection('users').doc(decodedToken.uid).get();
 
             const userData = {
@@ -105,16 +110,20 @@ function setupApiRoutes(app, questionsData) {
                 displayName: userDoc.exists ? userDoc.data().displayName : decodedToken.email
             };
 
+            console.log('👤 User info - Successfully retrieved for user:', decodedToken.uid);
             res.json({ user: userData });
         } catch (error) {
-            console.error('Error verifying token:', error);
-            res.status(403).json({ error: 'Invalid token' });
+            console.error('👤 User info - Error verifying token or fetching profile:', error.message, '(Code:', error.code, ', Path:', req.path, ')');
+            const authError = new Error('Authentication failed');
+            authError.status = error.code === 'auth/invalid-token' || error.code === 'auth/argument-error' ? 403 : 500;
+            authError.details = error.message;
+            next(authError);
         }
     });
 }
 
 /**
- * Generates fallback HTML for error cases.
+ * Generates fallback HTML for error cases when index.html cannot be read.
  * @param {string} message - The error message to display.
  * @returns {string} HTML string.
  */
