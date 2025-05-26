@@ -1,0 +1,20 @@
+## Story Definition of Done (DoD) Checklist
+
+- [ ] All Acceptance Criteria (ACs) defined in the story are met.
+- [ ] Code adheres to the project's Coding Standards.
+- [ ] Code is documented using JSDoc.
+- [ ] Necessary unit tests are implemented and passing.
+- [ ] Necessary integration tests are implemented and passing.
+- [ ] Test coverage meets the project's requirements (if specific metric defined).
+- [ ] Error handling is implemented according to guidelines.
+- [ ] Security considerations are addressed (input validation, auth checks, etc.).
+- [ ] No new external dependencies have been introduced without explicit user approval.
+- [ ] All temporary debug code has been removed.
+- [ ] The Debug Log (`.ai/TODO-revert.md`) is clean for this story.
+- [ ] Project Structure document (`docs/project-structure.md`) is updated if file structure changed.
+- [ ] Technology Stack document (`docs/tech-stack.md`) is updated if new tech was introduced.
+- [ ] README.md is updated with any relevant information (setup, usage, etc.).
+- [ ] The solution works correctly in the defined Docker environment.
+- [ ] Configuration is handled using environment variables where appropriate.
+- [ ] The story status in the story file (`docs/stories/{epicNumber}.{storyNumber}.story.md`) is updated to `Status: Review`.
+- [ ] An itemized DoD Checklist Report is included in the story file. 
