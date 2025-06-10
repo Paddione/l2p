@@ -563,9 +563,15 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
                 showNotification(`Question set changed to "${questionSetName}"`, 'info');
             }
             
-            // If game started, switch to game screen
+            // If game started, switch to game screen and dispatch game started event
             if (updatedLobby.started && screenManager.getCurrentScreen() !== SCREENS.GAME) {
                 showNotification('Game is starting!', 'success');
+                
+                // Dispatch game started event for non-host players
+                document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {
+                    detail: { lobby: updatedLobby }
+                }));
+                
                 screenManager.showScreen(SCREENS.GAME);
             }
         } catch (error) {

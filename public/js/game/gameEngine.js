@@ -1,6 +1,6 @@
 /**
  * Game Engine Module
- * Handles core game logic and state management
+ * Handles core game logic and state management with server synchronization
  */
 
 import { GAME_SETTINGS, GAME_PHASES, EVENTS, QUESTION_TYPES } from '../utils/constants.js';
@@ -10,8 +10,8 @@ import { initAnimations } from '../ui/animations.js';
 
 export function initGameEngine(lobbyManager, questionManager, storage) {
     let currentGame = null;
+    let gameStateInterval = null;
     let questionTimer = null;
-    let questionTransitionTimer = null;
     const audioManager = initAudioManager();
     const animations = initAnimations();
 
@@ -26,6 +26,8 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     async function initGame(lobbyCode) {
         try {
             console.log(`[Engine ${engineId}] Initializing game for lobby: ${lobbyCode}`);
+            
+            // Get initial lobby state
             const lobby = await lobbyManager.getLobby(lobbyCode);
             if (!lobby) {
                 throw new Error('Lobby not found');
@@ -34,22 +36,23 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             // Initialize game state
             currentGame = {
                 lobbyCode,
-                phase: GAME_PHASES.WAITING,
-                currentQuestion: 0,
+                phase: lobby.game_phase || GAME_PHASES.WAITING,
+                currentQuestion: lobby.current_question || 0,
                 scores: {},
                 playerMultipliers: {},
                 playerAnswers: {},
-                correctAnswers: 0,
-                timeRemaining: GAME_SETTINGS.QUESTION_TIME,
+                hasAnswered: false,
                 questionStartTime: null,
                 questionEndTime: null
             };
 
             // Initialize player scores and multipliers
-            Object.keys(lobby.players).forEach(username => {
-                currentGame.scores[username] = 0;
-                currentGame.playerMultipliers[username] = 1;
-            });
+            if (Array.isArray(lobby.players)) {
+                lobby.players.forEach(player => {
+                    currentGame.scores[player.username] = player.score || 0;
+                    currentGame.playerMultipliers[player.username] = 1;
+                });
+            }
 
             console.log(`[Engine ${engineId}] Game initialized for lobby:`, lobbyCode);
             
@@ -61,8 +64,8 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 console.warn(`[Engine ${engineId}] Failed to play game start sound:`, error);
             }
             
-            // Start the first question
-            await startQuestion();
+            // Start polling for game state updates
+            startGameStatePolling();
 
         } catch (error) {
             console.error(`[Engine ${engineId}] Failed to initialize game:`, error);
@@ -71,44 +74,141 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     }
 
     /**
+     * Starts polling for game state updates
+     */
+    function startGameStatePolling() {
+        stopGameStatePolling();
+        
+        // Poll every 1 second for game state updates to ensure synchronization
+        gameStateInterval = setInterval(async () => {
+            try {
+                if (currentGame && currentGame.lobbyCode) {
+                    await syncGameState();
+                }
+            } catch (error) {
+                console.error('Error syncing game state:', error);
+            }
+        }, 1000);
+    }
+
+    /**
+     * Stops polling for game state updates
+     */
+    function stopGameStatePolling() {
+        if (gameStateInterval) {
+            clearInterval(gameStateInterval);
+            gameStateInterval = null;
+        }
+    }
+
+    /**
+     * Syncs game state with server
+     */
+    async function syncGameState() {
+        try {
+            const gameState = await lobbyManager.getGameState(currentGame.lobbyCode);
+            
+            if (!gameState) {
+                console.error('No game state received');
+                return;
+            }
+
+            const previousPhase = currentGame.phase;
+            const previousQuestion = currentGame.currentQuestion;
+
+            // Update current game state
+            currentGame.phase = gameState.game_phase;
+            currentGame.currentQuestion = gameState.current_question;
+
+            // Update player scores
+            if (gameState.players) {
+                gameState.players.forEach(player => {
+                    currentGame.scores[player.username] = player.score || 0;
+                });
+            }
+
+            // Handle phase transitions
+            if (previousPhase !== currentGame.phase) {
+                await handlePhaseChange(previousPhase, currentGame.phase, gameState);
+            }
+
+            // Handle question transitions
+            if (previousQuestion !== currentGame.currentQuestion) {
+                await handleQuestionChange(gameState);
+            }
+
+            // Update UI with current state
+            if (currentGame.phase === 'question') {
+                await updateQuestionUI(gameState);
+            }
+
+        } catch (error) {
+            console.error('Failed to sync game state:', error);
+        }
+    }
+
+    /**
+     * Handles phase changes
+     */
+    async function handlePhaseChange(oldPhase, newPhase, gameState) {
+        console.log(`[Engine ${engineId}] Phase changed from ${oldPhase} to ${newPhase}`);
+
+        switch (newPhase) {
+            case 'question':
+                await startQuestion(gameState);
+                break;
+            case 'results':
+                await showQuestionResults(gameState);
+                break;
+            case 'finished':
+                await endGame(gameState);
+                break;
+        }
+    }
+
+    /**
+     * Handles question changes
+     */
+    async function handleQuestionChange(gameState) {
+        console.log(`[Engine ${engineId}] Question changed to ${currentGame.currentQuestion}`);
+        
+        // Reset answer state for new question
+        currentGame.hasAnswered = false;
+        currentGame.playerAnswers = {};
+        
+        if (currentGame.phase === 'question') {
+            await startQuestion(gameState);
+        }
+    }
+
+    /**
      * Starts a new question
      */
-    async function startQuestion() {
-        if (!currentGame) {
-            console.error('startQuestion: currentGame is null');
+    async function startQuestion(gameState) {
+        if (!currentGame || !gameState) {
+            console.error('startQuestion: missing game or state data');
             return;
         }
 
-        const lobby = await lobbyManager.getLobby(currentGame.lobbyCode);
-        console.log('startQuestion: lobby data:', lobby);
-        
-        if (!lobby) {
-            console.error('startQuestion: lobby not found');
+        if (!gameState.questions || !Array.isArray(gameState.questions)) {
+            console.error('startQuestion: no questions in game state');
             return;
         }
 
-        if (!lobby.questions || !Array.isArray(lobby.questions)) {
-            console.error('startQuestion: lobby.questions is missing or not an array:', lobby.questions);
+        if (currentGame.currentQuestion >= gameState.questions.length) {
+            console.error('startQuestion: question index out of bounds');
             return;
         }
 
-        if (currentGame.currentQuestion >= lobby.questions.length) {
-            console.error('startQuestion: currentQuestion index out of bounds:', currentGame.currentQuestion, 'total questions:', lobby.questions.length);
-            return;
-        }
-
-        const question = lobby.questions[currentGame.currentQuestion];
+        const question = gameState.questions[currentGame.currentQuestion];
         console.log('startQuestion: current question:', question);
         
         if (!question) {
-            console.error('startQuestion: question is null or undefined at index:', currentGame.currentQuestion);
+            console.error('startQuestion: question is null or undefined');
             return;
         }
 
-        currentGame.phase = GAME_PHASES.QUESTION;
-        currentGame.questionStartTime = Date.now();
-        currentGame.timeRemaining = GAME_SETTINGS.QUESTION_TIME;
-        currentGame.playerAnswers = {};
+        currentGame.questionStartTime = gameState.question_start_time ? new Date(gameState.question_start_time) : new Date();
 
         // Play question start sound
         try {
@@ -121,12 +221,13 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
         const questionData = {
             ...question,
             currentQuestion: currentGame.currentQuestion + 1,
-            totalQuestions: lobby.questions.length,
-            timeRemaining: currentGame.timeRemaining,
+            totalQuestions: gameState.questions.length,
+            timeRemaining: calculateTimeRemaining(),
             lobbyCode: currentGame.lobbyCode,
-            playerCount: Object.keys(lobby.players).length,
-            players: lobby.players,
-            scores: currentGame.scores
+            playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players).length,
+            players: gameState.players,
+            scores: currentGame.scores,
+            answerProgress: gameState.answerProgress
         };
 
         console.log('startQuestion: prepared questionData:', questionData);
@@ -134,8 +235,94 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
         // Dispatch question started event
         dispatchGameEvent(EVENTS.QUESTION_STARTED, questionData);
 
-        // Start timer
-        startTimer();
+        // Start local timer for UI updates
+        startUITimer();
+    }
+
+    /**
+     * Calculates time remaining for current question
+     */
+    function calculateTimeRemaining() {
+        if (!currentGame.questionStartTime) {
+            return GAME_SETTINGS.QUESTION_TIME;
+        }
+
+        const elapsed = Math.floor((Date.now() - currentGame.questionStartTime.getTime()) / 1000);
+        return Math.max(0, GAME_SETTINGS.QUESTION_TIME - elapsed);
+    }
+
+    /**
+     * Starts UI timer for question countdown
+     */
+    function startUITimer() {
+        stopUITimer();
+        
+        questionTimer = setInterval(() => {
+            const timeRemaining = calculateTimeRemaining();
+
+            // Play timer warning sounds
+            try {
+                if (timeRemaining === 10) {
+                    audioManager.playTimerWarning().catch(e => console.warn('Timer warning sound failed:', e));
+                } else if (timeRemaining === 5) {
+                    audioManager.playTimerUrgent().catch(e => console.warn('Timer urgent sound failed:', e));
+                } else if (timeRemaining <= 3 && timeRemaining > 0) {
+                    audioManager.playCountdownTick().catch(e => console.warn('Countdown tick sound failed:', e));
+                }
+            } catch (error) {
+                console.warn('Failed to play timer sounds:', error);
+            }
+
+            // Update timer display with animation
+            const timerElement = document.querySelector('.timer');
+            if (timerElement) {
+                animations.animateTimerWarning(timerElement, timeRemaining);
+            }
+
+            // Dispatch timer update event
+            dispatchGameEvent(EVENTS.TIMER_UPDATED, {
+                timeRemaining: timeRemaining
+            });
+
+            if (timeRemaining <= 0) {
+                stopUITimer();
+            }
+        }, 1000);
+    }
+
+    /**
+     * Stops UI timer
+     */
+    function stopUITimer() {
+        if (questionTimer) {
+            clearInterval(questionTimer);
+            questionTimer = null;
+        }
+    }
+
+    /**
+     * Updates question UI with current game state
+     */
+    async function updateQuestionUI(gameState) {
+        if (!gameState.questions || currentGame.currentQuestion >= gameState.questions.length) {
+            return;
+        }
+
+        const question = gameState.questions[currentGame.currentQuestion];
+        const questionData = {
+            ...question,
+            currentQuestion: currentGame.currentQuestion + 1,
+            totalQuestions: gameState.questions.length,
+            timeRemaining: calculateTimeRemaining(),
+            lobbyCode: currentGame.lobbyCode,
+            playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players).length,
+            players: gameState.players,
+            scores: currentGame.scores,
+            answerProgress: gameState.answerProgress
+        };
+
+        // Update UI elements
+        dispatchGameEvent(EVENTS.QUESTION_UPDATED, questionData);
     }
 
     /**
@@ -145,265 +332,130 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
      * @returns {Promise<Object>} - Answer result
      */
     async function submitAnswer(username, answer) {
-        if (!currentGame || currentGame.phase !== GAME_PHASES.QUESTION) {
+        if (!currentGame || currentGame.phase !== 'question') {
             throw new Error('Invalid game state');
         }
 
-        if (currentGame.playerAnswers[username]) {
+        if (currentGame.hasAnswered) {
             throw new Error('Already answered');
         }
 
-        const lobby = await lobbyManager.getLobby(currentGame.lobbyCode);
-        const question = lobby.questions[currentGame.currentQuestion];
-        const timeElapsed = Date.now() - currentGame.questionStartTime;
-        const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - Math.floor(timeElapsed / 1000));
-        const isCorrect = validateAnswer(question, answer);
-
-        // Calculate score and update multiplier
-        const oldMultiplier = currentGame.playerMultipliers[username];
-        const points = isCorrect ? calculateScore(timeRemaining, oldMultiplier) : 0;
-        const newMultiplier = getNextMultiplier(oldMultiplier, isCorrect);
-
-        // Update player state
-        currentGame.playerAnswers[username] = {
-            answer,
-            isCorrect,
-            timeRemaining,
-            points,
-            timeElapsed: timeElapsed / 1000
-        };
-
-        currentGame.scores[username] += points;
-        currentGame.playerMultipliers[username] = newMultiplier;
-        if (isCorrect) {
-            currentGame.correctAnswers++;
-        }
-
-        // INSTANT FEEDBACK: Play sounds immediately when answer is submitted
         try {
-            if (isCorrect) {
-                // Play correct answer sound with current multiplier
-                await audioManager.playMultiplierSound(newMultiplier);
-                
-                // Special achievement sounds
-                if (newMultiplier === 5) {
-                    await audioManager.playMultiplierMax();
+            // Submit answer to server
+            const result = await lobbyManager.submitAnswer(currentGame.lobbyCode, answer);
+            
+            // Mark as answered locally
+            currentGame.hasAnswered = true;
+
+            // Get current question for validation
+            const gameState = await lobbyManager.getGameState(currentGame.lobbyCode);
+            const question = gameState.questions[currentGame.currentQuestion];
+            const isCorrect = validateAnswer(question, answer);
+
+            // Calculate timing
+            const timeElapsed = Date.now() - (currentGame.questionStartTime?.getTime() || Date.now());
+            const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - Math.floor(timeElapsed / 1000));
+
+            // INSTANT FEEDBACK: Play sounds immediately when answer is submitted
+            try {
+                if (isCorrect) {
+                    // Play correct answer sound with current multiplier
+                    const oldMultiplier = currentGame.playerMultipliers[username] || 1;
+                    const newMultiplier = getNextMultiplier(oldMultiplier, isCorrect);
+                    await audioManager.playMultiplierSound(newMultiplier);
+                    
+                    // Special achievement sounds
+                    if (newMultiplier === 5) {
+                        await audioManager.playMultiplierMax();
+                    }
+                    if (timeRemaining >= GAME_SETTINGS.QUESTION_TIME - 2) {
+                        await audioManager.playTimeBonus();
+                    }
+                } else {
+                    await audioManager.playWrongSound();
                 }
-                if (timeRemaining >= GAME_SETTINGS.QUESTION_TIME - 2) {
-                    await audioManager.playTimeBonus();
-                }
-                
-                // Animate character and points
-                animations.animateCharacter(username, true);
-                animations.animatePointsEarned(username, points, newMultiplier);
-            } else {
-                // Play wrong answer sound immediately
-                console.log(`[Engine ${engineId}] Playing wrong sound for incorrect answer by ${username}`);
-                await audioManager.playWrongSound();
-                
-                // Animate character for wrong answer
-                animations.animateCharacter(username, false);
+
+                // Animate character
+                animations.animateCharacter(username, isCorrect);
+            } catch (error) {
+                console.warn(`[Engine ${engineId}] Failed to play answer feedback:`, error);
             }
+
+            return {
+                isCorrect,
+                timeRemaining,
+                allAnswered: result.allAnswered,
+                playersAnswered: result.playersAnswered,
+                totalPlayers: result.totalPlayers
+            };
+
         } catch (error) {
-            console.warn('Failed to play instant feedback sounds:', error);
+            console.error('Failed to submit answer:', error);
+            throw error;
         }
-
-        // Animate multiplier change (visual feedback)
-        try {
-            animations.animateMultiplier(username, oldMultiplier, newMultiplier);
-        } catch (error) {
-            console.warn('Failed to animate multiplier:', error);
-        }
-
-        // Dispatch answer submitted event
-        dispatchGameEvent(EVENTS.ANSWER_SUBMITTED, {
-            username,
-            isCorrect,
-            points,
-            newMultiplier,
-            timeRemaining
-        });
-
-        // Check if all players have answered
-        const allAnswered = Object.keys(lobby.players).every(
-            player => currentGame.playerAnswers[player]
-        );
-
-        if (allAnswered) {
-            await endQuestion();
-        }
-
-        return {
-            isCorrect,
-            points,
-            newMultiplier: currentGame.playerMultipliers[username]
-        };
     }
 
     /**
-     * Validates a player's answer
-     * @param {Object} question - Question data
+     * Validates an answer against a question
+     * @param {Object} question - Question object
      * @param {any} answer - Player's answer
      * @returns {boolean} - Whether answer is correct
      */
     function validateAnswer(question, answer) {
+        if (!question || !question.correct_answer) return false;
+
         switch (question.type) {
             case QUESTION_TYPES.MULTIPLE_CHOICE:
-                return answer === question.correct;
+                return answer === question.correct_answer;
             case QUESTION_TYPES.TRUE_FALSE:
-                return answer === question.correct;
+                return answer === question.correct_answer;
             default:
                 return false;
         }
     }
 
     /**
-     * Ends the current question
+     * Shows question results
      */
-    async function endQuestion() {
-        if (!currentGame) return;
-
-        stopTimer();
-        currentGame.phase = GAME_PHASES.RESULTS;
-        currentGame.questionEndTime = Date.now();
-
-        const lobby = await lobbyManager.getLobby(currentGame.lobbyCode);
-        const question = lobby.questions[currentGame.currentQuestion];
-
-        // In single player mode, auto-submit if no answer was given
-        if (lobby.isSinglePlayer) {
-            const username = Object.keys(lobby.players)[0];
-            if (!currentGame.playerAnswers[username]) {
-                currentGame.playerAnswers[username] = {
-                    answer: null,
-                    isCorrect: false,
-                    timeRemaining: 0,
-                    points: 0,
-                    timeElapsed: GAME_SETTINGS.QUESTION_TIME
-                };
-                currentGame.playerMultipliers[username] = 1;
-            }
-        }
-
-        // Handle case where player didn't answer (timeout)
+    async function showQuestionResults(gameState) {
         try {
-            const currentUser = await storage.getCurrentUser();
-            if (currentUser && !currentGame.playerAnswers[currentUser.username]) {
-                // No answer given - play wrong sound for timeout
-                console.log(`[Engine ${engineId}] Playing wrong sound for timeout by ${currentUser.username}`);
-                await audioManager.playWrongSound();
-                animations.animateCharacter(currentUser.username, false);
-            }
+            // Play round end sound
+            await audioManager.playRoundEnd();
         } catch (error) {
-            console.warn(`[Engine ${engineId}] Failed to play timeout feedback:`, error);
+            console.warn('Failed to play round end sound:', error);
         }
 
-        // Prepare results
+        // Prepare results data
+        const question = gameState.questions[currentGame.currentQuestion];
         const results = {
             question,
             answers: currentGame.playerAnswers,
             scores: currentGame.scores,
             multipliers: currentGame.playerMultipliers,
-            isSinglePlayer: lobby.isSinglePlayer,
-            correctAnswers: currentGame.correctAnswers,
-            totalPlayers: Object.keys(lobby.players).length
+            correctAnswers: 0, // Server should provide this
+            totalPlayers: gameState.players ? gameState.players.length : 0,
+            answerProgress: gameState.answerProgress
         };
 
         // Dispatch results event
         dispatchGameEvent(EVENTS.QUESTION_ENDED, results);
-
-        // Start transition to next question
-        questionTransitionTimer = setTimeout(async () => {
-            if (currentGame.currentQuestion >= lobby.questions.length - 1) {
-                await endGame();
-            } else {
-                await nextQuestion();
-            }
-        }, GAME_SETTINGS.QUESTION_TRANSITION_TIME || 5000);
-    }
-
-    /**
-     * Moves to the next question
-     */
-    async function nextQuestion() {
-        if (!currentGame) return;
-
-        currentGame.currentQuestion++;
-        await startQuestion();
-    }
-
-    /**
-     * Starts the question timer
-     */
-    function startTimer() {
-        stopTimer();
-        const startTime = Date.now();
-        const timerElement = document.querySelector('.timer');
-
-        questionTimer = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            currentGame.timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - Math.floor(elapsed / 1000));
-
-            // Play timer warning sounds
-            try {
-                if (currentGame.timeRemaining === 10) {
-                    audioManager.playTimerWarning().catch(e => console.warn('Timer warning sound failed:', e));
-                } else if (currentGame.timeRemaining === 5) {
-                    audioManager.playTimerUrgent().catch(e => console.warn('Timer urgent sound failed:', e));
-                } else if (currentGame.timeRemaining <= 3 && currentGame.timeRemaining > 0) {
-                    audioManager.playCountdownTick().catch(e => console.warn('Countdown tick sound failed:', e));
-                }
-            } catch (error) {
-                console.warn('Failed to play timer sounds:', error);
-            }
-
-            // Update timer display with animation
-            if (timerElement) {
-                animations.animateTimerWarning(timerElement, currentGame.timeRemaining);
-            }
-
-            // Dispatch timer update event
-            dispatchGameEvent(EVENTS.TIMER_UPDATED, {
-                timeRemaining: currentGame.timeRemaining
-            });
-
-            if (currentGame.timeRemaining <= 0) {
-                endQuestion();
-            }
-        }, 1000);
-    }
-
-    /**
-     * Stops the question timer
-     */
-    function stopTimer() {
-        if (questionTimer) {
-            clearInterval(questionTimer);
-            questionTimer = null;
-        }
-        if (questionTransitionTimer) {
-            clearTimeout(questionTransitionTimer);
-            questionTransitionTimer = null;
-        }
     }
 
     /**
      * Ends the current game
      */
-    async function endGame() {
+    async function endGame(gameState) {
         if (!currentGame) return;
 
-        stopTimer();
+        stopUITimer();
+        stopGameStatePolling();
         currentGame.phase = GAME_PHASES.FINISHED;
 
-        const lobby = await lobbyManager.getLobby(currentGame.lobbyCode);
         const finalResults = {
             scores: currentGame.scores,
             multipliers: currentGame.playerMultipliers,
-            correctAnswers: currentGame.correctAnswers,
-            totalQuestions: currentGame.totalQuestions,
-            players: Object.keys(lobby.players),
-            isSinglePlayer: lobby.isSinglePlayer,
+            totalQuestions: gameState.questions ? gameState.questions.length : 0,
+            players: gameState.players ? gameState.players.map(p => p.username) : [],
             winner: getWinner()
         };
 
@@ -423,85 +475,59 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
         // Dispatch game ended event
         dispatchGameEvent(EVENTS.GAME_ENDED, finalResults);
 
-        // Save game results and update hall of fame
-        Object.entries(currentGame.scores).forEach(([username, score]) => {
-            const player = lobby.players[username];
-            const accuracy = (currentGame.correctAnswers / currentGame.totalQuestions) * 100;
-            const maxMultiplier = currentGame.playerMultipliers[username];
-
-            // Add to hall of fame
-            storage.addHallOfFameEntry({
-                username,
-                character: player.character,
-                score,
-                questions: currentGame.totalQuestions,
-                accuracy,
-                maxMultiplier,
-                catalogName: lobby.catalog,
-                isSinglePlayer: lobby.isSinglePlayer,
-                date: new Date().toISOString()
-            });
-
-            // Update user data for single player
-            if (lobby.isSinglePlayer) {
-                const userData = storage.getUserData(username) || {};
-                userData.gamesPlayed = (userData.gamesPlayed || 0) + 1;
-                userData.totalScore = (userData.totalScore || 0) + score;
-                userData.correctAnswers = (userData.correctAnswers || 0) + currentGame.correctAnswers;
-                userData.maxMultiplier = Math.max(userData.maxMultiplier || 1, maxMultiplier);
-                userData.bestScore = Math.max(userData.bestScore || 0, score);
-                userData.bestAccuracy = Math.max(userData.bestAccuracy || 0, accuracy);
-                storage.saveUserData(username, userData);
-            }
-        });
-
         return finalResults;
     }
 
     /**
-     * Gets the winner(s) of the game
-     * @returns {string|string[]} - Winner username(s)
+     * Gets the winner based on scores
      */
     function getWinner() {
-        if (!currentGame) return null;
+        if (!currentGame || !currentGame.scores) return null;
 
-        const scores = currentGame.scores;
-        const maxScore = Math.max(...Object.values(scores));
-        const winners = Object.entries(scores)
-            .filter(([_, score]) => score === maxScore)
-            .map(([username]) => username);
+        let maxScore = -1;
+        let winner = null;
 
-        return winners.length === 1 ? winners[0] : winners;
+        Object.entries(currentGame.scores).forEach(([username, score]) => {
+            if (score > maxScore) {
+                maxScore = score;
+                winner = username;
+            }
+        });
+
+        return winner;
     }
 
     /**
      * Dispatches a game event
-     * @param {string} eventName - Event name
-     * @param {Object} detail - Event data
      */
     function dispatchGameEvent(eventName, detail) {
         const event = new CustomEvent(eventName, {
-            detail,
+            detail: detail,
             bubbles: true
         });
         document.dispatchEvent(event);
     }
 
     /**
-     * Gets the current game state
-     * @returns {Object|null} - Current game state
+     * Gets current game state
      */
     function getCurrentGame() {
         return currentGame;
     }
 
+    /**
+     * Cleanup function
+     */
+    function cleanup() {
+        stopUITimer();
+        stopGameStatePolling();
+        currentGame = null;
+    }
+
     return {
         initGame,
-        startQuestion,
         submitAnswer,
-        endQuestion,
-        nextQuestion,
-        endGame,
-        getCurrentGame
+        getCurrentGame,
+        cleanup
     };
 } 

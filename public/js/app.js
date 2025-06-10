@@ -21,6 +21,9 @@ let appState = {
     currentUser: null
 };
 
+// Expose appState globally for API client access
+window.appState = appState;
+
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -521,8 +524,11 @@ async function refreshActiveLobbies() {
                     };
                     
                     console.log('Joining active lobby with player data:', playerData);
-                    const success = await appState.modules.lobbyManager.joinLobby(gameCode, playerData);
-                    if (success) {
+                    const lobbyData = await appState.modules.lobbyManager.joinLobby(gameCode, playerData);
+                    if (lobbyData) {
+                        // Update player manager state with the joined lobby
+                        appState.modules.playerManager.setCurrentLobby(lobbyData);
+                        appState.modules.playerManager.setCurrentPlayer(currentUser);
                         appState.modules.screenManager.showScreen(SCREENS.LOBBY);
                     }
                 } catch (error) {

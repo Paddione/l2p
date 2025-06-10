@@ -24,7 +24,7 @@ let dbReady = false;
 let dbInitializationInProgress = false;
 
 async function attemptDbInitializationWithRetry() {
-    if (dbInitializationInProgress) return;
+    if (dbInitializationInProgress) return dbReady;
     dbInitializationInProgress = true;
     try {
         console.log('Attempting database initialization...');
@@ -35,32 +35,30 @@ async function attemptDbInitializationWithRetry() {
         
         dbReady = true;
         console.log('✅ Database is now connected and ready.');
+        return true;
     } catch (error) {
         dbReady = false;
-        console.error('❌ Database initialization failed after retries:', error.message);
-        if (!dbReady) {
-            console.log('Retrying DB initialization in 30 seconds...');
-            setTimeout(() => {
-                dbInitializationInProgress = false;
-                attemptDbInitializationWithRetry();
-            }, 30000);
-        }
+        console.error('❌ Database initialization failed:', error.message);
+        return false;
     } finally {
-        if (dbReady) {
-            dbInitializationInProgress = false;
-        }
+        dbInitializationInProgress = false;
     }
+}
+
+// Middleware to check database readiness
+function checkDatabaseReady(req, res, next) {
+    if (!dbReady) {
+        console.warn(`API request to ${req.method} ${req.path} rejected - database not ready`);
+        return res.status(503).json({ 
+            error: 'Service temporarily unavailable - database not ready',
+            code: 'DATABASE_NOT_READY'
+        });
+    }
+    next();
 }
 
 // Configure the Express app
 function configureApp() {
-    // Start DB initialization in background if not in test environment
-    if (process.env.NODE_ENV !== 'test') {
-        attemptDbInitializationWithRetry().catch(err => {
-            console.error("Initial background database initialization attempt had an error:", err.message);
-        });
-    }
-
     // Configure trust proxy for Docker/Traefik
     app.set('trust proxy', 1);
 
@@ -139,7 +137,7 @@ function configureApp() {
     });
     app.use('/api/auth', authLimiter);
 
-    // Health check endpoint
+    // Health check endpoint (doesn't require database)
     app.get('/api/health', async (req, res) => {
         let dbConnectedStatus = false;
         try {
@@ -148,11 +146,7 @@ function configureApp() {
                 if (!dbConnectedStatus) {
                     dbReady = false;
                     console.warn('DB was marked ready, but testConnection failed. Marking as disconnected.');
-                    if (!dbInitializationInProgress) attemptDbInitializationWithRetry();
                 }
-            } else if (!dbInitializationInProgress) {
-                console.log('Health check: DB not ready, attempting initialization.');
-                attemptDbInitializationWithRetry();
             }
 
             const healthPayload = {
@@ -168,7 +162,7 @@ function configureApp() {
             if (dbConnectedStatus) {
                 res.status(200).json(healthPayload);
             } else {
-                console.warn(`Health check reporting DEGRADED: DB disconnected. DBReady: ${dbReady}, dbInitInProgress: ${dbInitializationInProgress}`);
+                console.warn(`Health check reporting DEGRADED: DB disconnected. DBReady: ${dbReady}`);
                 res.status(503).json(healthPayload);
             }
         } catch (error) {
@@ -180,6 +174,14 @@ function configureApp() {
                 database: 'unknown'
             });
         }
+    });
+
+    // Apply database readiness check to all API routes except health
+    app.use('/api', (req, res, next) => {
+        if (req.path === '/health') {
+            return next();
+        }
+        checkDatabaseReady(req, res, next);
     });
 
     // API routes
@@ -270,6 +272,15 @@ async function startServer() {
         console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
         console.log(`🔌 Port: ${port}`);
 
+        // Initialize database BEFORE configuring app
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('🔄 Initializing database...');
+            const dbInitialized = await attemptDbInitializationWithRetry();
+            if (!dbInitialized) {
+                console.error('❌ Failed to initialize database. Server will start but API requests will be rejected until database is ready.');
+            }
+        }
+
         configureApp();
 
         // Start server
@@ -314,7 +325,9 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Configure app for tests
-configureApp();
+if (process.env.NODE_ENV === 'test') {
+    configureApp();
+}
 
 // Only start server if this file is run directly (not imported)
 if (require.main === module) {

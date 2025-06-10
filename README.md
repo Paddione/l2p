@@ -8,6 +8,7 @@
 **Local Development**: http://10.0.0.44
 
 ## 🎮 Recent Game Logic Improvements
+- **Fixed Player Count Display**: Resolved issue where second player's interface showed "0 Players" due to backend/frontend data format mismatch
 - **Enhanced Audio System**: Comprehensive sound effects system with 30+ different sounds for immersive gameplay
 - **Fixed Premature Sound Issue**: Removed incorrect sound that played when starting questions - sounds now only play after player actions
 - **Reduced Notification Spam**: Character notifications now show usernames only (no emoji spam) and include appropriate sound effects
@@ -15,6 +16,14 @@
 - **Improved Database Cleanup**: Automatic cleanup of old lobbies prevents accumulation of inactive games
 - **Better Player Management**: Fixed issues with multiple test players appearing in games
 - **Enhanced Game Flow**: Streamlined answer submission and feedback system for better user experience
+- **🔄 SYNCHRONIZED MULTIPLAYER**: Complete rewrite of game synchronization system for real-time multiplayer
+  - **Simultaneous Game Start**: All players now start the game at exactly the same time via server coordination
+  - **Real-time Question Progression**: Questions automatically advance when all players answer OR time runs out
+  - **Server-side Game State**: Game state is managed on the server and synchronized across all clients
+  - **Automatic Question Timing**: Backend automatically handles question transitions every 60 seconds
+  - **Answer Progress Tracking**: Real-time display of how many players have answered the current question
+  - **Improved Polling**: Reduced polling frequency to 1-second intervals for better synchronization
+  - **Database-driven Coordination**: All game state stored in PostgreSQL for reliable multiplayer coordination
 
 ### 🔊 Audio System Features
 The game now includes a comprehensive audio system with the following sound categories:
@@ -964,7 +973,191 @@ docker compose logs -f quiz-app quiz-api
 
 ## 🔄 Recent Updates
 
-### NPC Players Database Cleanup Fix (Latest)
+### Authentication Error Handling Fix (Latest)
+- **Fixed Authentication State Management**: Resolved issues where users experienced "500 errors" when their JWT tokens expired
+  - **Root Cause**: When JWT tokens expired (24-hour lifetime), the frontend continued to make API requests that returned 401 (Unauthorized) errors, but these were being displayed as generic "500 errors" to users
+  - **Issue Impact**: 
+    - **Session Expiry**: Users couldn't access lobbies or set question sets after their tokens expired
+    - **Poor UX**: Users received confusing "Failed to set question set" and "Failed to get lobby" error messages
+    - **Stuck State**: Users remained logged in locally but couldn't perform authenticated actions
+  - **Solution Applied**:
+    - **Enhanced API Client**: Added specific 401 error handling that automatically clears expired tokens and redirects to login
+    - **Automatic Logout**: When authentication fails, the system now automatically logs out the user and shows the login screen
+    - **Better Error Messages**: Changed generic error messages to clear "Your session has expired. Please log in again." messages
+    - **Graceful Recovery**: Added fallback page reload if screen manager is unavailable for redirect
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **Session Management**: Expired tokens are automatically detected and cleared
+    - **User Experience**: Users get clear messages when their session expires and are automatically redirected to login
+    - **Error Handling**: 401 errors are properly distinguished from actual server errors
+    - **Automatic Recovery**: System gracefully handles authentication failures without user confusion
+  - **Technical Details**:
+    - **API Client Enhancement**: Added specific 401 handling in `request()` method to clear tokens and redirect
+    - **Global App State**: Exposed `window.appState` for API client access to screen manager
+    - **Error Classification**: Properly categorized authentication vs server errors for better user messaging
+    - **Graceful Degradation**: Multiple fallback mechanisms for redirect when app state is unavailable
+  - **Files Modified**: 
+    - `public/js/api/apiClient.js` - Enhanced 401 error handling with automatic logout and redirect
+    - `public/js/app.js` - Exposed global app state for API client access
+  - **User Experience**:
+    - **Before**: "Failed to set question set" errors with no clear resolution path
+    - **After**: "Your session has expired. Please log in again." with automatic redirect to login screen
+
+### Question Set JSON Parsing Fix (Latest)
+- **Fixed Critical Backend Error**: Resolved 500 server error when setting question sets for lobbies caused by JSON parsing issue
+  - **Root Cause**: The QuestionSet model constructor wasn't parsing the `questions` field from the database, which is stored as a JSON string
+  - **Issue Impact**: 
+    - **500 Server Error**: Users got "Failed to set question set" errors when trying to select question sets in lobbies
+    - **Data Type Mismatch**: Backend tried to iterate over a JSON string instead of an array of questions
+    - **Lobby Functionality**: Hosts couldn't select question sets, preventing game setup
+  - **Solution Applied**:
+    - **Enhanced Constructor**: Modified QuestionSet constructor to parse JSON strings while maintaining compatibility with object data
+    - **Safe JSON Parsing**: Added type checking to handle both string and object formats from database
+    - **Data Consistency**: Ensures questions are always available as JavaScript objects for iteration
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **Question Set Selection**: Hosts can now successfully select and change question sets in lobbies
+    - **Data Parsing**: Questions data is properly parsed from database JSON format
+    - **Error-Free Operation**: No more 500 errors when setting question sets
+    - **Game Setup**: Complete lobby setup workflow now works end-to-end
+  - **Technical Details**:
+    - **Before**: `this.questions = data.questions;` (used raw database value, could be string)
+    - **After**: `this.questions = typeof data.questions === 'string' ? JSON.parse(data.questions) : data.questions;`
+    - **Safety**: Handles both PostgreSQL string and object return formats
+    - **Backward Compatibility**: Works with existing data and future PostgreSQL driver changes
+  - **Files Modified**: 
+    - `backend/models/QuestionSet.js` - Enhanced constructor with JSON parsing logic
+  - **System Verification**:
+    - `docker compose restart quiz-api` - Backend service restarted to apply fixes
+    - Question set selection now works without 500 errors
+    - All lobby functionality restored and working properly
+
+### Question Set Setting API Fix (Previous)
+- **Fixed Critical Backend Error**: Resolved 500 server error when setting question sets for lobbies
+  - **Root Cause**: Two critical issues in the lobby question set endpoint (`POST /api/lobbies/:code/question-set`):
+    1. **Method Name Mismatch**: Backend called `QuestionSet.getById()` but the actual method is `QuestionSet.findById()`
+    2. **Async forEach Issue**: Using `forEach` with async operations didn't wait for all database insertions to complete before committing the transaction
+  - **Issue Impact**: 
+    - **500 Server Error**: Users got "Failed to set question set" errors when trying to select question sets in lobbies
+    - **Transaction Failures**: Race conditions could cause incomplete data insertion or transaction rollbacks
+    - **Lobby Functionality**: Hosts couldn't select question sets, preventing game setup
+  - **Solution Applied**:
+    - **Fixed Method Call**: Changed `QuestionSet.getById(questionSetId)` to `QuestionSet.findById(questionSetId)` to match actual model method
+    - **Proper Async Handling**: Replaced `forEach` with `Promise.all` and `map` to ensure all database insertions complete before transaction commit
+    - **Enhanced Data Serialization**: Added `JSON.stringify(question)` to properly serialize question data for database storage
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **Question Set Selection**: Hosts can now successfully select and change question sets in lobbies
+    - **Database Integrity**: All question data is properly inserted with correct transaction handling
+    - **Error-Free Operation**: No more 500 errors when setting question sets
+    - **Game Setup**: Complete lobby setup workflow now works end-to-end
+  - **Technical Details**:
+    - **Before**: `questionSet.questions.forEach(async (question, index) => { await query(..., [code, index, question]); });`
+    - **After**: `await Promise.all(questionSet.questions.map(async (question, index) => { return query(..., [code, index, JSON.stringify(question)]); }));`
+    - **Method Fix**: Corrected API method call to use proper model method name
+    - **Transaction Safety**: Ensured all async operations complete before database transaction commits
+  - **Files Modified**: 
+    - `backend/routes/lobby.js` - Fixed method call and async handling in question set endpoint
+  - **System Verification**:
+    - `docker compose ps` - All services healthy after restart
+    - `docker compose restart quiz-api` - Backend service restarted to apply fixes
+    - Question set selection now works without 500 errors
+    - All lobby functionality restored and working properly
+
+### Multi-Player Game Interface Fix (Previous)
+- **Fixed Critical Multi-Player Issue**: Resolved issue where only the host player's game interface would load, while other players got stuck with blank game screens
+  - **Root Cause**: The `GAME_STARTED` event was only being dispatched by the host when they clicked "Start Game", but non-host players only received lobby updates via polling without the proper event dispatch
+  - **Issue Impact**: 
+    - **Host Interface**: Worked correctly because they manually dispatched the `GAME_STARTED` event
+    - **Non-Host Players**: Only got screen transitions to game view but no actual game initialization
+    - **Game Controller**: Required `GAME_STARTED` event to initialize game engine, question display, and player interface
+  - **Solution Applied**:
+    - **Enhanced Lobby Polling**: Modified `refreshCurrentLobby()` function to dispatch `GAME_STARTED` event when detecting game start
+    - **Event Coordination**: Ensured both host and non-host players receive the same `GAME_STARTED` event with lobby data
+    - **Unified Game Flow**: All players now go through the same game initialization process regardless of role
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **All Players**: Both host and non-host players now get properly initialized game interfaces
+    - **Question Display**: All players see questions, answers, and game UI correctly
+    - **Player List**: Multi-player interface shows all participants with scores
+    - **Game Functionality**: Complete game flow works for all players (questions, scoring, results)
+  - **Technical Details**:
+    - **Before**: Only host called `document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {...}))`
+    - **After**: Lobby polling detects `updatedLobby.started` and dispatches same event for non-host players
+    - **Game Controller**: Now receives `GAME_STARTED` event from all players and initializes game engine properly
+    - **Event Flow**: Host action → Backend update → Non-host polling → Event dispatch → Game initialization
+  - **Files Modified**: 
+    - `public/js/lobby/playerManager.js` - Added `GAME_STARTED` event dispatch in `refreshCurrentLobby()` function
+  - **System Verification**:
+    - `docker compose ps` - All services healthy and rebuilt
+    - Multi-player games now initialize properly for all participants
+    - Both host and non-host players can see questions, submit answers, and view scores
+    - Complete game flow works end-to-end for all players
+
+### Ghost Players Database Query Fix (Previous)
+- **Fixed Critical Database Issue**: Resolved "40 ghost players" issue caused by SQL Cartesian product in lobby data retrieval
+  - **Root Cause**: The `getLobbyData()` function in `backend/routes/lobby.js` was using LEFT JOINs on both `lobby_players` and `lobby_questions` tables with `json_agg()`, creating a Cartesian product
+  - **Issue Impact**: 
+    - **Ghost Players**: 2 players × 20 questions = 40 duplicate player entries in the frontend
+    - **Second Player Interface**: Malformed player data prevented proper multi-player UI rendering
+    - **Game Functionality**: Players couldn't see each other properly during games
+  - **Investigation Results**:
+    - **Database Analysis**: Found 2 players and 20 questions in lobby 90HT, but frontend received 40 player entries
+    - **SQL Query Issue**: Single query with multiple LEFT JOINs created 40 rows (2×20) which were aggregated incorrectly
+    - **Data Corruption**: The `json_agg()` function was aggregating the Cartesian product instead of distinct entities
+  - **Solution Applied**:
+    - **Separated Queries**: Split the single complex query into three separate queries:
+      1. **Lobby Data**: Get basic lobby information and question set metadata
+      2. **Players Query**: Get players separately to avoid Cartesian product
+      3. **Questions Query**: Get questions separately to avoid Cartesian product
+    - **Proper Data Structure**: Each query returns clean, non-duplicated data
+    - **Maintained Performance**: Three simple queries are faster and more reliable than one complex query
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **Clean Player Data**: Each lobby now returns exactly the correct number of players (no duplicates)
+    - **Multi-Player Support**: Second player interface now displays correctly
+    - **Game Functionality**: All players can see each other and interact properly during games
+    - **Database Integrity**: No more Cartesian product issues in lobby data retrieval
+  - **Technical Details**:
+    - **Before**: Single query with `LEFT JOIN lobby_players lp` and `LEFT JOIN lobby_questions lq` created N×M rows
+    - **After**: Three separate queries ensure clean data separation and proper aggregation
+    - **Performance**: Eliminated expensive GROUP BY operations on large Cartesian products
+    - **Maintainability**: Simpler queries are easier to debug and modify
+  - **Files Modified**: 
+    - `backend/routes/lobby.js` - Completely rewrote `getLobbyData()` function to use separate queries
+  - **System Verification**:
+    - `docker compose ps` - All services healthy and rebuilt
+    - Database shows correct player counts (2 players in lobby 90HT, not 40)
+    - Frontend should now display proper multi-player interfaces
+    - No more ghost players appearing in games
+
+### Lobby Join Loading Screen Fix (Previous)
+- **Fixed Critical UI Bug**: Resolved infinite loading screen issue when joining lobbies from the active lobbies list
+  - **Root Cause**: State coordination issue between lobbyManager and playerManager when joining lobbies from the active lobbies list
+  - **Issue Impact**: Users would get stuck on a loading screen after successfully joining a lobby, even though the API call was successful
+  - **Investigation Results**:
+    - **API Success**: The `lobbyManager.joinLobby()` was working correctly and returning lobby data
+    - **Screen Transition**: The `screenManager.showScreen(SCREENS.LOBBY)` was triggering correctly  
+    - **State Mismatch**: The `playerManager.currentLobby` was not being updated, causing `ensureCurrentLobby()` to fail
+    - **Error Messages**: "No current lobby found" messages indicated the state coordination issue
+  - **Solution Applied**:
+    - **State Coordination**: Updated `app.js` to properly coordinate state between lobbyManager and playerManager
+    - **Player Manager Update**: Added calls to `setCurrentLobby()` and `setCurrentPlayer()` after successful join
+    - **Data Flow Fix**: Ensured lobby data flows from API → lobbyManager → playerManager → UI
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **Smooth Lobby Joining**: Users can now join lobbies from the active lobbies list without getting stuck
+    - **Proper State Management**: Both lobbyManager and playerManager are properly synchronized
+    - **UI Display**: Lobby screen displays correctly with all player information and controls
+    - **All Functionality**: Ready buttons, start game, question set selection all working properly
+  - **Technical Details**:
+    - Modified lobby join flow in `app.js` to update playerManager state after successful API join
+    - The `joinLobby()` API call returns full lobby data which is now properly passed to playerManager
+    - State synchronization prevents the "No current lobby found" error during screen initialization
+    - All existing lobby functionality remains intact while fixing the loading screen issue
+  - **Files Modified**: 
+    - `public/js/app.js` - Fixed lobby join state coordination by adding `setCurrentLobby()` and `setCurrentPlayer()` calls
+  - **System Verification**:
+    - `docker compose ps` - All services healthy
+    - `curl http://10.0.0.44/api/health` - API responding correctly
+    - Lobby joining now works end-to-end without loading screen issues
+    - All lobby features (ready, start game, question selection) working properly
+
+### NPC Players Database Cleanup Fix (Previous)
 - **Fixed Database Accumulation Issue**: Resolved issue where multiple NPC-like players (duplicate player instances) were appearing in games
   - **Root Cause**: Old lobby data was accumulating in the database with duplicate player entries across multiple lobbies
   - **Issue Impact**: Players would see multiple instances of the same character appearing as NPC players in games, creating confusion

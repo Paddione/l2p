@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS lobbies (
     started BOOLEAN DEFAULT FALSE,
     current_question INTEGER DEFAULT 0,
     catalog VARCHAR(100) DEFAULT NULL,
+    question_set_id INTEGER DEFAULT NULL,
     game_phase VARCHAR(20) DEFAULT 'waiting',
+    question_start_time TIMESTAMP DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

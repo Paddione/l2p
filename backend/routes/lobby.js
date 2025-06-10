@@ -70,36 +70,41 @@ async function getLobbyData(code) {
     // Update last_activity when lobby is accessed
     await query('UPDATE lobbies SET last_activity = CURRENT_TIMESTAMP WHERE code = $1', [code]);
     
-    const result = await query(`
+    // Get lobby basic data and question set info
+    const lobbyResult = await query(`
         SELECT l.*,
                qs.name as question_set_name,
                qs.description as question_set_description,
-               qs.question_count as question_set_count,
-               json_agg(json_build_object(
-                   'username', lp.username,
-                   'character', lp.character,
-                   'score', lp.score,
-                   'current_answer', lp.current_answer,
-                   'answered', lp.answered,
-                   'ready', lp.ready,
-                   'is_host', lp.is_host
-               )) as players,
-               json_agg(lq.question_data ORDER BY lq.question_index) as questions
+               qs.question_count as question_set_count
         FROM lobbies l
-        LEFT JOIN lobby_players lp ON l.code = lp.lobby_code
-        LEFT JOIN lobby_questions lq ON l.code = lq.lobby_code
         LEFT JOIN question_sets qs ON l.question_set_id = qs.id
         WHERE l.code = $1
-        GROUP BY l.code, qs.name, qs.description, qs.question_count
     `, [code]);
 
-    if (result.rows.length === 0) return null;
+    if (lobbyResult.rows.length === 0) return null;
 
-    const lobby = result.rows[0];
+    const lobby = lobbyResult.rows[0];
+
+    // Get players separately to avoid Cartesian product
+    const playersResult = await query(`
+        SELECT username, character, score, current_answer, answered, ready, is_host
+        FROM lobby_players
+        WHERE lobby_code = $1
+        ORDER BY is_host DESC, username
+    `, [code]);
+
+    // Get questions separately to avoid Cartesian product
+    const questionsResult = await query(`
+        SELECT question_data
+        FROM lobby_questions
+        WHERE lobby_code = $1
+        ORDER BY question_index
+    `, [code]);
+
     return {
         ...lobby,
-        players: lobby.players[0] ? lobby.players : [],
-        questions: lobby.questions[0] ? lobby.questions : [],
+        players: playersResult.rows,
+        questions: questionsResult.rows.map(row => row.question_data),
         question_set: lobby.question_set_name ? {
             name: lobby.question_set_name,
             description: lobby.question_set_description,
@@ -107,6 +112,93 @@ async function getLobbyData(code) {
         } : null
     };
 }
+
+// Helper function to check if question should auto-advance
+async function checkQuestionProgression(lobbyCode) {
+    try {
+        const lobby = await getLobbyData(lobbyCode);
+        if (!lobby || !lobby.started || lobby.game_phase !== 'question') {
+            return;
+        }
+
+        // Check if all players have answered
+        const progressResult = await query(
+            'SELECT COUNT(*) as total, SUM(CASE WHEN answered THEN 1 ELSE 0 END) as answered FROM lobby_players WHERE lobby_code = $1',
+            [lobbyCode]
+        );
+
+        const { total, answered } = progressResult.rows[0];
+        const allAnswered = parseInt(answered) === parseInt(total);
+
+        // Check if time has run out (60 seconds)
+        const questionStartTime = new Date(lobby.question_start_time);
+        const timeElapsed = (Date.now() - questionStartTime.getTime()) / 1000;
+        const timeExpired = timeElapsed >= 60; // 60 seconds question time
+
+        if (allAnswered || timeExpired) {
+            console.log(`Auto-advancing question for lobby ${lobbyCode}: allAnswered=${allAnswered}, timeExpired=${timeExpired}`);
+            
+            // Get total number of questions
+            const questionsResult = await query(
+                'SELECT COUNT(*) FROM lobby_questions WHERE lobby_code = $1',
+                [lobbyCode]
+            );
+
+            const totalQuestions = parseInt(questionsResult.rows[0].count);
+            const nextQuestion = lobby.current_question + 1;
+
+            await query('BEGIN');
+
+            if (nextQuestion >= totalQuestions) {
+                // Game is finished
+                await query(
+                    'UPDATE lobbies SET game_phase = $1 WHERE code = $2',
+                    ['finished', lobbyCode]
+                );
+            } else {
+                // Move to next question
+                const startTime = new Date();
+                await query(
+                    'UPDATE lobbies SET current_question = $1, game_phase = $2, question_start_time = $3 WHERE code = $4',
+                    [nextQuestion, 'question', startTime, lobbyCode]
+                );
+
+                // Reset all players' answer state for the new question
+                await query(
+                    'UPDATE lobby_players SET answered = FALSE, current_answer = NULL WHERE lobby_code = $1',
+                    [lobbyCode]
+                );
+            }
+
+            await query('COMMIT');
+        }
+    } catch (error) {
+        console.error('Error checking question progression:', error);
+        try {
+            await query('ROLLBACK');
+        } catch (rollbackError) {
+            console.error('Error rolling back transaction:', rollbackError);
+        }
+    }
+}
+
+// Start automatic question progression checker
+setInterval(async () => {
+    try {
+        // Get all active games
+        const activeGamesResult = await query(
+            'SELECT code FROM lobbies WHERE started = TRUE AND game_phase = $1',
+            ['question']
+        );
+
+        // Check each active game for progression
+        for (const game of activeGamesResult.rows) {
+            await checkQuestionProgression(game.code);
+        }
+    } catch (error) {
+        console.error('Error in automatic question progression:', error);
+    }
+}, 1000); // Check every second
 
 // Create a new lobby
 router.post('/create', async (req, res) => {
@@ -594,30 +686,22 @@ router.post('/:code/question-set', async (req, res) => {
                 });
             }
 
-            if (lobbyResult.rows[0].host !== username) {
+            const lobby = lobbyResult.rows[0];
+            if (lobby.host !== username) {
                 await query('ROLLBACK');
                 return res.status(403).json({ 
-                    error: 'Only the host can set the question set',
-                    code: 'NOT_HOST'
+                    error: 'Only the host can set question sets',
+                    code: 'PERMISSION_DENIED'
                 });
             }
 
-            // Check if question set exists and user has access
+            // Verify the question set exists and is valid
             const questionSet = await QuestionSet.findById(questionSetId);
             if (!questionSet) {
                 await query('ROLLBACK');
-                return res.status(404).json({ 
-                    error: 'Question set not found',
-                    code: 'QUESTION_SET_NOT_FOUND'
-                });
-            }
-
-            // Check if user has access to this question set
-            if (!questionSet.is_public && questionSet.created_by !== username) {
-                await query('ROLLBACK');
-                return res.status(403).json({ 
-                    error: 'Access denied to this question set',
-                    code: 'QUESTION_SET_ACCESS_DENIED'
+                return res.status(400).json({ 
+                    error: 'Invalid question set ID',
+                    code: 'INVALID_QUESTION_SET'
                 });
             }
 
@@ -629,21 +713,29 @@ router.post('/:code/question-set', async (req, res) => {
 
             // Clear existing questions and add new ones
             await query('DELETE FROM lobby_questions WHERE lobby_code = $1', [code]);
-
-            // Add questions from the question set
-            const questions = questionSet.questions;
-            for (let i = 0; i < questions.length; i++) {
-                await query(
-                    'INSERT INTO lobby_questions (lobby_code, question_index, question_data) VALUES ($1, $2, $3)',
-                    [code, i, JSON.stringify(questions[i])]
-                );
-            }
+            
+            // Use Promise.all with map instead of forEach to properly handle async operations
+            console.log(`Inserting ${questionSet.questions.length} questions for lobby ${code}`);
+            const insertResults = await Promise.all(questionSet.questions.map(async (question, index) => {
+                try {
+                    const result = await query(
+                        'INSERT INTO lobby_questions (lobby_code, question_index, question_data) VALUES ($1, $2, $3)',
+                        [code, index, JSON.stringify(question)]
+                    );
+                    console.log(`Successfully inserted question ${index} for lobby ${code}`);
+                    return result;
+                } catch (error) {
+                    console.error(`Failed to insert question ${index} for lobby ${code}:`, error);
+                    throw error;
+                }
+            }));
+            console.log(`Successfully inserted ${insertResults.length} questions for lobby ${code}`);
 
             await query('COMMIT');
 
             // Get updated lobby data
-            const lobby = await getLobbyData(code);
-            res.json(lobby);
+            const updatedLobby = await getLobbyData(code);
+            res.json(updatedLobby);
 
         } catch (error) {
             await query('ROLLBACK');
@@ -654,7 +746,343 @@ router.post('/:code/question-set', async (req, res) => {
         console.error('Set question set error:', error);
         res.status(500).json({ 
             error: 'Failed to set question set',
-            code: 'QUESTION_SET_UPDATE_FAILED'
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Start game endpoint
+router.post('/:code/start', async (req, res) => {
+    try {
+        const { code } = req.params;
+        const username = req.user.username;
+
+        await query('BEGIN');
+
+        try {
+            // Check if lobby exists and user is host
+            const lobbyResult = await query(
+                'SELECT host, started, question_set_id FROM lobbies WHERE code = $1',
+                [code]
+            );
+
+            if (lobbyResult.rows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(404).json({ 
+                    error: 'Lobby not found',
+                    code: 'LOBBY_NOT_FOUND'
+                });
+            }
+
+            const lobby = lobbyResult.rows[0];
+            if (lobby.host !== username) {
+                await query('ROLLBACK');
+                return res.status(403).json({ 
+                    error: 'Only the host can start the game',
+                    code: 'PERMISSION_DENIED'
+                });
+            }
+
+            if (lobby.started) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Game has already started',
+                    code: 'GAME_ALREADY_STARTED'
+                });
+            }
+
+            if (!lobby.question_set_id) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'No question set selected',
+                    code: 'NO_QUESTION_SET'
+                });
+            }
+
+            // Check if there are enough players
+            const playersResult = await query(
+                'SELECT COUNT(*) FROM lobby_players WHERE lobby_code = $1',
+                [code]
+            );
+
+            const playerCount = parseInt(playersResult.rows[0].count);
+            if (playerCount < 1) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Not enough players to start the game',
+                    code: 'NOT_ENOUGH_PLAYERS'
+                });
+            }
+
+            // Update lobby to started state
+            const startTime = new Date();
+            await query(
+                'UPDATE lobbies SET started = TRUE, game_phase = $1, current_question = 0, question_start_time = $2 WHERE code = $3',
+                ['question', startTime, code]
+            );
+
+            // Reset all players' answer state for the first question
+            await query(
+                'UPDATE lobby_players SET answered = FALSE, current_answer = NULL WHERE lobby_code = $1',
+                [code]
+            );
+
+            await query('COMMIT');
+
+            // Get updated lobby data
+            const updatedLobby = await getLobbyData(code);
+            res.json(updatedLobby);
+
+        } catch (error) {
+            await query('ROLLBACK');
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Start game error:', error);
+        res.status(500).json({ 
+            error: 'Failed to start game',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Submit answer endpoint
+router.post('/:code/answer', async (req, res) => {
+    try {
+        const { code } = req.params;
+        const { answer } = req.body;
+        const username = req.user.username;
+
+        if (answer === undefined || answer === null) {
+            return res.status(400).json({ 
+                error: 'Answer is required',
+                code: 'MISSING_ANSWER'
+            });
+        }
+
+        await query('BEGIN');
+
+        try {
+            // Check if lobby exists and game is in progress
+            const lobbyResult = await query(
+                'SELECT started, current_question, game_phase FROM lobbies WHERE code = $1',
+                [code]
+            );
+
+            if (lobbyResult.rows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(404).json({ 
+                    error: 'Lobby not found',
+                    code: 'LOBBY_NOT_FOUND'
+                });
+            }
+
+            const lobby = lobbyResult.rows[0];
+            if (!lobby.started) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Game has not started',
+                    code: 'GAME_NOT_STARTED'
+                });
+            }
+
+            if (lobby.game_phase !== 'question') {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Not currently accepting answers',
+                    code: 'NOT_QUESTION_PHASE'
+                });
+            }
+
+            // Check if player is in the lobby
+            const playerResult = await query(
+                'SELECT answered FROM lobby_players WHERE lobby_code = $1 AND username = $2',
+                [code, username]
+            );
+
+            if (playerResult.rows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(404).json({ 
+                    error: 'Player not found in lobby',
+                    code: 'PLAYER_NOT_FOUND'
+                });
+            }
+
+            if (playerResult.rows[0].answered) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Already answered this question',
+                    code: 'ALREADY_ANSWERED'
+                });
+            }
+
+            // Submit the answer
+            await query(
+                'UPDATE lobby_players SET current_answer = $1, answered = TRUE WHERE lobby_code = $2 AND username = $3',
+                [JSON.stringify(answer), code, username]
+            );
+
+            // Check if all players have answered
+            const allPlayersResult = await query(
+                'SELECT COUNT(*) as total, SUM(CASE WHEN answered THEN 1 ELSE 0 END) as answered FROM lobby_players WHERE lobby_code = $1',
+                [code]
+            );
+
+            const { total, answered } = allPlayersResult.rows[0];
+            const allAnswered = parseInt(answered) === parseInt(total);
+
+            await query('COMMIT');
+
+            // Return result with sync info
+            res.json({
+                success: true,
+                allAnswered,
+                playersAnswered: parseInt(answered),
+                totalPlayers: parseInt(total)
+            });
+
+        } catch (error) {
+            await query('ROLLBACK');
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Submit answer error:', error);
+        res.status(500).json({ 
+            error: 'Failed to submit answer',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Next question endpoint
+router.post('/:code/next-question', async (req, res) => {
+    try {
+        const { code } = req.params;
+        const username = req.user.username;
+
+        await query('BEGIN');
+
+        try {
+            // Check if lobby exists and user is host
+            const lobbyResult = await query(
+                'SELECT host, started, current_question, game_phase FROM lobbies WHERE code = $1',
+                [code]
+            );
+
+            if (lobbyResult.rows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(404).json({ 
+                    error: 'Lobby not found',
+                    code: 'LOBBY_NOT_FOUND'
+                });
+            }
+
+            const lobby = lobbyResult.rows[0];
+            if (lobby.host !== username) {
+                await query('ROLLBACK');
+                return res.status(403).json({ 
+                    error: 'Only the host can advance questions',
+                    code: 'PERMISSION_DENIED'
+                });
+            }
+
+            if (!lobby.started) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Game has not started',
+                    code: 'GAME_NOT_STARTED'
+                });
+            }
+
+            // Get total number of questions
+            const questionsResult = await query(
+                'SELECT COUNT(*) FROM lobby_questions WHERE lobby_code = $1',
+                [code]
+            );
+
+            const totalQuestions = parseInt(questionsResult.rows[0].count);
+            const nextQuestion = lobby.current_question + 1;
+
+            if (nextQuestion >= totalQuestions) {
+                // Game is finished
+                await query(
+                    'UPDATE lobbies SET game_phase = $1 WHERE code = $2',
+                    ['finished', code]
+                );
+            } else {
+                // Move to next question
+                const startTime = new Date();
+                await query(
+                    'UPDATE lobbies SET current_question = $1, game_phase = $2, question_start_time = $3 WHERE code = $4',
+                    [nextQuestion, 'question', startTime, code]
+                );
+
+                // Reset all players' answer state for the new question
+                await query(
+                    'UPDATE lobby_players SET answered = FALSE, current_answer = NULL WHERE lobby_code = $1',
+                    [code]
+                );
+            }
+
+            await query('COMMIT');
+
+            // Get updated lobby data
+            const updatedLobby = await getLobbyData(code);
+            res.json(updatedLobby);
+
+        } catch (error) {
+            await query('ROLLBACK');
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Next question error:', error);
+        res.status(500).json({ 
+            error: 'Failed to advance to next question',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Get game state endpoint for synchronization
+router.get('/:code/game-state', async (req, res) => {
+    try {
+        const { code } = req.params;
+
+        // Get current game state
+        const lobby = await getLobbyData(code);
+        
+        if (!lobby) {
+            return res.status(404).json({ 
+                error: 'Lobby not found',
+                code: 'LOBBY_NOT_FOUND'
+            });
+        }
+
+        // Get answer progress for current question
+        const progressResult = await query(
+            'SELECT COUNT(*) as total, SUM(CASE WHEN answered THEN 1 ELSE 0 END) as answered FROM lobby_players WHERE lobby_code = $1',
+            [code]
+        );
+
+        const { total, answered } = progressResult.rows[0];
+
+        res.json({
+            ...lobby,
+            answerProgress: {
+                answered: parseInt(answered),
+                total: parseInt(total),
+                allAnswered: parseInt(answered) === parseInt(total)
+            }
+        });
+
+    } catch (error) {
+        console.error('Get game state error:', error);
+        res.status(500).json({ 
+            error: 'Failed to get game state',
+            code: 'INTERNAL_ERROR'
         });
     }
 });

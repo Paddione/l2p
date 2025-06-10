@@ -44,6 +44,7 @@ export function initGameController(lobbyManager, storage, screenManager) {
         
         // Listen for game engine events
         document.addEventListener(EVENTS.QUESTION_STARTED, handleQuestionStarted);
+        document.addEventListener(EVENTS.QUESTION_UPDATED, handleQuestionUpdated);
         document.addEventListener(EVENTS.QUESTION_ENDED, handleQuestionEnded);
         document.addEventListener(EVENTS.GAME_ENDED, handleGameEnded);
         document.addEventListener(EVENTS.TIMER_UPDATED, handleTimerUpdate);
@@ -107,6 +108,15 @@ export function initGameController(lobbyManager, storage, screenManager) {
     }
 
     /**
+     * Handles question updated event
+     * @param {CustomEvent} event - Question updated event
+     */
+    function handleQuestionUpdated(event) {
+        const questionData = event.detail;
+        updateGameUI(questionData);
+    }
+
+    /**
      * Handles question ended event
      * @param {CustomEvent} event - Question ended event
      */
@@ -114,9 +124,9 @@ export function initGameController(lobbyManager, storage, screenManager) {
         const results = event.detail;
         showQuestionResults(results);
         
-        // Note: The game engine automatically handles question transitions
-        // and will dispatch QUESTION_STARTED for the next question or GAME_ENDED when finished
-        console.log('Question ended, waiting for next question or game end...');
+        // Note: The server now handles question transitions automatically
+        // No need for manual progression logic here
+        console.log('Question ended, server will handle progression to next question or game end...');
     }
 
     /**
@@ -154,7 +164,7 @@ export function initGameController(lobbyManager, storage, screenManager) {
             return;
         }
 
-        if (!questionData.question) {
+        if (!questionData.question && !questionData.type) {
             console.error('updateGameUI: questionData.question is missing. Available properties:', Object.keys(questionData));
             return;
         }
@@ -164,10 +174,11 @@ export function initGameController(lobbyManager, storage, screenManager) {
         const timerDisplay = document.getElementById('timer');
         const gameCodeDisplay = document.getElementById('game-code-display');
         const playerCountDisplay = document.getElementById('player-count');
+        const answerProgressDisplay = document.getElementById('answer-progress');
 
         // Update question text
         if (questionText) {
-            questionText.textContent = questionData.question;
+            questionText.textContent = questionData.question || questionData.text;
         }
 
         // Update timer display
@@ -184,6 +195,12 @@ export function initGameController(lobbyManager, storage, screenManager) {
             playerCountDisplay.textContent = questionData.playerCount;
         }
 
+        // Update answer progress
+        if (answerProgressDisplay && questionData.answerProgress) {
+            const { answered, total } = questionData.answerProgress;
+            answerProgressDisplay.textContent = `${answered}/${total} answered`;
+        }
+
         // Update answers
         if (answersContainer) {
             answersContainer.innerHTML = '';
@@ -198,28 +215,19 @@ export function initGameController(lobbyManager, storage, screenManager) {
                     answersContainer.appendChild(button);
                 });
             } else if (questionData.type === 'true_false') {
-                const trueBtn = document.createElement('button');
-                trueBtn.className = 'answer-btn';
-                trueBtn.textContent = 'True';
-                trueBtn.dataset.answer = 'true';
-                trueBtn.addEventListener('click', () => handleAnswerClick(true, trueBtn));
-                
-                const falseBtn = document.createElement('button');
-                falseBtn.className = 'answer-btn';
-                falseBtn.textContent = 'False';
-                falseBtn.dataset.answer = 'false';
-                falseBtn.addEventListener('click', () => handleAnswerClick(false, falseBtn));
-                
-                answersContainer.appendChild(trueBtn);
-                answersContainer.appendChild(falseBtn);
+                ['True', 'False'].forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'answer-btn';
+                    button.textContent = option;
+                    button.dataset.answer = index === 0;
+                    button.addEventListener('click', () => handleAnswerClick(index === 0, button));
+                    answersContainer.appendChild(button);
+                });
             }
         }
 
         // Update player list
         updatePlayerList(questionData);
-
-        // Reset answer button states
-        resetAnswerButtons();
     }
 
     /**
@@ -232,18 +240,35 @@ export function initGameController(lobbyManager, storage, screenManager) {
 
         playersList.innerHTML = '';
         
-        Object.entries(questionData.players).forEach(([username, playerData]) => {
-            const playerCard = document.createElement('div');
-            playerCard.className = 'player-card';
-            playerCard.innerHTML = `
-                <div class="player-avatar">${playerData.character}</div>
-                <div class="player-info">
-                    <div class="player-name">${username}</div>
-                    <div class="player-score">${questionData.scores?.[username] || 0}</div>
-                </div>
-            `;
-            playersList.appendChild(playerCard);
-        });
+        if (Array.isArray(questionData.players)) {
+            // Handle array format from backend
+            questionData.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                playerCard.innerHTML = `
+                    <div class="player-avatar">${player.character}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.username}</div>
+                        <div class="player-score">${questionData.scores?.[player.username] || 0}</div>
+                    </div>
+                `;
+                playersList.appendChild(playerCard);
+            });
+        } else {
+            // Handle object format (legacy)
+            Object.entries(questionData.players).forEach(([username, playerData]) => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                playerCard.innerHTML = `
+                    <div class="player-avatar">${playerData.character}</div>
+                    <div class="player-info">
+                        <div class="player-name">${username}</div>
+                        <div class="player-score">${questionData.scores?.[username] || 0}</div>
+                    </div>
+                `;
+                playersList.appendChild(playerCard);
+            });
+        }
     }
 
     /**

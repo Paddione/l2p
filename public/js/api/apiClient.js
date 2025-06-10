@@ -156,6 +156,31 @@ class ApiClient {
                     console.error(`Failed to parse error response as JSON: ${e.name}: ${e.message}. Response text: "${responseText}"`);
                 }
 
+                // Handle 401 authentication errors specifically
+                if (response.status === 401) {
+                    console.warn('Authentication failed - clearing token and redirecting to login');
+                    this.clearToken();
+                    
+                    // Try to redirect to login screen if possible
+                    try {
+                        if (window.appState && window.appState.modules && window.appState.modules.screenManager) {
+                            window.appState.modules.screenManager.showScreen('auth');
+                        } else {
+                            // Fallback: reload the page to trigger auth check
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        }
+                    } catch (redirectError) {
+                        console.error('Failed to redirect to login:', redirectError);
+                    }
+                    
+                    const error = new Error('Your session has expired. Please log in again.');
+                    error.status = 401;
+                    error.data = errorJson || { rawResponse: responseText };
+                    throw error;
+                }
+
                 // Enhanced error messages for common issues
                 if (response.status === 502) {
                     const error = new Error('The server is temporarily unavailable. We tried multiple times but could not connect. Please try again in a few minutes.');
@@ -221,7 +246,7 @@ class ApiClient {
             } else if (error.status === 501) {
                 userMessage = 'This feature is not yet implemented on the server.';
             } else if (error.status === 401) {
-                userMessage = error.data?.message || 'Authentication failed. Please log in again.';
+                userMessage = error.message || 'Your session has expired. Please log in again.';
             } else if (error.status === 403) {
                 userMessage = error.data?.message || 'You do not have permission to perform this action.';
             } else if (error.status && error.status >= 400 && error.status < 500) {

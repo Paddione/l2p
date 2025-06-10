@@ -92,6 +92,7 @@ export const EVENTS = {
     PLAYER_READY: 'player-ready',
     GAME_STARTED: 'game-started',
     QUESTION_STARTED: 'question-started',
+    QUESTION_UPDATED: 'question-updated',
     ANSWER_SUBMITTED: 'answer-submitted',
     QUESTION_ENDED: 'question-ended',
     GAME_ENDED: 'game-ended',

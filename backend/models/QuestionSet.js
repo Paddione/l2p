@@ -6,7 +6,8 @@ class QuestionSet {
         this.name = data.name;
         this.description = data.description;
         this.created_by = data.created_by;
-        this.questions = data.questions;
+        // Parse questions if it's a string, otherwise use as-is
+        this.questions = typeof data.questions === 'string' ? JSON.parse(data.questions) : data.questions;
         this.question_count = data.question_count;
         this.is_public = data.is_public;
         this.created_at = data.created_at;

@@ -259,66 +259,74 @@ export function initLobbyManager(storage, screenManager) {
     }
 
     /**
-     * Starts the game
+     * Starts the game for the lobby
      * @param {string} code - Lobby code
      * @returns {Promise<Object>} - Updated lobby data
      */
     async function startGame(code) {
         try {
-            const lobby = await getLobby(code);
-            
-            if (!lobby) {
-                throw new Error('Lobby not found');
-            }
-
-            const playerCount = lobby.players ? lobby.players.length : 0;
-            if (playerCount < GAME_SETTINGS.MIN_PLAYERS) {
-                throw new Error('Not enough players to start the game');
-            }
-
-            // Check if we need to load questions from the selected question set
-            if ((!lobby.questions || lobby.questions.length === 0) && lobby.question_set) {
-                console.log('Loading questions from question set:', lobby.question_set.id);
-                
-                try {
-                    // Fetch the full question set with questions
-                    const questionSetData = await questionSetsApi.getById(lobby.question_set.id);
-                    
-                    if (!questionSetData.questions || questionSetData.questions.length === 0) {
-                        throw new Error('Selected question set has no questions');
-                    }
-
-                    // Update the lobby with the questions from the question set
-                    const updatedLobby = await updateLobby(code, {
-                        questions: questionSetData.questions.slice(0, GAME_SETTINGS.MAX_QUESTIONS),
-                        catalog: questionSetData.name
-                    });
-                    
-                    // Update our local lobby object
-                    Object.assign(lobby, updatedLobby);
-                    
-                } catch (questionSetError) {
-                    console.error('Failed to load questions from question set:', questionSetError);
-                    throw new Error('Failed to load questions from selected question set');
-                }
-            }
-
-            // Final check for questions
-            if (!lobby.questions || lobby.questions.length === 0) {
-                throw new Error('No questions available. Please select a question set first.');
-            }
-
-            if (!areAllPlayersReady(lobby)) {
-                throw new Error('Not all players are ready');
-            }
-
-            return await updateLobby(code, {
-                started: true,
-                game_phase: GAME_PHASES.QUESTION
-            });
+            return await apiClient.request('POST', `/lobbies/${code}/start`);
         } catch (error) {
             console.error('Failed to start game:', error);
+            
+            if (error.status === 404) {
+                throw new Error('Lobby not found');
+            } else if (error.status === 403) {
+                throw new Error('Only the host can start the game');
+            } else if (error.status === 400) {
+                if (error.message.includes('already started')) {
+                    throw new Error('Game has already started');
+                } else if (error.message.includes('ready')) {
+                    throw new Error('All players must be ready before starting');
+                } else if (error.message.includes('question set')) {
+                    throw new Error('Please select a question set before starting');
+                }
+            }
+            
             throw new Error(error.message || 'Failed to start game');
+        }
+    }
+
+    /**
+     * Submits an answer for the current question
+     * @param {string} code - Lobby code
+     * @param {any} answer - Player's answer
+     * @returns {Promise<Object>} - Answer submission result
+     */
+    async function submitAnswer(code, answer) {
+        try {
+            return await apiClient.request('POST', `/lobbies/${code}/answer`, { answer });
+        } catch (error) {
+            console.error('Failed to submit answer:', error);
+            throw new Error(error.message || 'Failed to submit answer');
+        }
+    }
+
+    /**
+     * Advances to the next question (host only)
+     * @param {string} code - Lobby code
+     * @returns {Promise<Object>} - Updated lobby data
+     */
+    async function nextQuestion(code) {
+        try {
+            return await apiClient.request('POST', `/lobbies/${code}/next-question`);
+        } catch (error) {
+            console.error('Failed to advance to next question:', error);
+            throw new Error(error.message || 'Failed to advance to next question');
+        }
+    }
+
+    /**
+     * Gets current game state for synchronization
+     * @param {string} code - Lobby code
+     * @returns {Promise<Object>} - Game state data
+     */
+    async function getGameState(code) {
+        try {
+            return await apiClient.request('GET', `/lobbies/${code}/game-state`);
+        } catch (error) {
+            console.error('Failed to get game state:', error);
+            throw new Error(error.message || 'Failed to get game state');
         }
     }
 
@@ -416,6 +424,9 @@ export function initLobbyManager(storage, screenManager) {
         setQuestionSet,
         setCatalog,
         startGame,
+        submitAnswer,
+        nextQuestion,
+        getGameState,
         createSinglePlayerGame,
         closeLobby,
         lobbyExists,
