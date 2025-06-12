@@ -24,9 +24,9 @@ async function initializePool() {
                 { rejectUnauthorized: false } : false,
             max: 20, // Maximum number of clients in the pool
             idleTimeoutMillis: 60000, // Close idle clients after 60 seconds
-            connectionTimeoutMillis: 5000, // Increased to 5 seconds
-            statement_timeout: 10000, // Statement timeout after 10 seconds
-            query_timeout: 10000, // Query timeout after 10 seconds
+            connectionTimeoutMillis: 10000, // Increased to 10 seconds
+            statement_timeout: 30000, // Statement timeout after 30 seconds
+            query_timeout: 30000, // Query timeout after 30 seconds
         };
     } else {
         // Fallback to individual environment variables
@@ -39,9 +39,9 @@ async function initializePool() {
             ssl: false, // No SSL for local development
             max: 20,
             idleTimeoutMillis: 60000,
-            connectionTimeoutMillis: 5000,
-            statement_timeout: 10000,
-            query_timeout: 10000,
+            connectionTimeoutMillis: 10000,
+            statement_timeout: 30000,
+            query_timeout: 30000,
         };
     }
 

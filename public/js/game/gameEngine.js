@@ -43,14 +43,16 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 playerAnswers: {},
                 hasAnswered: false,
                 questionStartTime: null,
-                questionEndTime: null
+                questionEndTime: null,
+                playerStreaks: {}
             };
 
-            // Initialize player scores and multipliers
+            // Initialize player scores, multipliers, and streaks
             if (Array.isArray(lobby.players)) {
                 lobby.players.forEach(player => {
                     currentGame.scores[player.username] = player.score || 0;
                     currentGame.playerMultipliers[player.username] = 1;
+                    currentGame.playerStreaks[player.username] = 0;
                 });
             }
 
@@ -74,12 +76,13 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     }
 
     /**
-     * Starts polling for game state updates
+     * Starts polling for game state updates during active games
      */
     function startGameStatePolling() {
         stopGameStatePolling();
         
-        // Poll every 1 second for game state updates to ensure synchronization
+        // Poll every 2 seconds for game state updates - reduced from 500ms to prevent rate limiting
+        // This still provides good real-time feel while avoiding "Too Many Requests" errors
         gameStateInterval = setInterval(async () => {
             try {
                 if (currentGame && currentGame.lobbyCode) {
@@ -87,8 +90,21 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 }
             } catch (error) {
                 console.error('Error syncing game state:', error);
+                
+                // Handle rate limiting with exponential backoff
+                if (error.message && error.message.includes('Too Many Requests')) {
+                    console.log('[Engine] Rate limit hit, increasing polling interval temporarily');
+                    stopGameStatePolling();
+                    
+                    // Wait 5 seconds before resuming with longer interval
+                    setTimeout(() => {
+                        if (currentGame && currentGame.lobbyCode) {
+                            startGameStatePolling();
+                        }
+                    }, 5000);
+                }
             }
-        }, 1000);
+        }, 2000);
     }
 
     /**
@@ -120,6 +136,12 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             currentGame.phase = gameState.game_phase;
             currentGame.currentQuestion = gameState.current_question;
 
+            // Sync timing from server for accurate synchronization
+            if (gameState.timing && gameState.timing.questionStartTime) {
+                currentGame.questionStartTime = new Date(gameState.timing.questionStartTime);
+                console.log(`[Engine ${engineId}] Synced question start time: ${currentGame.questionStartTime.toISOString()}`);
+            }
+
             // Update player scores
             if (gameState.players) {
                 gameState.players.forEach(player => {
@@ -129,15 +151,17 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
 
             // Handle phase transitions
             if (previousPhase !== currentGame.phase) {
+                console.log(`[Engine ${engineId}] 🔄 Phase change detected: ${previousPhase} → ${currentGame.phase}`);
                 await handlePhaseChange(previousPhase, currentGame.phase, gameState);
             }
 
             // Handle question transitions
             if (previousQuestion !== currentGame.currentQuestion) {
+                console.log(`[Engine ${engineId}] ❓ Question change detected: ${previousQuestion} → ${currentGame.currentQuestion}`);
                 await handleQuestionChange(gameState);
             }
 
-            // Update UI with current state
+            // Update UI with current state and server timing
             if (currentGame.phase === 'question') {
                 await updateQuestionUI(gameState);
             }
@@ -210,19 +234,14 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
 
         currentGame.questionStartTime = gameState.question_start_time ? new Date(gameState.question_start_time) : new Date();
 
-        // Play question start sound
-        try {
-            await audioManager.playQuestionStart();
-        } catch (error) {
-            console.warn('Failed to play question start sound:', error);
-        }
+        // Question start sound removed per user request
 
         // Prepare question data for UI
         const questionData = {
             ...question,
             currentQuestion: currentGame.currentQuestion + 1,
             totalQuestions: gameState.questions.length,
-            timeRemaining: calculateTimeRemaining(),
+            timeRemaining: calculateTimeRemaining(gameState),
             lobbyCode: currentGame.lobbyCode,
             playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players).length,
             players: gameState.players,
@@ -240,15 +259,24 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     }
 
     /**
-     * Calculates time remaining for current question
+     * Calculates time remaining for current question using server timing for perfect sync
      */
-    function calculateTimeRemaining() {
+    function calculateTimeRemaining(gameState = null) {
+        // Use server-provided timing if available for perfect synchronization
+        if (gameState && gameState.timing && gameState.timing.timeRemaining !== undefined) {
+            console.log(`[Engine ${engineId}] Using server timing: ${gameState.timing.timeRemaining}s remaining`);
+            return gameState.timing.timeRemaining;
+        }
+        
+        // Fallback to local calculation
         if (!currentGame.questionStartTime) {
             return GAME_SETTINGS.QUESTION_TIME;
         }
 
         const elapsed = Math.floor((Date.now() - currentGame.questionStartTime.getTime()) / 1000);
-        return Math.max(0, GAME_SETTINGS.QUESTION_TIME - elapsed);
+        const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - elapsed);
+        console.log(`[Engine ${engineId}] Local timing calculation: ${timeRemaining}s remaining`);
+        return timeRemaining;
     }
 
     /**
@@ -266,7 +294,8 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                     audioManager.playTimerWarning().catch(e => console.warn('Timer warning sound failed:', e));
                 } else if (timeRemaining === 5) {
                     audioManager.playTimerUrgent().catch(e => console.warn('Timer urgent sound failed:', e));
-                } else if (timeRemaining <= 3 && timeRemaining > 0) {
+                } else if (timeRemaining === 3) {
+                    // Play countdown tick only once at 3 seconds
                     audioManager.playCountdownTick().catch(e => console.warn('Countdown tick sound failed:', e));
                 }
             } catch (error) {
@@ -313,7 +342,7 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             ...question,
             currentQuestion: currentGame.currentQuestion + 1,
             totalQuestions: gameState.questions.length,
-            timeRemaining: calculateTimeRemaining(),
+            timeRemaining: calculateTimeRemaining(gameState),
             lobbyCode: currentGame.lobbyCode,
             playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players).length,
             players: gameState.players,
@@ -359,19 +388,21 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             // INSTANT FEEDBACK: Play sounds immediately when answer is submitted
             try {
                 if (isCorrect) {
-                    // Play correct answer sound with current multiplier
-                    const oldMultiplier = currentGame.playerMultipliers[username] || 1;
-                    const newMultiplier = getNextMultiplier(oldMultiplier, isCorrect);
-                    await audioManager.playMultiplierSound(newMultiplier);
+                    // Update streak and play streak-based sound
+                    currentGame.playerStreaks[username] = (currentGame.playerStreaks[username] || 0) + 1;
+                    const streak = Math.min(currentGame.playerStreaks[username], 5); // Cap at 5
+                    await audioManager.playMultiplierSound(streak);
                     
                     // Special achievement sounds
-                    if (newMultiplier === 5) {
+                    if (streak === 5) {
                         await audioManager.playMultiplierMax();
                     }
                     if (timeRemaining >= GAME_SETTINGS.QUESTION_TIME - 2) {
                         await audioManager.playTimeBonus();
                     }
                 } else {
+                    // Reset streak on wrong answer
+                    currentGame.playerStreaks[username] = 0;
                     await audioManager.playWrongSound();
                 }
 

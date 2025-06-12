@@ -97,7 +97,7 @@ export function initAudioManager() {
                 };
                 
                 // Set source after adding handlers
-                audio.src = `/assets/audio/${sound}.mp3`;
+                audio.src = `/public/assets/audio/${sound}.mp3`;
                 audioElements.set(sound, audio);
 
                 try {
@@ -423,6 +423,27 @@ export function initAudioManager() {
         };
     }
 
+    /**
+     * Adds click sound to a button element
+     * @param {HTMLElement} button - Button element to add sound to
+     */
+    function addButtonClickSound(button) {
+        if (!button) return;
+        
+        button.addEventListener('click', () => {
+            playButtonClick().catch(e => console.warn('Failed to play button click sound:', e));
+        });
+    }
+
+    /**
+     * Adds click sounds to all buttons matching a selector
+     * @param {string} selector - CSS selector for buttons
+     */
+    function addButtonClickSounds(selector = 'button, .btn') {
+        const buttons = document.querySelectorAll(selector);
+        buttons.forEach(button => addButtonClickSound(button));
+    }
+
     audioManagerInstance = {
         initialize,
         playBackgroundMusic,
@@ -460,6 +481,9 @@ export function initAudioManager() {
         playWhoosh,
         playSparkle,
         playApplause,
+        // Utility functions
+        addButtonClickSound,
+        addButtonClickSounds,
         // Settings
         setMusicEnabled,
         setSoundEnabled,

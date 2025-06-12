@@ -11,7 +11,7 @@ import { showToast } from '/js/ui/notifications.js';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
-const RETRY_STATUS_CODES = [502, 503, 504];
+const RETRY_STATUS_CODES = [429, 502, 503, 504];
 
 class ApiClient {
     constructor() {
@@ -74,8 +74,17 @@ class ApiClient {
 
             // If we get a retryable status code and haven't exceeded max retries
             if (RETRY_STATUS_CODES.includes(response.status) && retryCount < MAX_RETRIES) {
-                console.warn(`Received ${response.status}, attempting retry ${retryCount + 1} of ${MAX_RETRIES}`);
-                await this.sleep(RETRY_DELAY * (retryCount + 1)); // Exponential backoff
+                let retryDelay = RETRY_DELAY * (retryCount + 1); // Exponential backoff
+                
+                // For rate limiting (429), use longer delays
+                if (response.status === 429) {
+                    retryDelay = Math.min(10000, RETRY_DELAY * Math.pow(2, retryCount + 1)); // Up to 10 seconds
+                    console.warn(`Rate limited (429), attempting retry ${retryCount + 1} of ${MAX_RETRIES} after ${retryDelay}ms`);
+                } else {
+                    console.warn(`Received ${response.status}, attempting retry ${retryCount + 1} of ${MAX_RETRIES}`);
+                }
+                
+                await this.sleep(retryDelay);
                 return this.fetchWithTimeout(resource, options, timeout, retryCount + 1);
             }
 
@@ -197,6 +206,13 @@ class ApiClient {
                     throw error;
                 }
 
+                if (response.status === 429) {
+                    const error = new Error('Too Many Requests. Please slow down and try again.');
+                    error.status = 429;
+                    error.data = { rawResponse: responseText };
+                    throw error;
+                }
+
                 if (response.status === 501) {
                     const error = new Error('API method not implemented. Please check backend implementation.');
                     error.status = 501;
@@ -249,6 +265,8 @@ class ApiClient {
                 userMessage = error.message || 'Your session has expired. Please log in again.';
             } else if (error.status === 403) {
                 userMessage = error.data?.message || 'You do not have permission to perform this action.';
+            } else if (error.status === 429) {
+                userMessage = 'Too many requests. Please wait a moment and try again.';
             } else if (error.status && error.status >= 400 && error.status < 500) {
                 userMessage = error.data?.message || error.data?.error || `An error occurred: ${error.message}`;
             } else if (error.message) {

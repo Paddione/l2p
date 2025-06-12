@@ -122,6 +122,14 @@ export function initLobbyManager(storage, screenManager) {
             if (error.status === 404) {
                 return null;
             }
+            
+            // If authentication failed, throw a specific error that can be handled upstream
+            if (error.status === 401 || (error.message && error.message.includes('session has expired'))) {
+                const authError = new Error('Your session has expired. Please log in again.');
+                authError.status = 401;
+                throw authError;
+            }
+            
             console.error('Failed to get lobby:', error);
             throw new Error(error.message || 'Failed to get lobby information');
         }
@@ -232,6 +240,14 @@ export function initLobbyManager(storage, screenManager) {
             return updatedLobby;
         } catch (error) {
             console.error('Failed to set question set:', error);
+            
+            // If authentication failed, throw a specific error that can be handled upstream
+            if (error.status === 401 || (error.message && error.message.includes('session has expired'))) {
+                const authError = new Error('Your session has expired. Please log in again.');
+                authError.status = 401;
+                throw authError;
+            }
+            
             throw new Error(error.message || 'Failed to set question set');
         }
     }

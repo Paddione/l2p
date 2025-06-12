@@ -175,6 +175,14 @@ async function initializeApp() {
         // Setup global error handlers
         setupErrorHandlers();
         
+        // Initialize button click sounds when audio manager becomes available
+        setTimeout(() => {
+            if (window.audioManager) {
+                window.audioManager.addButtonClickSounds();
+                console.log('Button click sounds initialized');
+            }
+        }, 1000);
+        
         appState.isInitialized = true;
         
     } catch (error) {

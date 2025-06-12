@@ -117,7 +117,7 @@ export const questionSetsApi = {
      */
     async setForLobby(lobbyCode, questionSetId) {
         return await apiClient.request('POST', `/lobbies/${lobbyCode}/question-set`, {
-            questionSetId
+            question_set_id: questionSetId
         });
     }
 }; 

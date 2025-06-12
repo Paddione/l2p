@@ -458,12 +458,48 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
         // Clear any existing interval
         stopLobbyPolling();
         
-        // Poll every 5 seconds for lobby updates (reduced from 2 seconds to reduce spam)
+        // Start with standard lobby polling (2 seconds)
+        startStandardPolling();
+    }
+
+    /**
+     * Starts standard lobby polling for pre-game state
+     */
+    function startStandardPolling() {
+        stopLobbyPolling();
+        
+        // Poll every 2 seconds for lobby updates during lobby management
         lobbyRefreshInterval = setInterval(async () => {
             if (currentLobby && currentLobby.code) {
                 await refreshCurrentLobby();
+                
+                // If game is starting or active, switch to rapid sync mode
+                if (currentLobby.started && currentLobby.game_phase !== 'waiting') {
+                    console.log('🚀 Switching to rapid sync mode for active game');
+                    startRapidSyncMode();
+                }
             }
-        }, 5000);
+        }, 2000);
+    }
+
+    /**
+     * Starts rapid synchronization mode for active games
+     */
+    function startRapidSyncMode() {
+        stopLobbyPolling();
+        
+        // Poll every 500ms during active games for ultra-responsive synchronization
+        lobbyRefreshInterval = setInterval(async () => {
+            if (currentLobby && currentLobby.code) {
+                await refreshCurrentLobby();
+                
+                // If game ends, switch back to standard polling
+                if (!currentLobby.started || currentLobby.game_phase === 'waiting' || currentLobby.game_phase === 'finished') {
+                    console.log('🔄 Switching back to standard polling mode');
+                    startStandardPolling();
+                }
+            }
+        }, 500);
     }
 
     /**
@@ -576,6 +612,35 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
             }
         } catch (error) {
             console.error('Failed to refresh lobby:', error);
+            
+            // If authentication failed, stop polling and redirect to login
+            if (error.status === 401 || (error.message && error.message.includes('session has expired'))) {
+                console.warn('Authentication failed during lobby refresh - stopping polling and redirecting to login');
+                stopLobbyPolling();
+                
+                // Clear current state
+                currentLobby = null;
+                storage.clearLobbyState();
+                
+                // Try to redirect to login screen
+                try {
+                    if (screenManager) {
+                        screenManager.showScreen('auth');
+                    } else {
+                        // Fallback: reload the page to trigger auth check
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } catch (redirectError) {
+                    console.error('Failed to redirect to login:', redirectError);
+                    // Force reload as last resort
+                    window.location.reload();
+                }
+                
+                return;
+            }
+            
             // Don't show error notifications for refresh failures to avoid spam
         }
     }
@@ -618,15 +683,23 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
                     return;
                 }
                 
+                console.log('📡 Calling lobbyManager.setQuestionSet with:', { code: currentLobby.code, questionSetId: questionSet.id });
+                
                 // Set question set for the existing lobby
                 const updatedLobby = await lobbyManager.setQuestionSet(currentLobby.code, questionSet.id);
+                
+                console.log('📡 Received updated lobby from setQuestionSet:', updatedLobby);
+                console.log('📡 Updated lobby question_set field:', updatedLobby?.question_set);
                 
                 if (updatedLobby) {
                     currentLobby = updatedLobby;
                     storage.saveLobbyState(updatedLobby);
+                    
+                    console.log('🎯 About to call updateLobbyUI with currentLobby.question_set:', currentLobby.question_set);
                     updateLobbyUI();
                     showNotification(`Question set "${questionSet.name}" selected`, 'success');
                 } else {
+                    console.error('❌ setQuestionSet returned null/undefined');
                     throw new Error('Failed to update lobby with question set');
                 }
             } else {
@@ -635,6 +708,31 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
             }
         } catch (error) {
             console.error('Failed to handle question set selection:', error);
+            
+            // If authentication failed, redirect to login
+            if (error.status === 401 || (error.message && error.message.includes('session has expired'))) {
+                console.warn('Authentication failed during question set selection - redirecting to login');
+                stopLobbyPolling();
+                
+                // Clear current state
+                currentLobby = null;
+                storage.clearLobbyState();
+                
+                // Redirect to login
+                try {
+                    if (screenManager) {
+                        screenManager.showScreen('auth');
+                    } else {
+                        window.location.reload();
+                    }
+                } catch (redirectError) {
+                    console.error('Failed to redirect to login:', redirectError);
+                    window.location.reload();
+                }
+                
+                return;
+            }
+            
             showNotification(`Failed to select question set: ${error.message}`, 'error');
         }
     }
@@ -818,17 +916,35 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
      * Updates the question set UI section
      */
     function updateQuestionSetUI() {
-        if (!currentLobby || !currentPlayer) return;
+        console.log('🎯 updateQuestionSetUI called');
+        console.log('🎯 currentLobby:', currentLobby);
+        console.log('🎯 currentPlayer:', currentPlayer);
+        
+        if (!currentLobby || !currentPlayer) {
+            console.log('❌ Missing currentLobby or currentPlayer');
+            return;
+        }
 
         const questionSetSection = document.getElementById('question-set-section');
         const selectedQuestionSetDiv = document.getElementById('selected-question-set');
         const selectBtn = document.getElementById('select-question-set-btn');
 
-        if (!questionSetSection || !selectedQuestionSetDiv) return;
+        console.log('🎯 DOM elements found:', {
+            questionSetSection: !!questionSetSection,
+            selectedQuestionSetDiv: !!selectedQuestionSetDiv,
+            selectBtn: !!selectBtn
+        });
+
+        if (!questionSetSection || !selectedQuestionSetDiv) {
+            console.log('❌ Missing required DOM elements');
+            return;
+        }
 
         // Check if current player is host
         const hostPlayer = currentLobby.players.find(p => p.is_host);
         const isHost = hostPlayer && hostPlayer.username === currentPlayer.username;
+
+        console.log('🎯 Host check:', { hostPlayer, isHost, currentPlayerUsername: currentPlayer.username });
 
         // Always show question set section to all players
         questionSetSection.classList.remove(CSS_CLASSES.HIDDEN);
@@ -839,6 +955,12 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
         }
 
         const hasSelection = currentLobby.question_set && currentLobby.question_set.name;
+        
+        console.log('🎯 Question set data check:', {
+            'currentLobby.question_set': currentLobby.question_set,
+            'currentLobby.question_set.name': currentLobby.question_set?.name,
+            'hasSelection': hasSelection
+        });
 
         // Update CSS classes for visual feedback
         questionSetSection.classList.toggle('has-selection', hasSelection);
@@ -846,6 +968,7 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
 
         // Update selected question set display for all players
         if (hasSelection) {
+            console.log('✅ Displaying question set:', currentLobby.question_set);
             selectedQuestionSetDiv.innerHTML = `
                 <div class="question-set-info">
                     <div class="question-set-details">
@@ -866,6 +989,7 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
                 selectBtn.classList.add('btn-primary');
             }
         } else {
+            console.log('❌ No question set selection found, showing placeholder');
             // No question set selected
             if (isHost) {
                 selectedQuestionSetDiv.innerHTML = `
