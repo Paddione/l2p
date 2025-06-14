@@ -1,0 +1,33 @@
+{
+  "name": "quiz-meister-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Quiz Meister multiplayer quiz game",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "quiz",
+    "game",
+    "multiplayer",
+    "frontend",
+    "javascript"
+  ],
+  "author": "Patrick",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paddione/l2p.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Paddione/l2p/issues"
+  },
+  "homepage": "https://github.com/Paddione/l2p#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}

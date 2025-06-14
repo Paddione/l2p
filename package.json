@@ -1,0 +1,27 @@
+{
+  "name": "lobby-test",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Quiz Meister - Interactive Quiz Game",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Use docker-compose up to start the application'",
+    "build": "echo 'Use docker-compose build to build the application'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paddione/l2p.git"
+  },
+  "keywords": [
+    "quiz",
+    "game",
+    "multiplayer",
+    "education"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Paddione/l2p/issues"
+  },
+  "homepage": "https://github.com/Paddione/l2p#readme"
+}

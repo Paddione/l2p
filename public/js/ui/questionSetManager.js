@@ -1,0 +1,547 @@
+/**
+ * Question Set Manager UI Component
+ * Handles question set selection, upload, and management
+ */
+
+import { questionSetsApi } from '../api/questionSetsApi.js';
+import { showNotification } from './notifications.js';
+import apiClient from '../api/apiClient.js';
+
+export function initQuestionSetManager() {
+    let questionSets = [];
+    let selectedQuestionSet = null;
+
+    /**
+     * Create question set selection modal
+     */
+    function createQuestionSetModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay question-set-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Select Question Set</h2>
+                    <button class="close-modal" onclick="this.closest('.modal-overlay').style.display='none'">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="question-set-tabs">
+                        <button class="tab-btn active" data-tab="available">Available Sets</button>
+                        <button class="tab-btn" data-tab="upload">Upload New</button>
+                        <button class="tab-btn" data-tab="manage">My Sets</button>
+                    </div>
+                    
+                    <div class="tab-content" id="available-tab">
+                        <div class="question-sets-list" id="available-sets">
+                            <div class="loading">Loading question sets...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content hidden" id="upload-tab">
+                        <div class="upload-section">
+                            <h3>Upload Question Set</h3>
+                            <p>Upload a JSON file containing your question set or paste JSON directly below:</p>
+                            
+                            <!-- JSON Text Input Section -->
+                            <div class="json-input-section" style="margin-bottom: 20px;">
+                                <h4>Option 1: Paste JSON directly</h4>
+                                <textarea id="json-text-input" placeholder="Paste your JSON here..." style="width: 100%; height: 200px; font-family: 'Courier New', monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;">{
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
+  "is_public": false,
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "type": "multiple_choice",
+      "options": ["London", "Paris", "Berlin", "Madrid"],
+      "correct": 1
+    },
+    {
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
+      "type": "true_false",
+      "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "What is 15 × 8?",
+      "type": "multiple_choice",
+      "options": ["110", "120", "130", "140"],
+      "correct": 1
+    },
+    {
+      "question": "Shakespeare wrote 'Romeo and Juliet'.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "Which programming language is known for web development?",
+      "type": "multiple_choice",
+      "options": ["Python", "JavaScript", "C++", "Assembly"],
+      "correct": 1
+    },
+    {
+      "question": "The human body has 206 bones.",
+      "type": "true_false",
+      "correct": true
+    }
+  ]
+}</textarea>
+                                <div style="margin-top: 10px;">
+                                    <button id="upload-json-text-btn" class="btn btn-primary">Upload JSON Text</button>
+                                    <button id="clear-json-btn" class="btn btn-secondary" style="margin-left: 10px;">Clear</button>
+                                </div>
+                            </div>
+                            
+                            <!-- File Upload Section -->
+                            <div class="file-upload-section">
+                                <h4>Option 2: Upload JSON file</h4>
+                                <p>The file should have the following format:</p>
+                                <pre class="format-example">{
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
+  "is_public": false,
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "type": "multiple_choice",
+      "options": ["London", "Paris", "Berlin", "Madrid"],
+      "correct": 1
+    },
+    {
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice", 
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
+      "type": "true_false",
+      "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
+    }
+  ]
+}</pre>
+                                <div class="file-upload">
+                                    <input type="file" id="question-set-file" accept=".json" />
+                                    <button id="upload-btn" class="btn btn-primary">Upload Question Set</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content hidden" id="manage-tab">
+                        <div class="my-sets-list" id="my-sets">
+                            <div class="loading">Loading your question sets...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').style.display='none'">Cancel</button>
+                    <button class="btn btn-primary" id="select-question-set" disabled>Select</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        setupModalEventListeners(modal);
+        return modal;
+    }
+
+    /**
+     * Setup event listeners for the modal
+     */
+    function setupModalEventListeners(modal) {
+        // Tab switching
+        modal.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(modal, tabName);
+            });
+        });
+
+        // File upload
+        const uploadBtn = modal.querySelector('#upload-btn');
+        const fileInput = modal.querySelector('#question-set-file');
+        
+        // JSON text upload
+        const uploadJsonTextBtn = modal.querySelector('#upload-json-text-btn');
+        const jsonTextInput = modal.querySelector('#json-text-input');
+        const clearJsonBtn = modal.querySelector('#clear-json-btn');
+        
+        // Clear JSON text button
+        if (clearJsonBtn) {
+            clearJsonBtn.addEventListener('click', () => {
+                jsonTextInput.value = `{
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
+  "is_public": false,
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "type": "multiple_choice",
+      "options": ["London", "Paris", "Berlin", "Madrid"],
+      "correct": 1
+    },
+    {
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
+      "type": "true_false",
+      "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "What is 15 × 8?",
+      "type": "multiple_choice",
+      "options": ["110", "120", "130", "140"],
+      "correct": 1
+    },
+    {
+      "question": "Shakespeare wrote 'Romeo and Juliet'.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "Which programming language is known for web development?",
+      "type": "multiple_choice",
+      "options": ["Python", "JavaScript", "C++", "Assembly"],
+      "correct": 1
+    },
+    {
+      "question": "The human body has 206 bones.",
+      "type": "true_false",
+      "correct": true
+    }
+  ]
+}`;
+            });
+        }
+        
+        // Upload JSON text button
+        if (uploadJsonTextBtn) {
+            uploadJsonTextBtn.addEventListener('click', async () => {
+                const jsonText = jsonTextInput.value.trim();
+                
+                if (!jsonText) {
+                    showNotification('Please enter JSON data', 'error');
+                    return;
+                }
+
+                // Verify authentication before upload
+                const token = apiClient.getToken();
+                if (!token) {
+                    showNotification('Please log in first to upload question sets', 'error');
+                    return;
+                }
+
+                try {
+                    uploadJsonTextBtn.disabled = true;
+                    uploadJsonTextBtn.textContent = 'Uploading...';
+                    
+                    // Validate JSON syntax first
+                    let jsonData;
+                    try {
+                        jsonData = JSON.parse(jsonText);
+                    } catch (parseError) {
+                        showNotification('Invalid JSON format: ' + parseError.message, 'error');
+                        return;
+                    }
+                    
+                    console.log('Starting JSON text upload process...');
+                    
+                    // Create a blob from the JSON string and upload it
+                    const blob = new Blob([jsonText], { type: 'application/json' });
+                    const result = await questionSetsApi.upload(blob);
+                    
+                    console.log('JSON text upload successful:', result);
+                    showNotification('Question set uploaded successfully!', 'success');
+                    
+                    // Refresh the lists
+                    await loadAvailableQuestionSets(modal);
+                    await loadMyQuestionSets(modal);
+                    
+                    // Switch to available tab
+                    switchTab(modal, 'available');
+                    
+                } catch (error) {
+                    console.error('JSON text upload error:', error);
+                    let errorMessage = 'Failed to upload question set';
+                    
+                    if (error.message.includes('Authentication')) {
+                        errorMessage = 'Authentication failed. Please log in again.';
+                    } else if (error.message.includes('No file uploaded')) {
+                        errorMessage = 'File upload failed. Please try again.';
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    showNotification(errorMessage, 'error');
+                } finally {
+                    uploadJsonTextBtn.disabled = false;
+                    uploadJsonTextBtn.textContent = 'Upload JSON Text';
+                }
+            });
+        }
+        
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                showNotification('Please select a file to upload', 'error');
+                return;
+            }
+
+            // Verify authentication before upload
+            const token = apiClient.getToken();
+            if (!token) {
+                showNotification('Please log in first to upload question sets', 'error');
+                return;
+            }
+
+            try {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+                
+                console.log('Starting upload process...');
+                const result = await questionSetsApi.upload(file);
+                console.log('Upload successful:', result);
+                showNotification('Question set uploaded successfully!', 'success');
+                
+                // Refresh the lists
+                await loadAvailableQuestionSets(modal);
+                await loadMyQuestionSets(modal);
+                
+                // Switch to available tab
+                switchTab(modal, 'available');
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                let errorMessage = 'Failed to upload question set';
+                
+                if (error.message.includes('Authentication')) {
+                    errorMessage = 'Authentication failed. Please log in again.';
+                } else if (error.message.includes('No file uploaded')) {
+                    errorMessage = 'File upload failed. Please try again.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showNotification(errorMessage, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Question Set';
+                fileInput.value = '';
+            }
+        });
+
+        // Select button
+        const selectBtn = modal.querySelector('#select-question-set');
+        selectBtn.addEventListener('click', () => {
+            if (selectedQuestionSet) {
+                modal.style.display = 'none';
+                // Trigger custom event with selected question set
+                document.dispatchEvent(new CustomEvent('questionSetSelected', {
+                    detail: selectedQuestionSet
+                }));
+            }
+        });
+    }
+
+    /**
+     * Switch between tabs
+     */
+    function switchTab(modal, tabName) {
+        // Update tab buttons
+        modal.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        modal.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.toggle('hidden', content.id !== `${tabName}-tab`);
+        });
+
+        // Load content for the selected tab
+        if (tabName === 'available') {
+            loadAvailableQuestionSets(modal);
+        } else if (tabName === 'manage') {
+            loadMyQuestionSets(modal);
+        }
+    }
+
+    /**
+     * Load available question sets
+     */
+    async function loadAvailableQuestionSets(modal) {
+        const container = modal.querySelector('#available-sets');
+        container.innerHTML = '<div class="loading">Loading question sets...</div>';
+
+        try {
+            questionSets = await questionSetsApi.getAll();
+            renderQuestionSetsList(container, questionSets, modal);
+        } catch (error) {
+            console.error('Failed to load question sets:', error);
+            container.innerHTML = '<div class="error">Failed to load question sets</div>';
+        }
+    }
+
+    /**
+     * Load user's question sets
+     */
+    async function loadMyQuestionSets(modal) {
+        const container = modal.querySelector('#my-sets');
+        container.innerHTML = '<div class="loading">Loading your question sets...</div>';
+
+        try {
+            const myQuestionSets = await questionSetsApi.getMy();
+            renderQuestionSetsList(container, myQuestionSets, modal, true);
+        } catch (error) {
+            console.error('Failed to load user question sets:', error);
+            container.innerHTML = '<div class="error">Failed to load your question sets</div>';
+        }
+    }
+
+    /**
+     * Render question sets list
+     */
+    function renderQuestionSetsList(container, sets, modal, showManageButtons = false) {
+        if (sets.length === 0) {
+            container.innerHTML = '<div class="empty">No question sets available</div>';
+            return;
+        }
+
+        container.innerHTML = sets.map(set => `
+            <div class="question-set-item" data-id="${set.id}">
+                <div class="question-set-info">
+                    <h4>${set.name}</h4>
+                    <p>${set.description || 'No description'}</p>
+                    <div class="question-set-meta">
+                        <span class="question-count">${set.question_count} questions</span>
+                        <span class="created-by">by ${set.created_by}</span>
+                        ${set.is_public ? '<span class="public-badge">Public</span>' : '<span class="private-badge">Private</span>'}
+                    </div>
+                </div>
+                <div class="question-set-actions">
+                    <button class="btn btn-sm btn-primary select-set" data-id="${set.id}">Select</button>
+                    ${showManageButtons ? `
+                        <button class="btn btn-sm btn-secondary edit-set" data-id="${set.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-set" data-id="${set.id}">Delete</button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+
+        // Add event listeners
+        container.querySelectorAll('.select-set').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const setId = parseInt(btn.dataset.id);
+                const questionSet = sets.find(s => s.id === setId);
+                selectQuestionSet(questionSet, modal);
+            });
+        });
+
+        if (showManageButtons) {
+            container.querySelectorAll('.delete-set').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const setId = parseInt(btn.dataset.id);
+                    const questionSet = sets.find(s => s.id === setId);
+                    
+                    if (confirm(`Are you sure you want to delete "${questionSet.name}"?`)) {
+                        try {
+                            await questionSetsApi.delete(setId);
+                            showNotification('Question set deleted successfully', 'success');
+                            loadMyQuestionSets(modal);
+                            loadAvailableQuestionSets(modal);
+                        } catch (error) {
+                            showNotification(error.message || 'Failed to delete question set', 'error');
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    /**
+     * Select a question set
+     */
+    function selectQuestionSet(questionSet, modal) {
+        selectedQuestionSet = questionSet;
+        
+        // Update UI to show selection
+        modal.querySelectorAll('.question-set-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        const selectedItem = modal.querySelector(`[data-id="${questionSet.id}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+
+        // Enable select button
+        const selectBtn = modal.querySelector('#select-question-set');
+        selectBtn.disabled = false;
+        selectBtn.textContent = `Select "${questionSet.name}"`;
+    }
+
+    /**
+     * Show question set selection modal
+     */
+    function showQuestionSetModal(defaultTab = 'available') {
+        console.log('showQuestionSetModal called with defaultTab:', defaultTab);
+        
+        // Check if user is authenticated before showing modal
+        const token = apiClient.getToken();
+        if (!token) {
+            showNotification('Please log in first to manage question sets', 'error');
+            return;
+        }
+        
+        let modal = document.querySelector('.question-set-modal');
+        if (!modal) {
+            console.log('Creating new modal');
+            modal = createQuestionSetModal();
+        } else {
+            console.log('Using existing modal');
+        }
+        
+        console.log('Setting modal display to flex');
+        modal.style.display = 'flex';
+        selectedQuestionSet = null;
+        
+        // Reset select button
+        const selectBtn = modal.querySelector('#select-question-set');
+        if (selectBtn) {
+            selectBtn.disabled = true;
+            selectBtn.textContent = 'Select';
+        }
+        
+        // Switch to the specified tab
+        console.log('Switching to tab:', defaultTab);
+        switchTab(modal, defaultTab);
+    }
+
+    return {
+        showQuestionSetModal,
+        getSelectedQuestionSet: () => selectedQuestionSet
+    };
+} 

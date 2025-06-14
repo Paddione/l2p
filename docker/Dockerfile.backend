@@ -1,0 +1,62 @@
+# Multi-stage build for optimized backend container
+FROM node:18-alpine AS builder
+
+# Install build dependencies only in builder stage
+RUN apk add --no-cache python3 make g++ curl
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files first for better layer caching
+COPY backend/package*.json ./backend/
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies for building)
+RUN cd backend && npm ci
+
+# Copy source code
+COPY backend ./backend
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Install only runtime dependencies
+RUN apk add --no-cache curl dumb-init && \
+    rm -rf /var/cache/apk/*
+
+# Create app directory
+WORKDIR /app
+
+# Create non-root user early
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Copy package files and install production dependencies only
+COPY backend/package*.json ./backend/
+RUN cd backend && npm ci --only=production && npm cache clean --force
+
+# Copy application code from builder
+COPY --from=builder --chown=nodejs:nodejs /app/backend ./backend
+
+# Set environment variables with defaults
+ENV NODE_ENV=production \
+    PORT=3000 \
+    LOG_LEVEL=INFO \
+    RATE_LIMIT_WINDOW_MS=900000 \
+    RATE_LIMIT_MAX_REQUESTS=100
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port (will be overridden by env var)
+EXPOSE $PORT
+
+# Health check with environment variable support
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD node backend/healthcheck.js
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "backend/server.js"]

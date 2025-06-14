@@ -1,0 +1,60 @@
+# Optimized PostgreSQL container with pg_cron extension
+FROM postgres:15-alpine
+
+# Install build dependencies and pg_cron extension
+RUN apk add --no-cache --virtual .build-deps \
+        build-base \
+        git \
+        postgresql-dev \
+        clang \
+        llvm \
+    && git clone https://github.com/citusdata/pg_cron.git /tmp/pg_cron \
+    && cd /tmp/pg_cron \
+    && make && make install \
+    && apk del .build-deps \
+    && rm -rf /tmp/pg_cron /var/cache/apk/*
+
+# Copy initialization scripts
+COPY backend/database/schema.sql /docker-entrypoint-initdb.d/01-init.sql
+
+# Set default environment variables (will be overridden by docker-compose)
+ENV POSTGRES_DB=quiz_meister \
+    POSTGRES_USER=quiz_user \
+    POSTGRES_PASSWORD=quiz_password \
+    POSTGRES_INITDB_ARGS="--data-checksums --encoding=UTF8 --locale=C" \
+    POSTGRES_SHARED_PRELOAD_LIBRARIES=pg_cron
+
+# Performance optimizations for PostgreSQL
+ENV POSTGRES_SHARED_BUFFERS=256MB \
+    POSTGRES_EFFECTIVE_CACHE_SIZE=1GB \
+    POSTGRES_MAINTENANCE_WORK_MEM=64MB \
+    POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9 \
+    POSTGRES_WAL_BUFFERS=16MB \
+    POSTGRES_DEFAULT_STATISTICS_TARGET=100 \
+    POSTGRES_RANDOM_PAGE_COST=1.1 \
+    POSTGRES_EFFECTIVE_IO_CONCURRENCY=200
+
+# Create custom postgresql.conf with optimizations
+RUN echo "# Performance optimizations" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "shared_buffers = 256MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "effective_cache_size = 1GB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "maintenance_work_mem = 64MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "checkpoint_completion_target = 0.9" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "wal_buffers = 16MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "default_statistics_target = 100" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "random_page_cost = 1.1" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "effective_io_concurrency = 200" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "# Enable pg_cron extension" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "shared_preload_libraries = 'pg_cron'" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "cron.database_name = 'quiz_meister'" >> /usr/local/share/postgresql/postgresql.conf.sample
+
+# Expose port
+EXPOSE 5432
+
+# Health check with environment variable support
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
+
+# Use the default postgres entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"] 
