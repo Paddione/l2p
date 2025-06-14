@@ -17,8 +17,8 @@ router.get('/',
     authenticateOptionalToken,
     validateQuery({
         catalog: 'catalogName',
-        limit: 'questions', // Reusing questions validator for limit (1-50)
-        offset: 'score'     // Reusing score validator for offset (0+)
+        limit: 'limit',
+        offset: 'offset'
     }),
     async (req, res) => {
         try {

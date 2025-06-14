@@ -91,6 +91,26 @@ const validators = {
             return 'Catalog name must be 100 characters or less';
         }
         return null;
+    },
+
+    limit: (limit) => {
+        if (limit === undefined || limit === null) {
+            return null; // Optional parameter
+        }
+        if (!Number.isInteger(limit) || limit < 1 || limit > 10000) {
+            return 'Limit must be between 1 and 10000';
+        }
+        return null;
+    },
+
+    offset: (offset) => {
+        if (offset === undefined || offset === null) {
+            return null; // Optional parameter
+        }
+        if (!Number.isInteger(offset) || offset < 0) {
+            return 'Offset must be a non-negative integer';
+        }
+        return null;
     }
 };
 
@@ -170,7 +190,7 @@ function validateQuery(rules) {
             
             // Convert numeric strings to numbers
             let processedValue = value;
-            if (validator === 'score' || validator === 'questions' || validator === 'accuracy' || validator === 'maxMultiplier') {
+            if (validator === 'score' || validator === 'questions' || validator === 'accuracy' || validator === 'maxMultiplier' || validator === 'limit' || validator === 'offset') {
                 processedValue = parseInt(value, 10);
                 if (isNaN(processedValue)) {
                     errors[field] = `${field} must be a valid number`;

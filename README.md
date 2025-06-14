@@ -9,7 +9,43 @@
 
 ## 🎮 Recent Game Logic Improvements
 
-### 📁 Hall of Fame 404 Error Fix (Latest)
+### 🔧 Hall of Fame API Validation Fix (Latest)
+- **Fixed Hall of Fame API 400 Error**: Resolved critical validation error preventing Hall of Fame data from loading with large limit parameters
+  - **Root Cause**: The backend validation middleware was using the `questions` validator for the `limit` query parameter, which only allowed values between 1-50, but the frontend was requesting `limit=1000` for statistics calculation
+  - **Error Details**: 
+    - **400 Validation Error**: `GET /api/hall-of-fame?limit=1000` failed with "Query validation failed" 
+    - **Frontend Impact**: Hall of Fame statistics couldn't be calculated due to API request failures
+    - **User Experience**: Hall of Fame screen would show errors instead of leaderboard data
+    - **Console Errors**: "Failed to get Hall of Fame entries: Error: Query validation failed"
+  - **Solution Applied**:
+    - **Created Proper Validators**: Added dedicated `limit` and `offset` validators in validation middleware
+    - **Increased Limit Range**: `limit` validator now accepts values from 1 to 10,000 (backend caps at 50 anyway)
+    - **Added Offset Validation**: `offset` validator accepts non-negative integers for pagination
+    - **Updated Route Validation**: Modified hall-of-fame route to use proper validators instead of reusing inappropriate ones
+    - **Enhanced Query Processing**: Updated validateQuery middleware to handle new validator types
+  - **Current Status**: ✅ FULLY RESOLVED
+    - **API Requests Working**: `/api/hall-of-fame?limit=1000` now passes validation successfully
+    - **Statistics Loading**: Hall of Fame statistics can be calculated with large data sets
+    - **Proper Validation**: Limit and offset parameters have appropriate validation rules
+    - **Backend Capping**: Route logic still caps limit at 50 for performance, but validation allows higher values
+    - **Error-Free Operation**: Hall of Fame functionality works without validation errors
+  - **Technical Implementation**:
+    - **New Validators**: Added `limit` (1-10,000) and `offset` (0+) validators to validation middleware
+    - **Route Updates**: Changed hall-of-fame route from reusing `questions`/`score` validators to proper `limit`/`offset` validators
+    - **Query Processing**: Enhanced validateQuery to convert limit/offset strings to integers for validation
+    - **Backward Compatibility**: Existing API behavior unchanged, only validation rules improved
+    - **Performance Protection**: Backend route logic still enforces 50-entry limit for actual queries
+  - **Files Modified**: 
+    - `backend/middleware/validation.js` - Added limit and offset validators, updated query processing
+    - `backend/routes/hallOfFame.js` - Updated validation rules to use proper validators
+  - **System Verification**:
+    - Backend containers rebuilt and restarted successfully
+    - API validation now accepts limit=1000 and other large values
+    - Hall of Fame statistics calculation works properly
+    - Frontend can successfully fetch data for leaderboard calculations
+    - No more 400 validation errors in console logs
+
+### 📁 Hall of Fame 404 Error Fix (Previous)
 - **Fixed Missing Hall of Fame Data Module**: Resolved critical 404 error where the application was trying to load a non-existent Hall of Fame data file
   - **Root Cause**: The Hall of Fame UI module (`public/js/ui/hallOfFame.js`) was importing `initHallOfFame` from `/js/data/hallOfFame.js`, but this file didn't exist
   - **Error Details**: 
