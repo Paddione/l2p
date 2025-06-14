@@ -28,6 +28,18 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
             fileInput.addEventListener('change', handleFileSelection);
         }
 
+        // File input label (additional click handler for better compatibility)
+        const fileLabel = document.querySelector('label[for="question-file-input"]');
+        if (fileLabel) {
+            fileLabel.addEventListener('click', () => {
+                console.log('File label clicked');
+                const fileInput = document.getElementById('question-file-input');
+                if (fileInput) {
+                    fileInput.click();
+                }
+            });
+        }
+
         // Upload button
         const uploadBtn = document.getElementById('upload-file-btn');
         if (uploadBtn) {

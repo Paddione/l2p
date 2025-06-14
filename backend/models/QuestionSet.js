@@ -1,4 +1,4 @@
-const { query } = require('../database/connection');
+const { query, transaction } = require('../database/connection');
 
 class QuestionSet {
     constructor(data) {
@@ -175,60 +175,52 @@ class QuestionSet {
      * @returns {Promise<boolean>} - Success status
      */
     static async delete(id, username) {
-        // Start a transaction to handle cleanup and deletion atomically
-        const client = require('../database/connection').pool;
-        const dbClient = await client.connect();
-        
         try {
-            await dbClient.query('BEGIN');
+            const result = await transaction(async (client) => {
+                // First check if the user owns this question set
+                const checkResult = await client.query(
+                    'SELECT id, created_by FROM question_sets WHERE id = $1',
+                    [id]
+                );
+                
+                if (checkResult.rows.length === 0) {
+                    return false; // Question set not found
+                }
+                
+                if (checkResult.rows[0].created_by !== username) {
+                    return false; // Access denied
+                }
+                
+                // Clean up finished lobbies that reference this question set
+                // This prevents foreign key constraint violations
+                await client.query(
+                    `DELETE FROM lobbies 
+                     WHERE question_set_id = $1 
+                     AND (game_phase = 'finished' OR started = true)`,
+                    [id]
+                );
+                
+                // Set question_set_id to NULL for any remaining active lobbies
+                // This allows the question set to be deleted while preserving active games
+                await client.query(
+                    'UPDATE lobbies SET question_set_id = NULL WHERE question_set_id = $1',
+                    [id]
+                );
+                
+                // Now delete the question set
+                const deleteResult = await client.query(
+                    'DELETE FROM question_sets WHERE id = $1 AND created_by = $2',
+                    [id, username]
+                );
+                
+                return deleteResult.rowCount > 0;
+            });
             
-            // First check if the user owns this question set
-            const checkResult = await dbClient.query(
-                'SELECT id, created_by FROM question_sets WHERE id = $1',
-                [id]
-            );
-            
-            if (checkResult.rows.length === 0) {
-                await dbClient.query('ROLLBACK');
-                return false; // Question set not found
-            }
-            
-            if (checkResult.rows[0].created_by !== username) {
-                await dbClient.query('ROLLBACK');
-                return false; // Access denied
-            }
-            
-            // Clean up finished lobbies that reference this question set
-            // This prevents foreign key constraint violations
-            await dbClient.query(
-                `DELETE FROM lobbies 
-                 WHERE question_set_id = $1 
-                 AND (game_phase = 'finished' OR started = true)`,
-                [id]
-            );
-            
-            // Set question_set_id to NULL for any remaining active lobbies
-            // This allows the question set to be deleted while preserving active games
-            await dbClient.query(
-                'UPDATE lobbies SET question_set_id = NULL WHERE question_set_id = $1',
-                [id]
-            );
-            
-            // Now delete the question set
-            const deleteResult = await dbClient.query(
-                'DELETE FROM question_sets WHERE id = $1 AND created_by = $2',
-                [id, username]
-            );
-            
-            await dbClient.query('COMMIT');
-            return deleteResult.rowCount > 0;
+            return result;
             
         } catch (error) {
-            await dbClient.query('ROLLBACK');
             console.error('Question set deletion error:', error);
             throw error;
-        } finally {
-            dbClient.release();
         }
     }
 

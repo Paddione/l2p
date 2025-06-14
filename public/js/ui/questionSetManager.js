@@ -45,20 +45,53 @@ export function initQuestionSetManager() {
                             <div class="json-input-section" style="margin-bottom: 20px;">
                                 <h4>Option 1: Paste JSON directly</h4>
                                 <textarea id="json-text-input" placeholder="Paste your JSON here..." style="width: 100%; height: 200px; font-family: 'Courier New', monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;">{
-  "name": "My Question Set",
-  "description": "Description of the question set",
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
   "is_public": false,
   "questions": [
     {
-      "question": "What is 2 + 2?",
+      "question": "What is the capital of France?",
       "type": "multiple_choice",
-      "options": ["3", "4", "5", "6"],
+      "options": ["London", "Paris", "Berlin", "Madrid"],
       "correct": 1
     },
     {
-      "question": "The Earth is flat.",
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
       "type": "true_false",
       "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "What is 15 × 8?",
+      "type": "multiple_choice",
+      "options": ["110", "120", "130", "140"],
+      "correct": 1
+    },
+    {
+      "question": "Shakespeare wrote 'Romeo and Juliet'.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "Which programming language is known for web development?",
+      "type": "multiple_choice",
+      "options": ["Python", "JavaScript", "C++", "Assembly"],
+      "correct": 1
+    },
+    {
+      "question": "The human body has 206 bones.",
+      "type": "true_false",
+      "correct": true
     }
   ]
 }</textarea>
@@ -73,20 +106,31 @@ export function initQuestionSetManager() {
                                 <h4>Option 2: Upload JSON file</h4>
                                 <p>The file should have the following format:</p>
                                 <pre class="format-example">{
-  "name": "My Question Set",
-  "description": "Description of the question set",
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
   "is_public": false,
   "questions": [
     {
-      "question": "What is 2 + 2?",
+      "question": "What is the capital of France?",
       "type": "multiple_choice",
-      "options": ["3", "4", "5", "6"],
+      "options": ["London", "Paris", "Berlin", "Madrid"],
       "correct": 1
     },
     {
-      "question": "The Earth is flat.",
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice", 
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
       "type": "true_false",
       "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
     }
   ]
 }</pre>
@@ -141,20 +185,53 @@ export function initQuestionSetManager() {
         if (clearJsonBtn) {
             clearJsonBtn.addEventListener('click', () => {
                 jsonTextInput.value = `{
-  "name": "My Question Set",
-  "description": "Description of the question set",
+  "name": "Sample Quiz Questions",
+  "description": "A comprehensive example of different question types",
   "is_public": false,
   "questions": [
     {
-      "question": "What is 2 + 2?",
+      "question": "What is the capital of France?",
       "type": "multiple_choice",
-      "options": ["3", "4", "5", "6"],
+      "options": ["London", "Paris", "Berlin", "Madrid"],
       "correct": 1
     },
     {
-      "question": "The Earth is flat.",
+      "question": "Which planet is known as the Red Planet?",
+      "type": "multiple_choice",
+      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
+      "correct": 1
+    },
+    {
+      "question": "The Great Wall of China is visible from space.",
       "type": "true_false",
       "correct": false
+    },
+    {
+      "question": "Water boils at 100°C at sea level.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "What is 15 × 8?",
+      "type": "multiple_choice",
+      "options": ["110", "120", "130", "140"],
+      "correct": 1
+    },
+    {
+      "question": "Shakespeare wrote 'Romeo and Juliet'.",
+      "type": "true_false",
+      "correct": true
+    },
+    {
+      "question": "Which programming language is known for web development?",
+      "type": "multiple_choice",
+      "options": ["Python", "JavaScript", "C++", "Assembly"],
+      "correct": 1
+    },
+    {
+      "question": "The human body has 206 bones.",
+      "type": "true_false",
+      "correct": true
     }
   ]
 }`;

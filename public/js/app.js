@@ -360,17 +360,7 @@ function setupMainMenuHandlers() {
         hallOfFameBtn.addEventListener('click', showHallOfFame);
     }
     
-    // Upload questions button
-    const uploadQuestionsBtn = document.getElementById('upload-questions-btn');
-    if (uploadQuestionsBtn) {
-        uploadQuestionsBtn.addEventListener('click', () => {
-            if (appState.modules.questionSetUploader) {
-                appState.modules.questionSetUploader.showUploadScreen();
-            } else {
-                appState.modules.screenManager.showScreen(SCREENS.UPLOAD_QUESTIONS);
-            }
-        });
-    }
+
     
     if (settingsBtn) {
         settingsBtn.addEventListener('click', showSettings);
@@ -571,23 +561,7 @@ async function showHallOfFame() {
     }
 }
 
-/**
- * Shows the Upload Questions modal
- */
-async function showUploadQuestions() {
-    try {
-        console.log('Opening Upload Questions...');
-        
-        // Use the question set manager to show the modal directly on the upload tab
-        if (appState.modules.questionSetManager) {
-            appState.modules.questionSetManager.showQuestionSetModal('upload');
-        } else {
-            console.error('Question set manager not initialized');
-        }
-    } catch (error) {
-        console.error('Failed to show Upload Questions:', error);
-    }
-}
+
 
 /**
  * Shows user settings

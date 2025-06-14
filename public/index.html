@@ -517,7 +517,6 @@
                 <button id="create-game-btn">Create Game</button>
                 <button id="join-game-btn">Join Game</button>
                 <button id="hall-of-fame-btn">Hall of Fame</button>
-                <button id="upload-questions-btn">Upload Questions</button>
                 <button id="settings-btn">Settings</button>
                 <button id="logout-btn">Logout</button>
             </div>
@@ -547,7 +546,7 @@
     <div id="upload-questions-screen" class="screen">
         <div class="upload-questions-container">
             <h2>Upload Question Set</h2>
-            <p>Upload a JSON file containing your custom question set.</p>
+            <p>Click the button below to select and upload a JSON file containing your custom question set.</p>
             
             <div class="upload-section">
                 <div class="file-upload">
@@ -555,27 +554,6 @@
                     <label for="question-file-input">Choose JSON File</label>
                 </div>
                 <button id="upload-file-btn" class="btn-primary" disabled>Upload Question Set</button>
-            </div>
-            
-            <div class="format-example">
-                <h3>File Format Example:</h3>
-                <pre><code>{
-  "name": "My Custom Questions",
-  "description": "A collection of custom questions",
-  "questions": [
-    {
-      "question": "What is 2 + 2?",
-      "type": "multiple_choice",
-      "options": ["3", "4", "5", "6"],
-      "correct": 1
-    },
-    {
-      "question": "The earth is round.",
-      "type": "true_false",
-      "correct": true
-    }
-  ]
-}</code></pre>
             </div>
             
             <div class="upload-actions">

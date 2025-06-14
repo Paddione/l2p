@@ -97,7 +97,7 @@ export function initAudioManager() {
                 };
                 
                 // Set source after adding handlers
-                audio.src = `/public/assets/audio/${sound}.mp3`;
+                audio.src = `/assets/audio/${sound}.mp3`;
                 audioElements.set(sound, audio);
 
                 try {
