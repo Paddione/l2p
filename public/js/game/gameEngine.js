@@ -442,9 +442,11 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             const timeElapsed = Date.now() - (currentGame.questionStartTime?.getTime() || Date.now());
             const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - Math.floor(timeElapsed / 1000));
 
+            // Get current multiplier before any changes
+            const currentMultiplier = currentGame.playerMultipliers[username] || 1;
+
             // Update local score immediately for responsive UI
             if (isCorrect) {
-                const currentMultiplier = currentGame.playerMultipliers[username] || 1;
                 const points = calculateScore(timeRemaining, currentMultiplier);
                 currentGame.scores[username] = (currentGame.scores[username] || 0) + points;
                 
@@ -463,8 +465,7 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 if (isCorrect) {
                     // Play sound based on the ORIGINAL multiplier (before increment)
                     // This ensures first correct answer plays correct1.mp3, second plays correct2.mp3, etc.
-                    const originalMultiplier = currentMultiplier; // Use the multiplier from before the increment
-                    await audioManager.playMultiplierSound(originalMultiplier);
+                    await audioManager.playMultiplierSound(currentMultiplier);
                     
                     // Special achievement sounds (use updated multiplier for achievements)
                     const updatedMultiplier = currentGame.playerMultipliers[username] || 1;
@@ -476,7 +477,7 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                     }
                 } else {
                     // Differentiate between wrong answers that lose multiplier stacks vs those that don't
-                    const currentMultiplier = currentGame.playerMultipliers[username] || 1;
+                    // Use the original multiplier (before reset) to determine if combo breaker should play
                     if (currentMultiplier > 1) {
                         // Player had multiplier stacks and lost them - play combo breaker sound
                         await audioManager.playComboBreaker();

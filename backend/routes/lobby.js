@@ -65,10 +65,10 @@ async function cleanupInactiveLobbies() {
     }
 }
 
-// Helper function to get full lobby data
+// Fixed getLobbyData function with better question handling
 async function getLobbyData(code) {
     try {
-        // Update last_activity synchronously to avoid potential deadlocks
+        // Update last_activity
         await query('UPDATE lobbies SET last_activity = CURRENT_TIMESTAMP WHERE code = $1', [code]);
         
         // Get lobby basic data and question set info
@@ -86,7 +86,7 @@ async function getLobbyData(code) {
 
         const lobby = lobbyResult.rows[0];
 
-        // Get players separately to avoid Cartesian product
+        // Get players
         const playersResult = await query(`
             SELECT username, character, score, multiplier, current_answer, answered, ready, is_host
             FROM lobby_players
@@ -94,23 +94,50 @@ async function getLobbyData(code) {
             ORDER BY is_host DESC, username
         `, [code]);
 
-        // Get questions separately to avoid Cartesian product
+        // Get questions and parse them properly
         const questionsResult = await query(`
-            SELECT question_data
+            SELECT question_index, question_data
             FROM lobby_questions
             WHERE lobby_code = $1
             ORDER BY question_index
         `, [code]);
 
+        // Parse question data and ensure it's properly formatted
+        const questions = questionsResult.rows.map(row => {
+            try {
+                return typeof row.question_data === 'string' 
+                    ? JSON.parse(row.question_data) 
+                    : row.question_data;
+            } catch (error) {
+                console.error(`Error parsing question ${row.question_index} for lobby ${code}:`, error);
+                return null;
+            }
+        }).filter(q => q !== null);
+
+        // Get current question for the response
+        let currentQuestion = null;
+        if (lobby.started && lobby.current_question !== null && questions.length > lobby.current_question) {
+            currentQuestion = questions[lobby.current_question];
+        }
+
         return {
             ...lobby,
             players: playersResult.rows,
-            questions: questionsResult.rows.map(row => row.question_data),
+            questions: questions,
+            currentQuestion: currentQuestion,
+            totalQuestions: questions.length,
             question_set: lobby.question_set_name ? {
                 name: lobby.question_set_name,
                 description: lobby.question_set_description,
                 question_count: lobby.question_set_count
-            } : null
+            } : null,
+            debug: {
+                questionCount: questions.length,
+                currentQuestionIndex: lobby.current_question,
+                hasCurrentQuestion: !!currentQuestion,
+                gamePhase: lobby.game_phase,
+                started: lobby.started
+            }
         };
     } catch (error) {
         console.error(`Error in getLobbyData for lobby ${code}:`, error);
@@ -327,28 +354,21 @@ setInterval(async () => {
 // Create a new lobby
 router.post('/create', async (req, res) => {
     try {
-        // Use authenticated user's username
         const host = req.user.username;
         const { character, question_set_id } = req.body;
         
-        console.log('Lobby creation request received:');
-        console.log('- Host (from token):', host);
-        console.log('- Request body:', req.body);
-        console.log('- Character from body:', character);
-        console.log('- Question set ID:', question_set_id);
-        
         if (!character) {
-            console.log('Character validation failed - character is:', character);
             return res.status(400).json({ 
                 error: 'Missing character selection',
                 code: 'MISSING_CHARACTER'
             });
         }
 
-        // Validate question set if provided
+        // Validate and get question set if provided
+        let questionSet = null;
         if (question_set_id) {
             const questionSetResult = await query(
-                'SELECT id, name FROM question_sets WHERE id = $1',
+                'SELECT id, name, questions FROM question_sets WHERE id = $1',
                 [question_set_id]
             );
             
@@ -358,9 +378,10 @@ router.post('/create', async (req, res) => {
                     code: 'INVALID_QUESTION_SET'
                 });
             }
+            questionSet = questionSetResult.rows[0];
         }
 
-        // Generate a unique code
+        // Generate unique lobby code
         let code;
         let exists;
         let attempts = 0;
@@ -383,7 +404,7 @@ router.post('/create', async (req, res) => {
         await query('BEGIN');
 
         try {
-            // Create lobby with optional question set
+            // Create lobby
             if (question_set_id) {
                 await query(
                     'INSERT INTO lobbies (code, host, question_set_id) VALUES ($1, $2, $3)',
@@ -402,9 +423,23 @@ router.post('/create', async (req, res) => {
                 [code, host, character]
             );
 
+            // **FIX: Load questions if question set is provided**
+            if (questionSet && questionSet.questions) {
+                const questions = typeof questionSet.questions === 'string' 
+                    ? JSON.parse(questionSet.questions) 
+                    : questionSet.questions;
+                
+                for (let i = 0; i < questions.length; i++) {
+                    await query(
+                        'INSERT INTO lobby_questions (lobby_code, question_index, question_data) VALUES ($1, $2, $3)',
+                        [code, i, JSON.stringify(questions[i])]
+                    );
+                }
+                console.log(`Loaded ${questions.length} questions for lobby ${code}`);
+            }
+
             await query('COMMIT');
 
-            // Get full lobby data
             const lobby = await getLobbyData(code);
             res.json(lobby);
 
@@ -1257,6 +1292,60 @@ router.post('/cleanup', async (req, res) => {
     } catch (error) {
         console.error('Cleanup lobbies error:', error);
         res.status(500).json({ error: 'Failed to cleanup lobbies' });
+    }
+});
+
+// Debug endpoint to check lobby state
+router.get('/:code/debug', async (req, res) => {
+    try {
+        const { code } = req.params;
+        
+        // Get raw lobby data
+        const lobbyResult = await query(
+            'SELECT * FROM lobbies WHERE code = $1',
+            [code]
+        );
+        
+        // Get players
+        const playersResult = await query(
+            'SELECT * FROM lobby_players WHERE lobby_code = $1',
+            [code]
+        );
+        
+        // Get questions
+        const questionsResult = await query(
+            'SELECT * FROM lobby_questions WHERE lobby_code = $1 ORDER BY question_index',
+            [code]
+        );
+        
+        // Get question set info
+        let questionSetInfo = null;
+        if (lobbyResult.rows.length > 0 && lobbyResult.rows[0].question_set_id) {
+            const qsResult = await query(
+                'SELECT id, name, question_count, questions FROM question_sets WHERE id = $1',
+                [lobbyResult.rows[0].question_set_id]
+            );
+            questionSetInfo = qsResult.rows[0] || null;
+        }
+        
+        res.json({
+            lobby: lobbyResult.rows[0] || null,
+            players: playersResult.rows,
+            questions: questionsResult.rows,
+            questionSet: questionSetInfo,
+            debug: {
+                lobbyExists: lobbyResult.rows.length > 0,
+                questionCount: questionsResult.rows.length,
+                hasQuestionSet: !!questionSetInfo,
+                currentQuestion: lobbyResult.rows[0]?.current_question,
+                gamePhase: lobbyResult.rows[0]?.game_phase,
+                started: lobbyResult.rows[0]?.started
+            }
+        });
+        
+    } catch (error) {
+        console.error('Debug endpoint error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 

@@ -16,7 +16,7 @@ export function initAudioManager() {
     let isMusicEnabled = true;
     let isSoundEnabled = true;
     let musicVolume = 0.3;
-    let soundVolume = 0.5;
+    let soundVolume = 0.125; // 25% of previous 0.5 volume
     let backgroundMusic = null;
     let audioContext = null;
     let gainNode = null;

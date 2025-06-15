@@ -456,9 +456,117 @@
         #back-to-menu-join:hover {
             background: var(--gray-300);
         }
+        /* Volume Controls */
+        .volume-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            z-index: 999;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 150px;
+        }
+
+        .volume-control label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+
+        .volume-control input[type="range"] {
+            flex: 1;
+            height: 0.375rem;
+            background: var(--gray-300);
+            border-radius: 0.25rem;
+            outline: none;
+            appearance: none;
+        }
+
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            width: 0.875rem;
+            height: 0.875rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            appearance: none;
+            transition: all 0.15s ease;
+        }
+
+        .volume-control input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--secondary);
+            transform: scale(1.1);
+        }
+
+        .volume-control input[type="range"]::-moz-range-thumb {
+            width: 0.875rem;
+            height: 0.875rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .volume-control input[type="range"]::-moz-range-thumb:hover {
+            background: var(--secondary);
+            transform: scale(1.1);
+        }
+
+        .volume-value {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            min-width: 2rem;
+            text-align: center;
+        }
+
+        /* Hide volume controls on very small screens */
+        @media (max-width: 480px) {
+            .volume-controls {
+                padding: 0.5rem;
+                gap: 1rem;
+            }
+            
+            .volume-control {
+                min-width: 120px;
+            }
+            
+            .volume-control label {
+                font-size: 0.75rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Volume Controls -->
+    <div class="volume-controls">
+        <div class="volume-control">
+            <label for="music-volume">🎵 Music</label>
+            <input type="range" id="music-volume" min="0" max="100" value="30">
+            <span class="volume-value" id="music-volume-value">30%</span>
+        </div>
+        <div class="volume-control">
+            <label for="sound-volume">🔊 Effects</label>
+            <input type="range" id="sound-volume" min="0" max="100" value="13">
+            <span class="volume-value" id="sound-volume-value">13%</span>
+        </div>
+    </div>
+
     <!-- Character Selection Template -->
     <template id="character-template">
         <div class="character-option">
@@ -660,14 +768,7 @@
 
     <div id="results-screen" class="screen">
         <div class="results-container">
-            <h2>Game Results</h2>
-            <div class="final-scores" id="final-scores">
-                <!-- Final scores will be injected here -->
-            </div>
-            <div class="results-controls">
-                <button id="play-again">Play Again</button>
-                <button id="back-to-menu">Back to Menu</button>
-            </div>
+            <!-- Content will be dynamically injected by scoreSystem.showFinalScores() -->
         </div>
     </div>
 

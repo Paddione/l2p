@@ -150,12 +150,14 @@ export function initGameController(lobbyManager, storage, screenManager) {
             catalogName: getCurrentCatalogName() // Get the current question set name
         };
         
-        scoreSystem.showFinalScores(finalResults.scores, finalResults.winner, gameData);
+        // Immediately switch to results screen
+        screenManager.showScreen(SCREENS.RESULTS);
         
-        // Show results screen after a delay
+        // Show final scores with Hall of Fame upload option on the results screen
+        // Use a small delay to ensure the screen transition is complete
         setTimeout(() => {
-            screenManager.showScreen(SCREENS.RESULTS);
-        }, 5000);
+            scoreSystem.showFinalScores(finalResults.scores, finalResults.winner, gameData);
+        }, 100);
     }
 
     /**

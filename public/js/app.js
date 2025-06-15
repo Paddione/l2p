@@ -11,6 +11,7 @@ import { initQuestionSetSelector } from '/js/ui/questionSetSelector.js';
 import { initQuestionSetUploader } from '/js/ui/questionSetUploader.js';
 import { initGameController } from '/js/game/gameController.js';
 import { initAudioManager } from '/js/audio/audioManager.js';
+import { initVolumeControls } from '/js/ui/volumeControls.js';
 import { SCREENS } from '/js/utils/constants.js';
 import apiClient from '/js/api/apiClient.js';
 import { questionSetsApi } from '/js/api/questionSetsApi.js';
@@ -236,6 +237,11 @@ async function initializeApp() {
             await appState.modules.audioManager.initialize();
             console.log('initializeApp: Audio manager initialize() completed');
             
+            // Initialize volume controls after audio manager is ready
+            console.log('initializeApp: Initializing volume controls...');
+            appState.modules.volumeControls = initVolumeControls(appState.modules.audioManager);
+            console.log('initializeApp: Volume controls initialized successfully');
+            
             // Start background music initialization in background (don't await)
             // This will fail due to browser autoplay policy until user interaction
             appState.modules.audioManager.playBackgroundMusic().then(() => {
@@ -258,6 +264,9 @@ async function initializeApp() {
             appState.modules.storage,
             appState.modules.screenManager
         );
+        
+        // Initialize the game controller (this sets up gameEngine, event listeners, etc.)
+        appState.modules.gameController.init();
         console.log('initializeApp: Game controller initialized successfully');
         
         updateLoadingStep('Setting up event handlers...');

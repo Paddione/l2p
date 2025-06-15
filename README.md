@@ -22,12 +22,19 @@
 - **Final Calculation**: `(60 - seconds_elapsed) × personal_multiplier`
 
 ### 🎵 Comprehensive Audio System
-The game includes 33+ sound effects for immersive gameplay:
+The game includes 33+ sound effects for immersive gameplay with **integrated volume controls**:
+
+**Volume Controls**:
+- **Fixed Header Controls**: Music and sound effects volume sliders at the top of the screen
+- **Independent Volume**: Separate controls for background music (🎵) and sound effects (🔊)
+- **Persistent Settings**: Volume preferences saved to localStorage and restored on reload
+- **Real-time Adjustment**: Instant volume changes with visual percentage feedback
+- **Optimized Defaults**: Music at 30%, sound effects at 13% (25% of previous level) for balanced audio
 
 **Answer Feedback** (Essential):
-- `correct1.mp3` through `correct5.mp3` - Progressive sounds based on consecutive answer streak
+- `correct1.mp3` through `correct5.mp3` - Progressive sounds based on consecutive answer streak (fixed variable scoping issue)
 - `wrong.mp3` - Wrong answer feedback
-- `combobreaker.mp3` - Multiplier stack loss sound (when losing 2x+ multipliers)
+- `combobreaker.mp3` - Multiplier stack loss sound (when losing 2x+ multipliers, fixed logic to check original multiplier)
 
 **Game State Audio**:
 - `game-start.mp3` - Game initialization
@@ -174,6 +181,7 @@ public/
 │   │   └── questionManager.js # Question handling
 │   ├── lobby/           # Lobby management
 │   ├── ui/              # UI components & interactions
+│   │   └── volumeControls.js # Volume control sliders and audio integration
 │   ├── utils/           # Utility functions & constants
 │   ├── data/            # Data management
 │   └── audio/           # Audio handling
@@ -235,7 +243,14 @@ traefik_config/
 - `POST /api/lobbies/:code/question-set` - Set question set for lobby
 - `POST /api/lobbies/:code/start` - Start game
 - `POST /api/lobbies/:code/answer` - Submit answer
+- `GET /api/lobbies/:code/debug` - Debug endpoint for lobby state inspection
 - `GET /api/lobbies/cleanup` - Manual lobby cleanup
+
+**Enhanced Lobby Data Handling**:
+- **Improved Question Parsing**: Better JSON parsing with error handling for question data
+- **Current Question Access**: Direct access to current question in lobby response
+- **Debug Information**: Comprehensive debug data including question count, game phase, and current question status
+- **Error Recovery**: Robust error handling for malformed question data
 
 **Frontend Integration**:
 - Real-time updates via optimized polling (2s intervals)
@@ -525,6 +540,16 @@ curl -H "Authorization: Bearer <token>" http://10.0.0.44/api/auth/me
 
 ## 📝 Recent Changes
 
+### January 2025 - Volume Controls Implementation
+- **Fixed Header Volume Controls**: Added persistent volume sliders at the top of the screen for music and sound effects
+- **Independent Audio Control**: Separate volume controls for background music (🎵) and sound effects (🔊) with real-time adjustment
+- **Optimized Audio Levels**: Reduced default sound effects volume to 13% (25% of previous level) for better balance with background music
+- **Persistent Settings**: Volume preferences automatically saved to localStorage and restored on page reload
+- **Visual Feedback**: Real-time percentage display showing current volume levels with smooth slider interactions
+- **Responsive Design**: Volume controls adapt to different screen sizes with mobile-optimized layout
+- **Audio Manager Integration**: New `volumeControls.js` module seamlessly integrates with existing audio system
+- **Enhanced User Experience**: Fixed header design with backdrop blur and subtle shadow for professional appearance
+
 ### January 2025 - Game Engine Robustness Update
 - **Enhanced Question Data Validation**: Improved `startQuestion` method in `gameEngine.js` with comprehensive question data validation
 - **Better Error Handling**: Added validation for question text, type, and options before dispatching UI events
@@ -533,7 +558,10 @@ curl -H "Authorization: Bearer <token>" http://10.0.0.44/api/auth/me
 - **Robust Player Count**: Added null-safe player count calculation to prevent undefined object errors
 - **Question Type Validation**: Added specific validation for multiple choice questions to ensure options array exists
 
-### January 2025 - Game Controller UI Update
+### January 2025 - Game Controller Initialization Fix
+- **Critical Fix**: Added missing `gameController.init()` call in `app.js` to properly initialize game engine and event listeners
+- **Game Engine Setup**: Fixed gameEngine, questionManager, scoreSystem, and timer initialization that was preventing games from starting
+- **Event Listener Registration**: Fixed GAME_STARTED event handler registration that was causing games to get stuck after lobby start
 - **Enhanced Game Screen Handling**: Improved `updateGameUI` function in `gameController.js` with better screen transition handling
 - **Separated UI Logic**: Split UI update logic into dedicated `updateGameUIElements` function for better maintainability
 - **Improved Error Handling**: Added critical element validation with early returns to prevent UI corruption

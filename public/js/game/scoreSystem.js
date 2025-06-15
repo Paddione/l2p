@@ -126,6 +126,10 @@ export function initScoreSystem() {
                 </button>
                 <div id="hall-of-fame-status" class="hall-of-fame-status"></div>
             </div>
+            <div class="results-controls">
+                <button id="play-again" class="btn-primary">Play Again</button>
+                <button id="back-to-menu-from-results" class="btn-secondary">Back to Menu</button>
+            </div>
         `;
 
         // Add animations
@@ -142,6 +146,9 @@ export function initScoreSystem() {
 
         // Setup Hall of Fame upload
         setupHallOfFameUpload(scores, gameData);
+        
+        // Setup navigation buttons
+        setupNavigationButtons();
     }
 
     /**
@@ -243,7 +250,29 @@ export function initScoreSystem() {
         });
     }
 
-
+    /**
+     * Sets up navigation button event handlers
+     */
+    function setupNavigationButtons() {
+        const playAgainBtn = document.getElementById('play-again');
+        const backToMenuBtn = document.getElementById('back-to-menu-from-results');
+        
+        if (playAgainBtn) {
+            playAgainBtn.addEventListener('click', () => {
+                // Dispatch event to go back to lobby or create new game
+                const event = new CustomEvent('playAgain');
+                document.dispatchEvent(event);
+            });
+        }
+        
+        if (backToMenuBtn) {
+            backToMenuBtn.addEventListener('click', () => {
+                // Dispatch event to go back to main menu
+                const event = new CustomEvent('backToMenu');
+                document.dispatchEvent(event);
+            });
+        }
+    }
 
     return {
         updateScoreDisplay,
