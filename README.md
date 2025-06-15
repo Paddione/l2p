@@ -7,6 +7,24 @@
 **Production URL**: https://game.korczewski.de  
 **Local Development**: http://10.0.0.44
 
+## 🔧 Recent Fixes
+- **Fixed JSON File Upload Button and Simplified Examples** - Enhanced the question set manager upload functionality:
+  1. **Fixed file upload button state**: Added proper file selection validation and button state management - upload button is now disabled until a valid JSON file is selected
+  2. **Enhanced file validation**: Added file type validation (JSON only) and file size validation (5MB limit) with user-friendly error messages
+  3. **Simplified example JSON**: Removed duplicate example JSON from the format section and simplified the textarea example to 4 questions instead of 8, making it more concise and easier to understand
+  4. **Improved error handling**: Added specific error messages for common upload issues like duplicate names and invalid JSON format
+  5. **Better user feedback**: Enhanced console logging and user notifications for both file and text upload processes
+- **Fixed Hall of Fame Dropdown and Score Display Issues** - Fixed multiple issues with the Hall of Fame functionality:
+  1. **Dropdown showing "undefined" values**: Corrected property mapping from `qs.catalogName` to `qs.name` in the UI
+  2. **Empty dropdown due to authentication**: Modified the question sets API to allow unauthenticated access to public question sets, enabling the Hall of Fame to display available options without requiring login
+  3. **API authentication restructure**: Reorganized question sets routes to use optional authentication for read operations while maintaining required authentication for create/update/delete operations
+  The Hall of Fame now properly displays available question sets and their corresponding scores for all users.
+- **Updated Hall of Fame Questionset Selection** - Changed the Hall of Fame dropdown from "Select Map" to "Choose questionset" and updated the functionality to display all available question sets instead of only those with existing Hall of Fame entries. This allows players to view leaderboards for any questionset, even if no scores have been submitted yet, providing better visibility of available content.
+- **Fixed Hall of Fame API Client Not Available Error** - Fixed "API client not available" error in Hall of Fame UI by registering the apiClient as a module in the application state. The hallOfFame.js was trying to access apiClient through `window.getModule('apiClient')` but it wasn't registered in the modules registry. Added apiClient to `appState.modules` during initialization to make it accessible to all UI components.
+- **Fixed Hall of Fame Dropdown Empty Issue** - Fixed the Hall of Fame map selection dropdown showing no options by correcting the API endpoint used to fetch available catalogs. The UI was incorrectly trying to get catalogs from `/question-sets` instead of `/hall-of-fame/catalogs`, which returns only catalogs that actually have submitted scores. Added `getCatalogs()` method to API client and updated the Hall of Fame UI to use the correct endpoint.
+- **Fixed Hall of Fame Score Upload Authentication Error** - Fixed "Please log in to upload your score" error by correcting inconsistent localStorage keys. The scoreSystem.js was using `quiz_meister_token` and `quiz_meister_user_data` while the authentication system uses `jwtToken` and `quiz_meister_current_user`. Also improved the score upload to use the centralized API client for better error handling and authentication management.
+- **Fixed TypeError: lobbyManager.getCurrentLobby is not a function** - Corrected method call to use `playerManager.getCurrentLobby()` instead of `lobbyManager.getCurrentLobby()` in gameController.js. This error was caused by cached browser files; containers have been rebuilt to deploy the fix.
+
 ## 🎮 Game Features
 
 ### 🕹️ Real-Time Multiplayer
@@ -57,12 +75,16 @@ The game includes 33+ sound effects for immersive gameplay with **integrated vol
 - `background-music.mp3` - Looping ambient music (starts after first user interaction)
 
 ### 🏆 Hall of Fame System
-- **Leaderboard**: Global and catalog-specific rankings
+- **Questionset Selection**: Players can choose which questionset to view leaderboards for from all available question sets
+- **Top 10 Leaderboard**: Displays the best 10 scores for each selected questionset
+- **Beautiful Rankings**: Medal system (🥇🥈🥉) for top 3 players with gradient backgrounds
+- **Comprehensive Display**: Shows player character, username, score, accuracy, max multiplier, and submission date
 - **Score Upload**: One-click score submission after games with comprehensive statistics
 - **Enhanced Score Screen**: Beautiful results display with immediate Hall of Fame upload option
 - **Player Statistics**: Accuracy tracking, max multipliers, and performance analytics
 - **Data Validation**: Proper limit/offset validation for large data requests
-- **Navigation Controls**: Play Again and Back to Menu options from results screen
+- **Responsive Design**: Mobile-optimized layout with adaptive grid system
+- **Empty State Handling**: Encouraging messages when no scores exist for a questionset yet
 
 ### 🎨 Enhanced UI/UX
 - **Visual Answer Feedback**: Animated correct (green flash/glow) and incorrect (red flash/shake) responses
@@ -569,6 +591,19 @@ curl -H "Authorization: Bearer <token>" http://10.0.0.44/api/auth/me
 - **Data Structure Fix**: Fixed lobby data access to use `question_set.name` instead of `questionSet.name` to match API response format
 - **Architecture Improvement**: Maintained separation of concerns where lobbyManager handles API calls and playerManager handles UI state
 - **Error Resolution**: Resolved TypeError that was preventing game end screen from displaying catalog names correctly
+
+### January 2025 - Hall of Fame Map Selection Implementation
+- **Complete UI Redesign**: Rebuilt Hall of Fame screen with proper map/catalog selection functionality
+- **Map Selection Dropdown**: Added dropdown to choose which question set/catalog to view leaderboards for
+- **Top 10 Display**: Shows the best 10 scores for the selected map, or fewer if less than 10 exist
+- **Medal System**: Added 🥇🥈🥉 medals for top 3 players with beautiful gradient backgrounds
+- **Enhanced Leaderboard**: Displays rank, player character, username, score, accuracy, max multiplier, and date
+- **Responsive Design**: Mobile-optimized layout that adapts to different screen sizes
+- **Empty State Handling**: Shows encouraging messages when no scores exist for a map yet
+- **Loading States**: Added proper loading indicators while fetching data
+- **Error Handling**: Graceful error handling with user-friendly error messages
+- **Dynamic Content**: All content is dynamically generated based on available question sets
+- **Improved Navigation**: Clean back-to-menu functionality with proper event handling
 
 ### January 2025 - Game Controller Initialization Fix
 - **Critical Fix**: Added missing `gameController.init()` call in `app.js` to properly initialize game engine and event listeners

@@ -385,6 +385,14 @@ class ApiClient {
         return this.request('POST', '/hall-of-fame', entry);
     }
 
+    async getCatalogs(limit = 50) {
+        const params = new URLSearchParams();
+        if (limit) params.append('limit', limit.toString());
+        
+        const endpoint = `/hall-of-fame/catalogs${params.toString() ? '?' + params.toString() : ''}`;
+        return this.request('GET', endpoint);
+    }
+
     // Lobby methods
     async createLobby(requestBody) {
         return this.request('POST', '/lobbies/create', requestBody);

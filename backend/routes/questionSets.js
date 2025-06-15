@@ -2,10 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const QuestionSet = require('../models/QuestionSet');
-const { authenticateToken } = require('../middleware/auth');
-
-// Apply authentication middleware to all routes
-router.use(authenticateToken);
+const { authenticateToken, authenticateOptionalToken } = require('../middleware/auth');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -35,9 +32,12 @@ const upload = multer({
 });
 
 // Get all available question sets (public + user's own)
-router.get('/', async (req, res) => {
+router.get('/', authenticateOptionalToken, async (req, res) => {
     try {
-        const questionSets = await QuestionSet.findAvailable(req.user.username);
+        // If user is authenticated, get public + their own sets
+        // If not authenticated, get only public sets
+        const username = req.user ? req.user.username : null;
+        const questionSets = await QuestionSet.findAvailable(username);
         res.json(questionSets.map(qs => qs.getSummary()));
     } catch (error) {
         console.error('Get question sets error:', error);
@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get user's own question sets
-router.get('/my', async (req, res) => {
+router.get('/my', authenticateToken, async (req, res) => {
     try {
         const questionSets = await QuestionSet.findByCreator(req.user.username);
         res.json(questionSets.map(qs => qs.getSummary()));
@@ -63,7 +63,7 @@ router.get('/my', async (req, res) => {
 });
 
 // Get specific question set by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateOptionalToken, async (req, res) => {
     try {
         const { id } = req.params;
         const questionSet = await QuestionSet.findById(parseInt(id));
@@ -76,7 +76,7 @@ router.get('/:id', async (req, res) => {
         }
 
         // Check if user has access (public or owns it)
-        if (!questionSet.is_public && questionSet.created_by !== req.user.username) {
+        if (!questionSet.is_public && (!req.user || questionSet.created_by !== req.user.username)) {
             return res.status(403).json({ 
                 error: 'Access denied',
                 code: 'ACCESS_DENIED'
@@ -94,7 +94,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new question set
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     try {
         const { name, description, questions, is_public = true } = req.body;
 
@@ -142,7 +142,7 @@ router.post('/', async (req, res) => {
 });
 
 // Upload and create question set from JSON file
-router.post('/upload', (req, res, next) => {
+router.post('/upload', authenticateToken, (req, res, next) => {
     console.log('=== UPLOAD REQUEST DEBUG ===');
     console.log('Method:', req.method);
     console.log('URL:', req.url);
@@ -274,7 +274,7 @@ router.post('/upload', (req, res, next) => {
 });
 
 // Update question set
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -307,7 +307,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete question set
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
         const success = await QuestionSet.delete(parseInt(id), req.user.username);

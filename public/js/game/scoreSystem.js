@@ -6,6 +6,7 @@
 import { GAME_SETTINGS, CSS_CLASSES, ANIMATIONS } from '../utils/constants.js';
 import { formatScore } from '../utils/helpers.js';
 import { initAnimations } from '../ui/animations.js';
+import apiClient from '../api/apiClient.js';
 
 export function initScoreSystem() {
     const animations = initAnimations();
@@ -169,7 +170,7 @@ export function initScoreSystem() {
                 statusDiv.innerHTML = '<div class="loading-spinner"></div> Uploading your score...';
 
                 // Get current user data
-                const currentUser = JSON.parse(localStorage.getItem('quiz_meister_user_data'));
+                const currentUser = JSON.parse(localStorage.getItem('quiz_meister_current_user'));
                 if (!currentUser) {
                     throw new Error('Please log in to upload your score');
                 }
@@ -197,22 +198,8 @@ export function initScoreSystem() {
                     catalogName: catalogName
                 };
 
-                // Upload to Hall of Fame
-                const response = await fetch('/api/hall-of-fame', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('quiz_meister_token')}`
-                    },
-                    body: JSON.stringify(hallOfFameEntry)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to upload score');
-                }
-
-                const result = await response.json();
+                // Upload to Hall of Fame using API client
+                const result = await apiClient.addHallOfFameEntry(hallOfFameEntry);
                 
                 // Show success message
                 statusDiv.innerHTML = `

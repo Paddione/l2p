@@ -192,6 +192,13 @@ async function initializeApp() {
         );
         console.log('initializeApp: Player manager initialized successfully');
         
+        updateLoadingStep('Initializing API client...');
+        console.log('initializeApp: Registering API client...');
+        
+        // Register API client as a module
+        appState.modules.apiClient = apiClient;
+        console.log('initializeApp: API client registered successfully');
+        
         updateLoadingStep('Initializing Hall of Fame...');
         console.log('initializeApp: Initializing Hall of Fame UI...');
         
@@ -698,12 +705,9 @@ async function showHallOfFame() {
         console.log('Opening Hall of Fame...');
         appState.modules.screenManager.showScreen(SCREENS.HALL_OF_FAME);
         
-        // Add back button handler
-        const backBtn = document.getElementById('back-from-hof');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                appState.modules.screenManager.showScreen(SCREENS.MAIN_MENU);
-            });
+        // Refresh the Hall of Fame data when showing the screen
+        if (appState.modules.hallOfFameUI && appState.modules.hallOfFameUI.refresh) {
+            await appState.modules.hallOfFameUI.refresh();
         }
     } catch (error) {
         console.error('Failed to show Hall of Fame:', error);

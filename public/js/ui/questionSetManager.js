@@ -70,28 +70,6 @@ export function initQuestionSetManager() {
       "question": "Water boils at 100°C at sea level.",
       "type": "true_false",
       "correct": true
-    },
-    {
-      "question": "What is 15 × 8?",
-      "type": "multiple_choice",
-      "options": ["110", "120", "130", "140"],
-      "correct": 1
-    },
-    {
-      "question": "Shakespeare wrote 'Romeo and Juliet'.",
-      "type": "true_false",
-      "correct": true
-    },
-    {
-      "question": "Which programming language is known for web development?",
-      "type": "multiple_choice",
-      "options": ["Python", "JavaScript", "C++", "Assembly"],
-      "correct": 1
-    },
-    {
-      "question": "The human body has 206 bones.",
-      "type": "true_false",
-      "correct": true
     }
   ]
 }</textarea>
@@ -104,39 +82,10 @@ export function initQuestionSetManager() {
                             <!-- File Upload Section -->
                             <div class="file-upload-section">
                                 <h4>Option 2: Upload JSON file</h4>
-                                <p>The file should have the following format:</p>
-                                <pre class="format-example">{
-  "name": "Sample Quiz Questions",
-  "description": "A comprehensive example of different question types",
-  "is_public": false,
-  "questions": [
-    {
-      "question": "What is the capital of France?",
-      "type": "multiple_choice",
-      "options": ["London", "Paris", "Berlin", "Madrid"],
-      "correct": 1
-    },
-    {
-      "question": "Which planet is known as the Red Planet?",
-      "type": "multiple_choice", 
-      "options": ["Venus", "Mars", "Jupiter", "Saturn"],
-      "correct": 1
-    },
-    {
-      "question": "The Great Wall of China is visible from space.",
-      "type": "true_false",
-      "correct": false
-    },
-    {
-      "question": "Water boils at 100°C at sea level.",
-      "type": "true_false",
-      "correct": true
-    }
-  ]
-}</pre>
+                                <p>Select a JSON file with the same format as shown above.</p>
                                 <div class="file-upload">
                                     <input type="file" id="question-set-file" accept=".json" />
-                                    <button id="upload-btn" class="btn btn-primary">Upload Question Set</button>
+                                    <button id="upload-btn" class="btn btn-primary" disabled>Upload Question Set</button>
                                 </div>
                             </div>
                         </div>
@@ -208,28 +157,6 @@ export function initQuestionSetManager() {
     },
     {
       "question": "Water boils at 100°C at sea level.",
-      "type": "true_false",
-      "correct": true
-    },
-    {
-      "question": "What is 15 × 8?",
-      "type": "multiple_choice",
-      "options": ["110", "120", "130", "140"],
-      "correct": 1
-    },
-    {
-      "question": "Shakespeare wrote 'Romeo and Juliet'.",
-      "type": "true_false",
-      "correct": true
-    },
-    {
-      "question": "Which programming language is known for web development?",
-      "type": "multiple_choice",
-      "options": ["Python", "JavaScript", "C++", "Assembly"],
-      "correct": 1
-    },
-    {
-      "question": "The human body has 206 bones.",
       "type": "true_false",
       "correct": true
     }
@@ -304,10 +231,32 @@ export function initQuestionSetManager() {
             });
         }
         
+        // File input change handler to enable/disable upload button
+        if (fileInput) {
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (uploadBtn) {
+                    uploadBtn.disabled = !file;
+                }
+            });
+        }
+
         uploadBtn.addEventListener('click', async () => {
             const file = fileInput.files[0];
             if (!file) {
                 showNotification('Please select a file to upload', 'error');
+                return;
+            }
+
+            // Validate file type
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                showNotification('Please select a JSON file', 'error');
+                return;
+            }
+
+            // Validate file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File too large. Maximum size is 5MB.', 'error');
                 return;
             }
 
@@ -322,9 +271,15 @@ export function initQuestionSetManager() {
                 uploadBtn.disabled = true;
                 uploadBtn.textContent = 'Uploading...';
                 
-                console.log('Starting upload process...');
+                console.log('Starting file upload process...');
+                console.log('File details:', {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                });
+                
                 const result = await questionSetsApi.upload(file);
-                console.log('Upload successful:', result);
+                console.log('File upload successful:', result);
                 showNotification('Question set uploaded successfully!', 'success');
                 
                 // Refresh the lists
@@ -335,22 +290,25 @@ export function initQuestionSetManager() {
                 switchTab(modal, 'available');
                 
             } catch (error) {
-                console.error('Upload error:', error);
+                console.error('File upload error:', error);
                 let errorMessage = 'Failed to upload question set';
                 
                 if (error.message.includes('Authentication')) {
                     errorMessage = 'Authentication failed. Please log in again.';
                 } else if (error.message.includes('No file uploaded')) {
                     errorMessage = 'File upload failed. Please try again.';
+                } else if (error.message.includes('already exists')) {
+                    errorMessage = 'A question set with this name already exists';
+                } else if (error.message.includes('Invalid JSON')) {
+                    errorMessage = 'Invalid JSON file format';
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
                 
                 showNotification(errorMessage, 'error');
             } finally {
-                uploadBtn.disabled = false;
+                uploadBtn.disabled = !fileInput.files[0]; // Re-enable only if file is still selected
                 uploadBtn.textContent = 'Upload Question Set';
-                fileInput.value = '';
             }
         });
 
