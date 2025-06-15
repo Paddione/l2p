@@ -9,7 +9,7 @@ import { initScoreSystem } from './scoreSystem.js';
 import { initTimer } from './timer.js';
 import { EVENTS, SCREENS } from '../utils/constants.js';
 
-export function initGameController(lobbyManager, storage, screenManager) {
+export function initGameController(lobbyManager, playerManager, storage, screenManager) {
     let gameEngine = null;
     let questionManager = null;
     let scoreSystem = null;
@@ -166,9 +166,9 @@ export function initGameController(lobbyManager, storage, screenManager) {
      */
     function getCurrentCatalogName() {
         // Try to get from lobby data first
-        const currentLobby = lobbyManager.getCurrentLobby();
-        if (currentLobby && currentLobby.questionSet && currentLobby.questionSet.name) {
-            return currentLobby.questionSet.name;
+        const currentLobby = playerManager.getCurrentLobby();
+        if (currentLobby && currentLobby.question_set && currentLobby.question_set.name) {
+            return currentLobby.question_set.name;
         }
         
         // Fallback to stored question set data

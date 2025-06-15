@@ -261,6 +261,7 @@ async function initializeApp() {
         // Initialize Game Controller
         appState.modules.gameController = initGameController(
             appState.modules.lobbyManager,
+            appState.modules.playerManager,
             appState.modules.storage,
             appState.modules.screenManager
         );
@@ -275,6 +276,11 @@ async function initializeApp() {
         // Setup main menu event handlers
         setupMainMenuHandlers();
         console.log('initializeApp: Main menu handlers set up successfully');
+        
+        console.log('initializeApp: Setting up results navigation handlers...');
+        // Setup results screen navigation handlers
+        setupResultsNavigationHandlers();
+        console.log('initializeApp: Results navigation handlers set up successfully');
         
         console.log('initializeApp: Setting up error handlers...');
         // Setup global error handlers
@@ -795,3 +801,56 @@ function getModule(moduleName) {
 // Expose functions globally for other modules
 window.getAppState = getAppState;
 window.getModule = getModule;
+
+/**
+ * Sets up navigation handlers for the results screen
+ */
+function setupResultsNavigationHandlers() {
+    // Listen for playAgain event from results screen
+    document.addEventListener('playAgain', async () => {
+        try {
+            console.log('Play Again clicked from results screen');
+            
+            // Get current user data
+            let currentUser = await appState.modules.storage.getCurrentUser();
+            if (!currentUser) {
+                throw new Error('No user data found. Please log in again.');
+            }
+            
+            // If character is missing, try to refresh user data from API
+            if (!currentUser.character) {
+                console.warn('User character is missing for play again, attempting to refresh user data...');
+                try {
+                    const refreshedUser = await apiClient.getCurrentUser();
+                    if (refreshedUser && refreshedUser.character) {
+                        currentUser = refreshedUser;
+                        appState.modules.storage.saveData('quiz_meister_current_user', {
+                            ...refreshedUser,
+                            lastLogin: new Date().toISOString()
+                        });
+                    } else {
+                        throw new Error('User character information not found. Please log in again or update your profile.');
+                    }
+                } catch (refreshError) {
+                    console.error('Failed to refresh user data for play again:', refreshError);
+                    throw new Error('Unable to load user information. Please log in again.');
+                }
+            }
+            
+            // Create a new lobby for another game
+            await appState.modules.playerManager.handleCreateLobby();
+            
+        } catch (error) {
+            console.error('Failed to start new game:', error);
+            alert('Failed to start new game: ' + error.message);
+            // Fallback to main menu
+            appState.modules.screenManager.showScreen(SCREENS.MAIN_MENU);
+        }
+    });
+    
+    // Listen for backToMenu event from results screen
+    document.addEventListener('backToMenu', () => {
+        console.log('Back to Menu clicked from results screen');
+        appState.modules.screenManager.showScreen(SCREENS.MAIN_MENU);
+    });
+}
