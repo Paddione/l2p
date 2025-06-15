@@ -141,15 +141,24 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
      */
     async function syncGameState() {
         try {
-            console.log(`[Engine ${engineId}] Syncing game state for lobby: ${currentGame.lobbyCode}`);
+            console.log(`[Engine ${engineId}] 🔄 Syncing game state for lobby: ${currentGame.lobbyCode}`);
             const gameState = await lobbyManager.getGameState(currentGame.lobbyCode);
             
             if (!gameState) {
-                console.error(`[Engine ${engineId}] No game state received`);
+                console.error(`[Engine ${engineId}] ❌ No game state received`);
                 return;
             }
 
-            console.log(`[Engine ${engineId}] Received game state:`, gameState);
+            console.log(`[Engine ${engineId}] ✅ Received game state:`, gameState);
+            console.log(`[Engine ${engineId}] 🎮 Game state analysis:`, {
+                phase: gameState.game_phase,
+                started: gameState.started,
+                currentQuestion: gameState.current_question,
+                hasQuestions: !!(gameState.questions && gameState.questions.length > 0),
+                questionCount: gameState.questions ? gameState.questions.length : 0,
+                hasPlayers: !!(gameState.players && gameState.players.length > 0),
+                playerCount: gameState.players ? gameState.players.length : 0
+            });
 
             const previousPhase = currentGame.phase;
             const previousQuestion = currentGame.currentQuestion;
@@ -158,13 +167,15 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             currentGame.phase = gameState.game_phase;
             currentGame.currentQuestion = gameState.current_question;
 
-            console.log(`[Engine ${engineId}] Updated game phase: ${previousPhase} -> ${currentGame.phase}`);
-            console.log(`[Engine ${engineId}] Updated current question: ${previousQuestion} -> ${currentGame.currentQuestion}`);
+            console.log(`[Engine ${engineId}] 📊 State transitions:`, {
+                phase: `${previousPhase} -> ${currentGame.phase}`,
+                question: `${previousQuestion} -> ${currentGame.currentQuestion}`
+            });
 
             // Sync timing from server for accurate synchronization
             if (gameState.timing && gameState.timing.questionStartTime) {
                 currentGame.questionStartTime = new Date(gameState.timing.questionStartTime);
-                console.log(`[Engine ${engineId}] Synced question start time: ${currentGame.questionStartTime.toISOString()}`);
+                console.log(`[Engine ${engineId}] ⏰ Synced question start time: ${currentGame.questionStartTime.toISOString()}`);
             }
 
             // Update player scores and multipliers
@@ -173,7 +184,7 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                     currentGame.scores[player.username] = player.score || 0;
                     currentGame.playerMultipliers[player.username] = player.multiplier || 1;
                 });
-                console.log(`[Engine ${engineId}] Updated player scores:`, currentGame.scores);
+                console.log(`[Engine ${engineId}] 🏆 Updated player scores:`, currentGame.scores);
             }
 
             // Handle phase transitions
@@ -188,14 +199,18 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 await handleQuestionChange(gameState);
             }
 
-            // Update UI with current state and server timing
-            if (currentGame.phase === 'question') {
-                console.log(`[Engine ${engineId}] Updating question UI for phase: ${currentGame.phase}`);
+            // Special handling for initial game state when no phase change is detected
+            if (currentGame.phase === 'question' && gameState.questions && gameState.questions.length > 0) {
+                console.log(`[Engine ${engineId}] 🎯 Game is in question phase, ensuring UI is updated`);
                 await updateQuestionUI(gameState);
+            } else if (currentGame.phase === 'waiting') {
+                console.log(`[Engine ${engineId}] ⏸️ Game is in waiting phase`);
+            } else {
+                console.log(`[Engine ${engineId}] ❓ Game phase is: ${currentGame.phase}`);
             }
 
         } catch (error) {
-            console.error(`[Engine ${engineId}] Failed to sync game state:`, error);
+            console.error(`[Engine ${engineId}] ❌ Failed to sync game state:`, error);
         }
     }
 

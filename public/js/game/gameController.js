@@ -227,15 +227,13 @@ export function initGameController(lobbyManager, storage, screenManager) {
             const timerDisplay = document.getElementById('timer');
             const gameCodeDisplay = document.getElementById('game-code-display');
             const playerCountDisplay = document.getElementById('player-count');
-            const answerProgressDisplay = document.getElementById('answer-progress');
 
             console.log('🎮 updateGameUI: Found UI elements:', {
                 questionText: !!questionText,
                 answersContainer: !!answersContainer,
                 timerDisplay: !!timerDisplay,
                 gameCodeDisplay: !!gameCodeDisplay,
-                playerCountDisplay: !!playerCountDisplay,
-                answerProgressDisplay: !!answerProgressDisplay
+                playerCountDisplay: !!playerCountDisplay
             });
 
             // Check if game screen is actually visible
@@ -287,13 +285,6 @@ export function initGameController(lobbyManager, storage, screenManager) {
                 console.log('🎮 updateGameUI: Player count updated successfully');
             } else {
                 console.error('🚨 updateGameUI: player-count element not found or no player count');
-            }
-
-            // Update answer progress
-            if (answerProgressDisplay && questionData.answerProgress) {
-                const { answered, total } = questionData.answerProgress;
-                answerProgressDisplay.textContent = `${answered}/${total} answered`;
-                console.log('🎮 updateGameUI: Answer progress updated successfully');
             }
 
             // Update answers
