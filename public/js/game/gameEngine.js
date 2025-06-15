@@ -150,15 +150,6 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             }
 
             console.log(`[Engine ${engineId}] ✅ Received game state:`, gameState);
-            console.log(`[Engine ${engineId}] 🎮 Game state analysis:`, {
-                phase: gameState.game_phase,
-                started: gameState.started,
-                currentQuestion: gameState.current_question,
-                hasQuestions: !!(gameState.questions && gameState.questions.length > 0),
-                questionCount: gameState.questions ? gameState.questions.length : 0,
-                hasPlayers: !!(gameState.players && gameState.players.length > 0),
-                playerCount: gameState.players ? gameState.players.length : 0
-            });
 
             const previousPhase = currentGame.phase;
             const previousQuestion = currentGame.currentQuestion;
@@ -199,14 +190,14 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 await handleQuestionChange(gameState);
             }
 
-            // Special handling for initial game state when no phase change is detected
+            // CRITICAL: Always update UI when in question phase, even without transitions
             if (currentGame.phase === 'question' && gameState.questions && gameState.questions.length > 0) {
                 console.log(`[Engine ${engineId}] 🎯 Game is in question phase, ensuring UI is updated`);
-                await updateQuestionUI(gameState);
-            } else if (currentGame.phase === 'waiting') {
-                console.log(`[Engine ${engineId}] ⏸️ Game is in waiting phase`);
-            } else {
-                console.log(`[Engine ${engineId}] ❓ Game phase is: ${currentGame.phase}`);
+                
+                // Force UI update with a small delay to ensure screen is ready
+                setTimeout(() => {
+                    updateQuestionUI(gameState);
+                }, 100);
             }
 
         } catch (error) {
@@ -277,20 +268,41 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
 
         currentGame.questionStartTime = gameState.question_start_time ? new Date(gameState.question_start_time) : new Date();
 
-        // Question start sound removed per user request
-
-        // Prepare question data for UI
+        // Prepare question data for UI with better error handling
         const questionData = {
-            ...question,
+            // Core question data
+            question: question.question || question.text,
+            text: question.question || question.text, // Fallback
+            type: question.type,
+            options: question.options,
+            correct: question.correct,
+            
+            // Game state data
             currentQuestion: currentGame.currentQuestion + 1,
             totalQuestions: gameState.questions.length,
             timeRemaining: calculateTimeRemaining(gameState),
             lobbyCode: currentGame.lobbyCode,
-            playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players).length,
+            playerCount: Array.isArray(gameState.players) ? gameState.players.length : Object.keys(gameState.players || {}).length,
             players: gameState.players,
             scores: currentGame.scores,
             answerProgress: gameState.answerProgress
         };
+
+        // Validate critical question data before dispatching
+        if (!questionData.question && !questionData.text) {
+            console.error(`[Engine ${engineId}] startQuestion: No question text found in question data:`, question);
+            return;
+        }
+
+        if (!questionData.type) {
+            console.error(`[Engine ${engineId}] startQuestion: No question type found:`, question);
+            return;
+        }
+
+        if (questionData.type === 'multiple_choice' && (!questionData.options || !Array.isArray(questionData.options))) {
+            console.error(`[Engine ${engineId}] startQuestion: Multiple choice question missing options:`, question);
+            return;
+        }
 
         console.log(`[Engine ${engineId}] startQuestion: prepared questionData:`, questionData);
 

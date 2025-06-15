@@ -366,17 +366,129 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
             
             const updatedLobby = await lobbyManager.startGame(currentLobby.code);
             if (updatedLobby) {
+                console.log('🎮 Game started successfully, updating state and switching screens');
+                
                 currentLobby = updatedLobby;
                 storage.saveLobbyState(updatedLobby);
                 
-                // Dispatch game started event
-                document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {
-                    detail: { lobby: currentLobby }
-                }));
+                // CRITICAL: Stop lobby polling BEFORE switching to game screen
+                console.log('🛑 Stopping lobby polling before game starts');
+                stopLobbyPolling();
+                
+                // Show game screen first
+                console.log('🎮 Switching to game screen');
+                screenManager.showScreen(SCREENS.GAME);
+                
+                // Small delay to ensure screen is ready, then dispatch game started event
+                setTimeout(() => {
+                    console.log('🎯 Dispatching GAME_STARTED event');
+                    document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {
+                        detail: { lobby: currentLobby }
+                    }));
+                }, 100);
             }
         } catch (error) {
             console.error('Failed to start game:', error);
             showNotification(error.message || 'Failed to start game', 'error');
+        }
+    }
+    
+    // Fixed section of playerManager.js - refreshCurrentLobby method
+    async function refreshCurrentLobby() {
+        if (!currentLobby || !currentLobby.code) return;
+        
+        try {
+            // Store previous state for comparison
+            const previousPlayers = currentLobby.players ? 
+                new Map(currentLobby.players.map(p => [p.username, { character: p.character, ready: p.ready }])) : 
+                new Map();
+            const previousQuestionSetId = currentLobby.question_set_id;
+            const wasStarted = currentLobby.started; // Track if game was already started
+            
+            const updatedLobby = await lobbyManager.getLobby(currentLobby.code);
+            
+            if (!updatedLobby) {
+                // Lobby was closed
+                currentLobby = null;
+                storage.clearLobbyState();
+                showNotification('The lobby has been closed', 'info');
+                screenManager.showScreen(SCREENS.MAIN_MENU);
+                return;
+            }
+    
+            // Update current lobby data first
+            currentLobby = updatedLobby;
+            storage.saveLobbyState(updatedLobby);
+            
+            // Only update UI if we're still on the lobby screen
+            if (screenManager.getCurrentScreen() === SCREENS.LOBBY) {
+                updateLobbyUI();
+            }
+            
+            // Handle player changes (only show notifications if on lobby screen)
+            if (screenManager.getCurrentScreen() === SCREENS.LOBBY) {
+                // ... existing player change notification logic ...
+            }
+            
+            // Check for question set changes
+            if (previousQuestionSetId !== updatedLobby.question_set_id && updatedLobby.question_set_id) {
+                const questionSetName = updatedLobby.question_set?.name || 'Unknown';
+                if (screenManager.getCurrentScreen() === SCREENS.LOBBY) {
+                    showNotification(`Question set changed to "${questionSetName}"`, 'info');
+                }
+            }
+            
+            // CRITICAL FIX: Handle game start transition properly
+            if (updatedLobby.started && !wasStarted) {
+                console.log('🎮 Game starting detected in refreshCurrentLobby');
+                
+                // Stop lobby polling immediately
+                console.log('🛑 Stopping lobby polling due to game start');
+                stopLobbyPolling();
+                
+                // Only switch screens and show notification if not already on game screen
+                if (screenManager.getCurrentScreen() !== SCREENS.GAME) {
+                    showNotification('Game is starting!', 'success');
+                    
+                    console.log('🎮 Switching to game screen from lobby refresh');
+                    screenManager.showScreen(SCREENS.GAME);
+                    
+                    // Dispatch game started event for non-host players with a delay
+                    setTimeout(() => {
+                        console.log('🎯 Dispatching GAME_STARTED event from lobby refresh');
+                        document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {
+                            detail: { lobby: updatedLobby }
+                        }));
+                    }, 200);
+                }
+            }
+            
+        } catch (error) {
+            console.error('Failed to refresh lobby:', error);
+            
+            // Handle authentication errors
+            if (error.status === 401 || (error.message && error.message.includes('session has expired'))) {
+                console.warn('Authentication failed during lobby refresh - stopping polling and redirecting to login');
+                stopLobbyPolling();
+                
+                currentLobby = null;
+                storage.clearLobbyState();
+                
+                try {
+                    if (screenManager) {
+                        screenManager.showScreen('auth');
+                    } else {
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } catch (redirectError) {
+                    console.error('Failed to redirect to login:', redirectError);
+                    window.location.reload();
+                }
+                
+                return;
+            }
         }
     }
 

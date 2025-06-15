@@ -215,129 +215,148 @@ export function initGameController(lobbyManager, storage, screenManager) {
         
         if (currentScreen !== SCREENS.GAME) {
             console.warn('🚨 updateGameUI: Not on game screen, current screen is:', currentScreen);
-            // Try to switch to game screen
             console.log('🎮 updateGameUI: Switching to game screen...');
             screenManager.showScreen(SCREENS.GAME);
+            
+            // Wait longer for screen transition to complete
+            setTimeout(() => updateGameUIElements(questionData), 300);
+            return;
         }
 
-        // Wait a moment for screen transition to complete
-        setTimeout(() => {
-            const questionText = document.getElementById('question-text');
-            const answersContainer = document.getElementById('answers-grid');
-            const timerDisplay = document.getElementById('timer');
-            const gameCodeDisplay = document.getElementById('game-code-display');
-            const playerCountDisplay = document.getElementById('player-count');
+        // Update UI immediately if already on game screen
+        updateGameUIElements(questionData);
+    }
 
-            console.log('🎮 updateGameUI: Found UI elements:', {
-                questionText: !!questionText,
-                answersContainer: !!answersContainer,
-                timerDisplay: !!timerDisplay,
-                gameCodeDisplay: !!gameCodeDisplay,
-                playerCountDisplay: !!playerCountDisplay
+    /**
+     * Separated UI update logic into its own function
+     * @param {Object} questionData - Question data
+     */
+    function updateGameUIElements(questionData) {
+        console.log('🎮 updateGameUIElements: Starting UI update');
+        
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-grid');
+        const timerDisplay = document.getElementById('timer');
+        const gameCodeDisplay = document.getElementById('game-code-display');
+        const playerCountDisplay = document.getElementById('player-count');
+
+        console.log('🎮 updateGameUIElements: Found UI elements:', {
+            questionText: !!questionText,
+            answersContainer: !!answersContainer,
+            timerDisplay: !!timerDisplay,
+            gameCodeDisplay: !!gameCodeDisplay,
+            playerCountDisplay: !!playerCountDisplay
+        });
+
+        // Check if game screen is actually visible
+        const gameScreen = document.getElementById('game-screen');
+        if (gameScreen) {
+            const isVisible = gameScreen.classList.contains('active');
+            console.log('🎮 updateGameUIElements: Game screen visibility:', {
+                exists: true,
+                hasActiveClass: isVisible,
+                display: window.getComputedStyle(gameScreen).display,
+                visibility: window.getComputedStyle(gameScreen).visibility
             });
-
-            // Check if game screen is actually visible
-            const gameScreen = document.getElementById('game-screen');
-            if (gameScreen) {
-                const isVisible = gameScreen.classList.contains('active');
-                console.log('🎮 updateGameUI: Game screen visibility:', {
-                    exists: true,
-                    hasActiveClass: isVisible,
-                    display: window.getComputedStyle(gameScreen).display,
-                    visibility: window.getComputedStyle(gameScreen).visibility
-                });
-            } else {
-                console.error('🚨 updateGameUI: game-screen element not found in DOM');
-            }
-
-            // Update question text
-            if (questionText) {
-                const questionTextContent = questionData.question || questionData.text;
-                console.log('🎮 updateGameUI: Setting question text:', questionTextContent);
-                questionText.textContent = questionTextContent;
-                console.log('🎮 updateGameUI: Question text updated successfully');
-            } else {
-                console.error('🚨 updateGameUI: question-text element not found');
-            }
-
-            // Update timer display
-            if (timerDisplay) {
-                const timeRemaining = questionData.timeRemaining || 30;
-                console.log('🎮 updateGameUI: Setting timer:', timeRemaining);
-                timerDisplay.textContent = timeRemaining;
-                console.log('🎮 updateGameUI: Timer updated successfully');
-            } else {
-                console.error('🚨 updateGameUI: timer element not found');
-            }
-
-            // Update game header info
-            if (gameCodeDisplay && questionData.lobbyCode) {
-                console.log('🎮 updateGameUI: Setting game code:', questionData.lobbyCode);
-                gameCodeDisplay.textContent = questionData.lobbyCode;
-                console.log('🎮 updateGameUI: Game code updated successfully');
-            } else {
-                console.error('🚨 updateGameUI: game-code-display element not found or no lobby code');
-            }
-
-            if (playerCountDisplay && questionData.playerCount) {
-                console.log('🎮 updateGameUI: Setting player count:', questionData.playerCount);
-                playerCountDisplay.textContent = questionData.playerCount;
-                console.log('🎮 updateGameUI: Player count updated successfully');
-            } else {
-                console.error('🚨 updateGameUI: player-count element not found or no player count');
-            }
-
-            // Update answers
-            if (answersContainer) {
-                console.log('🎮 updateGameUI: Clearing answers container');
-                answersContainer.innerHTML = '';
-                
-                // Reset answer button states for new question
-                resetAnswerButtons();
-                
-                console.log('🎮 updateGameUI: Question type:', questionData.type);
-                console.log('🎮 updateGameUI: Question options:', questionData.options);
-                
-                if (questionData.type === 'multiple_choice' && questionData.options) {
-                    console.log('🎮 updateGameUI: Creating multiple choice buttons');
-                    questionData.options.forEach((option, index) => {
-                        const button = document.createElement('button');
-                        button.className = 'answer-btn';
-                        button.textContent = option;
-                        button.dataset.answer = index;
-                        button.addEventListener('click', () => handleAnswerClick(index, button));
-                        answersContainer.appendChild(button);
-                        console.log(`🎮 updateGameUI: Created button ${index}: ${option}`);
-                    });
-                    console.log('🎮 updateGameUI: Multiple choice buttons created successfully');
-                } else if (questionData.type === 'true_false') {
-                    console.log('🎮 updateGameUI: Creating true/false buttons');
-                    ['True', 'False'].forEach((option, index) => {
-                        const button = document.createElement('button');
-                        button.className = 'answer-btn';
-                        button.textContent = option;
-                        button.dataset.answer = index === 0;
-                        button.addEventListener('click', () => handleAnswerClick(index === 0, button));
-                        answersContainer.appendChild(button);
-                        console.log(`🎮 updateGameUI: Created T/F button ${index}: ${option}`);
-                    });
-                    console.log('🎮 updateGameUI: True/false buttons created successfully');
-                } else {
-                    console.error('🚨 updateGameUI: Unknown question type or missing options:', {
-                        type: questionData.type,
-                        options: questionData.options
-                    });
-                }
-            } else {
-                console.error('🚨 updateGameUI: answers-grid element not found');
-            }
-
-            // Update player list
-            console.log('🎮 updateGameUI: Updating player list');
-            updatePlayerList(questionData);
             
-            console.log('🎮 updateGameUI: UI update completed successfully');
-        }, 100); // Small delay to ensure screen transition is complete
+            if (!isVisible) {
+                console.error('🚨 Game screen is not active! Force activating...');
+                gameScreen.classList.add('active');
+            }
+        } else {
+            console.error('🚨 updateGameUIElements: game-screen element not found in DOM');
+            return;
+        }
+
+        // Update question text
+        if (questionText) {
+            const questionTextContent = questionData.question || questionData.text;
+            console.log('🎮 updateGameUIElements: Setting question text:', questionTextContent);
+            questionText.textContent = questionTextContent;
+            console.log('🎮 updateGameUIElements: Question text updated successfully');
+        } else {
+            console.error('🚨 updateGameUIElements: question-text element not found');
+            return; // Critical element missing, abort
+        }
+
+        // Update timer display
+        if (timerDisplay) {
+            const timeRemaining = questionData.timeRemaining || 30;
+            console.log('🎮 updateGameUIElements: Setting timer:', timeRemaining);
+            timerDisplay.textContent = timeRemaining;
+            console.log('🎮 updateGameUIElements: Timer updated successfully');
+        } else {
+            console.error('🚨 updateGameUIElements: timer element not found');
+        }
+
+        // Update game header info
+        if (gameCodeDisplay && questionData.lobbyCode) {
+            console.log('🎮 updateGameUIElements: Setting game code:', questionData.lobbyCode);
+            gameCodeDisplay.textContent = questionData.lobbyCode;
+            console.log('🎮 updateGameUIElements: Game code updated successfully');
+        }
+
+        if (playerCountDisplay && questionData.playerCount) {
+            console.log('🎮 updateGameUIElements: Setting player count:', questionData.playerCount);
+            playerCountDisplay.textContent = questionData.playerCount;
+            console.log('🎮 updateGameUIElements: Player count updated successfully');
+        }
+
+        // Update answers - CRITICAL FIX
+        if (answersContainer) {
+            console.log('🎮 updateGameUIElements: Clearing answers container');
+            answersContainer.innerHTML = '';
+            
+            // Reset answer button states for new question
+            resetAnswerButtons();
+            
+            console.log('🎮 updateGameUIElements: Question type:', questionData.type);
+            console.log('🎮 updateGameUIElements: Question options:', questionData.options);
+            
+            if (questionData.type === 'multiple_choice' && questionData.options) {
+                console.log('🎮 updateGameUIElements: Creating multiple choice buttons');
+                questionData.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'answer-btn';
+                    button.textContent = option;
+                    button.dataset.answer = index;
+                    button.addEventListener('click', () => handleAnswerClick(index, button));
+                    answersContainer.appendChild(button);
+                    console.log(`🎮 updateGameUIElements: Created button ${index}: ${option}`);
+                });
+                console.log('🎮 updateGameUIElements: Multiple choice buttons created successfully');
+            } else if (questionData.type === 'true_false') {
+                console.log('🎮 updateGameUIElements: Creating true/false buttons');
+                ['True', 'False'].forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'answer-btn';
+                    button.textContent = option;
+                    button.dataset.answer = index === 0;
+                    button.addEventListener('click', () => handleAnswerClick(index === 0, button));
+                    answersContainer.appendChild(button);
+                    console.log(`🎮 updateGameUIElements: Created T/F button ${index}: ${option}`);
+                });
+                console.log('🎮 updateGameUIElements: True/false buttons created successfully');
+            } else {
+                console.error('🚨 updateGameUIElements: Unknown question type or missing options:', {
+                    type: questionData.type,
+                    options: questionData.options
+                });
+                
+                // Create placeholder if no valid question data
+                answersContainer.innerHTML = '<div class="error">Error loading question options</div>';
+                return;
+            }
+        } else {
+            console.error('🚨 updateGameUIElements: answers-grid element not found');
+            return; // Critical element missing
+        }
+
+        // Update player list
+        console.log('🎮 updateGameUIElements: Updating player list');
+        updatePlayerList(questionData);
+        
+        console.log('🎮 updateGameUIElements: UI update completed successfully');
     }
 
     /**
