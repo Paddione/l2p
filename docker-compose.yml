@@ -1,0 +1,199 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: --data-checksums
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - l2p-network
+    ports:
+      - "5432:5432" # Nur für lokale Entwicklung exponieren, in Produktion entfernen
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  l2p-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${BACKEND_PORT:-3000}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      DEVELOPMENT_MODE: ${DEVELOPMENT_MODE:-false}
+      DEBUG_MODE: ${DEBUG_MODE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - l2p-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:${BACKEND_PORT:-3000}/api/health"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: 40s
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=l2p-network" # Spezifiziert das Netzwerk für Traefik
+
+      # HTTP API Router (nur für game.korczewski.de, leitet auf HTTPS um)
+      - "traefik.http.routers.api-http.rule=Host(`${PRODUCTION_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-http.entrypoints=web"
+      - "traefik.http.routers.api-http.middlewares=redirect-to-https@file" # Verweis auf Middleware in dynamic_conf.yml
+      - "traefik.http.routers.api-http.priority=210" # Etwas höhere Prio für die Umleitung
+
+      # HTTPS API Router (Produktion)
+      - "traefik.http.routers.api-secure.rule=Host(`${PRODUCTION_DOMAIN}`) && PathPrefix(`/api`)" 
+      - "traefik.http.routers.api-secure.entrypoints=websecure" 
+      - "traefik.http.routers.api-secure.service=api-backend"
+      - "traefik.http.routers.api-secure.tls=true" 
+      - "traefik.http.routers.api-secure.tls.certresolver=letsencrypt" 
+      - "traefik.http.routers.api-secure.tls.options=default" # Verweis auf TLS Optionen in dynamic_conf.yml
+      - "traefik.http.routers.api-secure.middlewares=sec-headers@file,api-rate-limit@file" # Security Headers + Rate Limiting
+      - "traefik.http.routers.api-secure.priority=200"
+
+      # HTTP API Router (Lokal für 10.0.0.44)
+      - "traefik.http.routers.api-local.rule=Host(`${LOCAL_IP}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-local.entrypoints=web"
+      - "traefik.http.routers.api-local.service=api-backend"
+      - "traefik.http.routers.api-local.middlewares=api-rate-limit@file" # Rate Limiting auch lokal
+      - "traefik.http.routers.api-local.priority=200" # Gleiche Prio wie HTTPS Prod API
+
+      # Service Definition für das Backend
+      - "traefik.http.services.api-backend.loadbalancer.server.port=${BACKEND_PORT:-3000}" 
+      - "traefik.http.services.api-backend.loadbalancer.healthcheck.path=/api/health" 
+      - "traefik.http.services.api-backend.loadbalancer.healthcheck.interval=${HEALTH_CHECK_INTERVAL:-30s}"
+      - "traefik.http.services.api-backend.loadbalancer.healthcheck.timeout=${HEALTH_CHECK_TIMEOUT:-10s}"
+
+  l2p-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${FRONTEND_PORT:-8080}
+    networks:
+      - l2p-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${FRONTEND_PORT:-8080}/"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-3}
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=l2p-network"
+
+      # HTTP Frontend Router (Produktion, leitet auf HTTPS um)
+      - "traefik.http.routers.web-http.rule=Host(`${PRODUCTION_DOMAIN}`)"
+      - "traefik.http.routers.web-http.entrypoints=web"
+      - "traefik.http.routers.web-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.web-http.priority=110"
+
+      # HTTPS Frontend Router (Produktion)
+      - "traefik.http.routers.web-secure.rule=Host(`${PRODUCTION_DOMAIN}`)"
+      - "traefik.http.routers.web-secure.entrypoints=websecure"
+      - "traefik.http.routers.web-secure.service=web-frontend"
+      - "traefik.http.routers.web-secure.tls=true"
+      - "traefik.http.routers.web-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-secure.tls.options=default"
+      - "traefik.http.routers.web-secure.middlewares=sec-headers@file" # Security Headers
+      - "traefik.http.routers.web-secure.priority=100"
+
+      # HTTP Frontend Router (Lokal für 10.0.0.44)
+      - "traefik.http.routers.web-local.rule=Host(`${LOCAL_IP}`)"
+      - "traefik.http.routers.web-local.entrypoints=web"
+      - "traefik.http.routers.web-local.service=web-frontend"
+      - "traefik.http.routers.web-local.priority=100"
+
+      # Service Definition für das Frontend
+      - "traefik.http.services.web-frontend.loadbalancer.server.port=${FRONTEND_PORT:-8080}"
+
+  traefik:
+    image: traefik:v3.0 
+    container_name: traefik
+    # Als non-root user ausführen (UID 82, GID 82 für traefik user im offiziellen Image)
+    # Stelle sicher, dass die gemounteten Volumes die korrekten Berechtigungen haben (chown 82:82 letsencrypt acme.json / traefik_config etc.)
+    # user: "82:82" # Einkommentieren, wenn Berechtigungen geklärt sind
+    environment:
+      # Environment variables for Traefik configuration
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      TRAEFIK_LOG_LEVEL: ${TRAEFIK_LOG_LEVEL:-INFO}
+      TRAEFIK_DASHBOARD_USER: ${TRAEFIK_DASHBOARD_USER}
+      TRAEFIK_DASHBOARD_PASSWORD_HASH: ${TRAEFIK_DASHBOARD_PASSWORD_HASH}
+      PRODUCTION_DOMAIN: ${PRODUCTION_DOMAIN}
+      TRAEFIK_DOMAIN: ${TRAEFIK_DOMAIN}
+    command:
+      # Statische Konfiguration wird jetzt primär über traefik.yml geladen
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Read-only für erhöhte Sicherheit [cite: 1022, 1053, 1194]
+      - "./traefik_config/traefik.yml:/etc/traefik/traefik.yml:ro" # Statische Konfigurationsdatei
+      - "./traefik_config/dynamic:/etc/traefik/dynamic:ro" # Verzeichnis für dynamische Konfigurationsdateien
+      - "./letsencrypt:/letsencrypt" # Persistente Speicherung für Let's Encrypt Zertifikate [cite: 1023]
+      # Optional: Log-Verzeichnis, wenn in traefik.yml konfiguriert
+      # - "./traefik_logs:/var/log/traefik"
+    networks:
+      - l2p-network
+    restart: unless-stopped
+    security_opt: # Sicherheit erhöhen [cite: 1022, 1202]
+      - "no-new-privileges:true"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"] # Ping Healthcheck für Traefik [cite: 1017]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      # Labels für das Traefik Dashboard (Sicherung über HTTPS und BasicAuth)
+      - "traefik.enable=true"
+      # HTTP Router für Dashboard Umleitung
+      - "traefik.http.routers.traefik-dashboard-http.rule=Host(`${TRAEFIK_DOMAIN}`)" # Domain anpassen!
+      - "traefik.http.routers.traefik-dashboard-http.entrypoints=web"
+      - "traefik.http.routers.traefik-dashboard-http.middlewares=redirect-to-https@file" # Stellt sicher, dass @file korrekt ist
+      # HTTPS Router für Dashboard
+      - "traefik.http.routers.traefik-dashboard-secure.rule=Host(`${TRAEFIK_DOMAIN}`)" # Domain anpassen!
+      - "traefik.http.routers.traefik-dashboard-secure.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard-secure.service=api@internal" # Interner Service für Dashboard/API [cite: 1026]
+      - "traefik.http.routers.traefik-dashboard-secure.tls=true"
+      - "traefik.http.routers.traefik-dashboard-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard-secure.tls.options=default" # TLS Optionen
+      - "traefik.http.routers.traefik-dashboard-secure.middlewares=dashboard-auth@file,contenttype-fix@file" # BasicAuth und ContentType-Fix [cite: 1096, 1130]
+
+networks:
+  l2p-network:
+    external: true # Das Netzwerk muss manuell erstellt werden: docker network create l2p-network
+
+volumes:
+  postgres_data:
+  # Das letsencrypt Volume wird implizit durch den Mount erstellt, wenn es nicht existiert.
+  # Aber acme.json darin braucht chmod 600 [cite: 1089]

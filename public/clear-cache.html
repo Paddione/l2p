@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache leeren - Learn2Play</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #3730a3;
+        }
+        .success {
+            color: #059669;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Learn2Play Cache leeren</h1>
+        
+        <div class="info">
+            <strong>Problem:</strong> Siehst du falsche nummerierte Spieler (0-19) im Spiel?<br>
+            <strong>Lösung:</strong> Leere deinen Browser-Cache und lokalen Speicher.
+        </div>
+        
+        <h3>Schritt 1: Browser-Daten löschen</h3>
+        <button onclick="clearLocalStorage()">Lokalen Speicher löschen</button>
+        <button onclick="clearSessionStorage()">Session-Speicher löschen</button>
+        <button onclick="clearAllStorage()">Alle Daten löschen</button>
+        
+        <div id="status"></div>
+        
+        <h3>Schritt 2: Manueller Browser-Cache</h3>
+        <p>Drücke <strong>Strg+Umschalt+R</strong> (oder <strong>Cmd+Umschalt+R</strong> auf Mac) für eine harte Seitenaktualisierung.</p>
+        
+        <h3>Schritt 3: Entwicklertools prüfen</h3>
+        <p>Falls du immer noch falsche Spieler siehst:</p>
+        <ol>
+            <li>Drücke <strong>F12</strong> um die Entwicklertools zu öffnen</li>
+            <li>Gehe zum <strong>Konsole</strong>-Tab</li>
+            <li>Schaue nach Fehlern oder Warnungen</li>
+            <li>Prüfe, ob Browser-Erweiterungen Inhalte einschleusen</li>
+        </ol>
+        
+        <h3>Schritt 4: Zurück zum Spiel</h3>
+        <button onclick="goToGame()">Zurück zu Learn2Play</button>
+    </div>
+
+    <script>
+        function clearLocalStorage() {
+            try {
+                localStorage.clear();
+                showStatus('✅ Lokaler Speicher erfolgreich geleert!');
+            } catch (error) {
+                showStatus('❌ Fehler beim Löschen des lokalen Speichers: ' + error.message);
+            }
+        }
+        
+        function clearSessionStorage() {
+            try {
+                sessionStorage.clear();
+                showStatus('✅ Session-Speicher erfolgreich geleert!');
+            } catch (error) {
+                showStatus('❌ Fehler beim Löschen des Session-Speichers: ' + error.message);
+            }
+        }
+        
+        function clearAllStorage() {
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Clear IndexedDB if available
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    });
+                }
+                
+                showStatus('✅ Alle Daten erfolgreich geleert!');
+            } catch (error) {
+                showStatus('❌ Fehler beim Löschen der Daten: ' + error.message);
+            }
+        }
+        
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.innerHTML = '<div class="success">' + message + '</div>';
+            setTimeout(() => {
+                status.innerHTML = '';
+            }, 3000);
+        }
+        
+        function goToGame() {
+            window.location.href = '/';
+        }
+        
+        // Auto-clear on page load
+        window.addEventListener('load', () => {
+            console.log('Cache-Leerungsseite geladen');
+            console.log('Aktuelle localStorage-Schlüssel:', Object.keys(localStorage));
+            console.log('Aktuelle sessionStorage-Schlüssel:', Object.keys(sessionStorage));
+        });
+    </script>
+</body>
+</html> 

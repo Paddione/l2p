@@ -1,0 +1,49 @@
+{
+  "name": "learn2play",
+  "version": "1.5.0",
+  "type": "module",
+  "description": "Learn2Play - Real-time multiplayer quiz game with dynamic scoring and leaderboards",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Use docker-compose up -d to start the application'",
+    "build": "echo 'Use docker-compose build to build the application'",
+    "rebuild": "./rebuild.sh",
+    "rebuild:clean": "./rebuild.sh --clean",
+    "logs": "docker-compose logs -f",
+    "logs:api": "docker-compose logs -f l2p-api",
+    "logs:app": "docker-compose logs -f l2p-app",
+    "status": "docker-compose ps",
+    "stop": "docker-compose stop",
+    "down": "docker-compose down",
+    "setup": "./scripts/setup-env.sh",
+    "dev-mode:enable": "./scripts/enable-dev-mode.sh",
+    "dev-mode:disable": "./scripts/disable-dev-mode.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Paddione/l2p.git"
+  },
+  "keywords": [
+    "quiz",
+    "game",
+    "multiplayer",
+    "education",
+    "docker",
+    "nodejs",
+    "postgresql",
+    "traefik",
+    "real-time",
+    "learn2play"
+  ],
+  "author": "Patrick",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Paddione/l2p/issues"
+  },
+  "homepage": "https://github.com/Paddione/l2p#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "docker": ">=20.0.0",
+    "docker-compose": ">=2.0.0"
+  }
+}

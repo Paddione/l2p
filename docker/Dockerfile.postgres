@@ -1,0 +1,43 @@
+# Optimized PostgreSQL container
+FROM postgres:15-alpine
+
+# Copy initialization scripts
+COPY backend/database/schema.sql /docker-entrypoint-initdb.d/01-init.sql
+
+# Set default environment variables (will be overridden by docker-compose)
+ENV POSTGRES_DB=learn2play \
+    POSTGRES_USER=l2p_user \
+    POSTGRES_PASSWORD=l2p_password \
+    POSTGRES_INITDB_ARGS="--data-checksums --encoding=UTF8 --locale=C"
+
+# Performance optimizations for PostgreSQL
+ENV POSTGRES_SHARED_BUFFERS=256MB \
+    POSTGRES_EFFECTIVE_CACHE_SIZE=1GB \
+    POSTGRES_MAINTENANCE_WORK_MEM=64MB \
+    POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9 \
+    POSTGRES_WAL_BUFFERS=16MB \
+    POSTGRES_DEFAULT_STATISTICS_TARGET=100 \
+    POSTGRES_RANDOM_PAGE_COST=1.1 \
+    POSTGRES_EFFECTIVE_IO_CONCURRENCY=200
+
+# Create custom postgresql.conf with optimizations
+RUN echo "# Performance optimizations" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "shared_buffers = 256MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "effective_cache_size = 1GB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "maintenance_work_mem = 64MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "checkpoint_completion_target = 0.9" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "wal_buffers = 16MB" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "default_statistics_target = 100" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "random_page_cost = 1.1" >> /usr/local/share/postgresql/postgresql.conf.sample \
+    && echo "effective_io_concurrency = 200" >> /usr/local/share/postgresql/postgresql.conf.sample
+
+# Expose port
+EXPOSE 5432
+
+# Health check with environment variable support
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+    CMD pg_isready -U $POSTGRES_USER -d $POSTGRES_DB || exit 1
+
+# Use the default postgres entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["postgres"] 
