@@ -597,12 +597,12 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
         }
         
         if (questionCount < 1) {
-            showNotification('Number of questions must be at least 1', 'error');
+            showNotification(t('ERRORS.QUESTION_COUNT_MIN_ONE'), 'error');
             return;
         }
         
         if (questionCount > maxQuestions) {
-            showNotification(`Maximum ${maxQuestions} questions available in this set`, 'error');
+            showNotification(t('ERRORS.QUESTION_COUNT_EXCEEDS_MAX', `Maximum ${maxQuestions} questions available in this set`), 'error');
             return;
         }
 
@@ -1262,8 +1262,8 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
                         <h4>${currentLobby.question_set.name}</h4>
                         <p>${currentLobby.question_set.description || 'No description available'}</p>
                         <div class="question-set-stats">
-                            <span class="question-count">${currentLobby.question_set.question_count} questions available</span>
-                            <span class="question-set-badge">Selected</span>
+                            <span class="question-count">${currentLobby.question_set.question_count} ${t('QUESTION_SETS.QUESTIONS_AVAILABLE')}</span>
+                            <span class="question-set-badge">${t('QUESTION_SETS.SELECTED')}</span>
                         </div>
                     </div>
                 </div>
@@ -1292,8 +1292,8 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
             } else {
                 selectedQuestionSetDiv.innerHTML = `
                     <div class="no-selection">
-                        <p>Waiting for host to choose a question set</p>
-                        <p class="help-text">The host will select questions for the game</p>
+                        <p>${t('LOBBY.WAITING_FOR_HOST_QUESTION_SET')}</p>
+                        <p class="help-text">${t('LOBBY.HOST_WILL_SELECT_QUESTIONS')}</p>
                     </div>
                 `;
             }
@@ -1349,7 +1349,6 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
                     } else {
                         questionCountInfo.innerHTML = `
                             <div class="question-count-status">
-                                <span class="no-count">${isHost ? `Set the number of questions for this game (1-${currentLobby.question_set.question_count})` : `Waiting for host to set the number of questions (1-${currentLobby.question_set.question_count} available)`}</span>
                             </div>
                         `;
                         questionCountInfo.classList.remove('has-count');

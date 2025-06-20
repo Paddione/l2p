@@ -126,7 +126,7 @@ export function initQuestionSetSelector(questionSetsApi, screenManager, lobbyMan
                 </div>
             </div>
             <div class="question-set-card-badge">
-                <span>Select</span>
+                <span>${t('QUESTION_SETS.SELECT')}</span>
             </div>
         `;
 
@@ -198,13 +198,13 @@ export function initQuestionSetSelector(questionSetsApi, screenManager, lobbyMan
         } else if (value > maxQuestions) {
             selectedQuestionCount = null;
             if (validationDiv) {
-                validationDiv.textContent = `Maximal ${maxQuestions} Fragen verfügbar.`;
+                validationDiv.textContent = t('ERRORS.QUESTION_COUNT_EXCEEDS_MAX', `Maximal ${maxQuestions} Fragen verfügbar.`);
                 validationDiv.className = 'question-count-validation error';
             }
         } else {
             selectedQuestionCount = value;
             if (validationDiv) {
-                validationDiv.textContent = `${value} Fragen ausgewählt.`;
+                validationDiv.textContent = t('QUESTION_SETS.QUESTIONS_SELECTED', `${value} Fragen ausgewählt.`);
                 validationDiv.className = 'question-count-validation success';
             }
         }
@@ -236,12 +236,12 @@ export function initQuestionSetSelector(questionSetsApi, screenManager, lobbyMan
         }
 
         if (!selectedQuestionCount || selectedQuestionCount <= 0) {
-            showToast('Please enter a valid question count', 'warning');
+            showToast(t('ERRORS.INVALID_QUESTION_COUNT'), 'warning');
             return;
         }
 
         if (!currentUser) {
-            showToast('Please log in first', 'error');
+            showToast(t('ERRORS.PLEASE_LOGIN_FIRST'), 'error');
             return;
         }
 

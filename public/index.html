@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Learn2Play</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <link rel="stylesheet" href="/css/main.css">
@@ -517,7 +517,7 @@
         #back-to-menu-join:hover {
             background: var(--gray-300);
         }
-        /* Volume Controls */
+        /* Volume Controls - Top bar with theme and language only */
         .volume-controls {
             position: fixed;
             top: 0;
@@ -526,24 +526,119 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
-            padding: 0.75rem 1rem;
+            padding: clamp(0.375rem, 1.5vh, 0.75rem) clamp(0.5rem, 2vw, 1rem);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 2rem;
+            gap: clamp(1rem, 4vw, 2rem);
             z-index: 999;
             box-shadow: 0 2px 4px var(--shadow);
+            height: var(--top-bar-height);
+            min-height: var(--top-bar-height);
+            max-height: var(--top-bar-height);
+            overflow: hidden;
         }
 
         [data-theme="dark"] .volume-controls {
             background: rgba(31, 41, 55, 0.95);
         }
 
+        /* Bottom Volume Controls - New bottom menubar */
+        .bottom-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border);
+            padding: clamp(0.375rem, 1.5vh, 0.75rem) clamp(0.5rem, 2vw, 1rem);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: clamp(1rem, 4vw, 2rem);
+            z-index: 999;
+            box-shadow: 0 -2px 4px var(--shadow);
+            height: var(--bottom-bar-height);
+            min-height: var(--bottom-bar-height);
+            max-height: var(--bottom-bar-height);
+            overflow: hidden;
+        }
+
+        [data-theme="dark"] .bottom-controls {
+            background: rgba(31, 41, 55, 0.95);
+        }
+
         .volume-control {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            min-width: 150px;
+            gap: clamp(0.375rem, 1vw, 0.5rem);
+            min-width: clamp(120px, 20vw, 180px);
+            max-width: clamp(180px, 25vw, 220px);
+        }
+
+        .volume-icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            position: relative;
+            min-width: 40px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .volume-icon-btn:hover {
+            background: var(--gray-100);
+            transform: scale(1.05);
+        }
+
+        [data-theme="dark"] .volume-icon-btn:hover {
+            background: var(--gray-600);
+        }
+
+        .volume-icon-btn.muted {
+            position: relative;
+        }
+
+        .volume-icon-btn.muted::after {
+            content: '❌';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 0.6rem;
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Volume icon buttons should have consistent styling with other buttons */
+        .volume-icon-btn {
+            border: 1px solid transparent;
+        }
+
+        .volume-icon-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .volume-icon-btn.muted {
+            opacity: 0.7;
+        }
+
+        .volume-icon-btn.muted:hover {
+            opacity: 1;
         }
 
         .volume-control label {
@@ -551,6 +646,7 @@
             font-weight: 500;
             color: var(--text-secondary);
             white-space: nowrap;
+            display: none; /* Hide text labels, only show icons */
         }
 
         .volume-control input[type="range"] {
@@ -600,6 +696,11 @@
             text-align: center;
         }
 
+        /* Adjust body padding for bottom controls */
+        body {
+            padding-bottom: 4rem; /* Space for bottom controls */
+        }
+
         /* Language Controls */
         .language-controls {
             display: flex;
@@ -620,6 +721,7 @@
             transition: all 0.2s ease;
             font-size: 1.2rem;
             backdrop-filter: blur(5px);
+            color: var(--text-secondary);
         }
 
         .language-btn:hover {
@@ -638,6 +740,23 @@
         .language-btn.active:hover {
             background: var(--secondary);
             border-color: var(--secondary);
+        }
+
+        /* Dark mode support for language buttons */
+        [data-theme="dark"] .language-btn {
+            background: rgba(31, 41, 55, 0.8);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .language-btn:hover {
+            background: rgba(55, 65, 81, 0.95);
+        }
+
+        [data-theme="dark"] .language-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
         }
 
         /* Theme Controls */
@@ -690,37 +809,54 @@
             border-color: var(--secondary);
         }
 
-        /* Hide volume controls on very small screens */
-        @media (max-width: 480px) {
-            .volume-controls {
-                padding: 0.5rem;
-                gap: 1rem;
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .volume-controls, .bottom-controls {
+                gap: clamp(0.5rem, 2vw, 1rem);
             }
             
             .volume-control {
-                min-width: 120px;
+                min-width: clamp(100px, 18vw, 140px);
+                max-width: clamp(140px, 22vw, 180px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .volume-controls, .bottom-controls {
+                padding: clamp(0.25rem, 1vh, 0.5rem) clamp(0.375rem, 1.5vw, 0.75rem);
+                gap: clamp(0.5rem, 2vw, 1rem);
+            }
+            
+            .volume-control {
+                min-width: clamp(90px, 16vw, 120px);
+                max-width: clamp(120px, 20vw, 150px);
             }
             
             .volume-control label {
-                font-size: 0.75rem;
+                font-size: clamp(0.65rem, 1.5vw, 0.75rem);
             }
 
-            .language-btn {
-                width: 35px;
-                height: 28px;
-                font-size: 1rem;
+            .language-btn, .theme-btn, .volume-icon-btn {
+                width: clamp(28px, 8vw, 35px);
+                height: clamp(24px, 6vh, 28px);
+                font-size: clamp(0.8rem, 2vw, 1rem);
             }
+        }
 
-            .theme-btn {
-                width: 35px;
-                height: 28px;
-                font-size: 1rem;
+        @media (max-width: 360px) {
+            .volume-controls, .bottom-controls {
+                gap: clamp(0.375rem, 1.5vw, 0.75rem);
+            }
+            
+            .volume-control {
+                min-width: clamp(80px, 15vw, 100px);
+                max-width: clamp(100px, 18vw, 130px);
             }
         }
     </style>
 </head>
 <body>
-    <!-- Volume Controls -->
+    <!-- Top Controls - Theme and Language -->
     <div class="volume-controls">
         <div class="theme-controls">
             <button id="theme-light" class="theme-btn active" data-theme="light" title="Light Mode" data-i18n-title="THEME.LIGHT_MODE">
@@ -730,16 +866,6 @@
                 🌙
             </button>
         </div>
-        <div class="volume-control">
-            <label for="music-volume" data-i18n="VOLUME.MUSIC">🎵 Musik</label>
-            <input type="range" id="music-volume" min="0" max="100" value="30">
-            <span class="volume-value" id="music-volume-value">30%</span>
-        </div>
-        <div class="volume-control">
-            <label for="sound-volume" data-i18n="VOLUME.EFFECTS">🔊 Effekte</label>
-            <input type="range" id="sound-volume" min="0" max="100" value="13">
-            <span class="volume-value" id="sound-volume-value">13%</span>
-        </div>
         <div class="language-controls">
             <button id="language-de" class="language-btn active" data-lang="de" title="Auf Deutsch wechseln">
                 🇩🇪
@@ -747,6 +873,24 @@
             <button id="language-en" class="language-btn" data-lang="en" title="Switch to English">
                 🇺🇸
             </button>
+        </div>
+    </div>
+
+    <!-- Bottom Controls - Volume -->
+    <div class="bottom-controls">
+        <div class="volume-control">
+            <button id="music-mute-btn" class="volume-icon-btn" title="Toggle Music Mute" data-i18n-title="VOLUME.TOGGLE_MUSIC">
+                🎵
+            </button>
+            <input type="range" id="music-volume" min="0" max="100" value="30">
+            <span class="volume-value" id="music-volume-value">30%</span>
+        </div>
+        <div class="volume-control">
+            <button id="sound-mute-btn" class="volume-icon-btn" title="Toggle Sound Effects Mute" data-i18n-title="VOLUME.TOGGLE_EFFECTS">
+                🔊
+            </button>
+            <input type="range" id="sound-volume" min="0" max="100" value="13">
+            <span class="volume-value" id="sound-volume-value">13%</span>
         </div>
     </div>
 
@@ -773,7 +917,7 @@
     <div id="auth-screen" class="screen">
         <div class="auth-container">
             <form id="auth-form" class="auth-form">
-                <h2 data-i18n="AUTH.WELCOME">Willkommen bei Quiz Spiel</h2>
+                <h2 data-i18n="AUTH.WELCOME">Willkommen bei Learn2Play</h2>
                 <div class="form-group">
                     <input type="text" id="username" data-i18n-placeholder="AUTH.USERNAME" placeholder="Benutzername" required>
                 </div>
@@ -803,7 +947,7 @@
 
     <div id="main-menu-screen" class="screen">
         <div class="menu-container">
-            <h1 data-i18n="MAIN_MENU.TITLE">Quiz Spiel</h1>
+            <h1 data-i18n="MAIN_MENU.TITLE">L2P</h1>
             <div class="menu-buttons">
                 <button id="create-game-btn" data-i18n="MAIN_MENU.CREATE_GAME">Spiel erstellen</button>
                 <button id="join-game-btn" data-i18n="MAIN_MENU.JOIN_GAME">Spiel beitreten</button>

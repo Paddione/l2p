@@ -28,6 +28,14 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Local**: http://localhost:8080
 - **Production**: https://your-domain.com
 
+## 📋 Recent Changes
+
+### UI Updates
+- **Title Consistency**: Updated login screen and main menu titles to display "Learn2Play" consistently across all languages (previously showed "Quiz Game" in English and "Quiz Spiel" in German)
+- **Dark Mode Input Fields**: Fixed white background input fields to properly display with dark backgrounds in dark mode, improving visibility and theme consistency
+- **Dark Mode Question Set Areas**: Fixed question set selection containers and question count sections to use dark backgrounds in dark mode, ensuring complete theme consistency
+- **Simplified Question Count UI**: Removed explanatory text block from question count section to create a cleaner, less cluttered interface
+
 ## ✨ Features
 
 ### 🎯 Real-Time Multiplayer Gaming
@@ -46,8 +54,15 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Formula**: `(60 - seconds_elapsed) × personal_multiplier`
 
 ### 🎵 Immersive Audio Experience
-- **33 Sound Effects**: Complete audio system with categorized sounds
-- **Progressive Feedback**: Streak-based sound effects (`correct1.mp3` through `correct5.mp3`)
+- **32 Sound Effects**: Complete audio system with categorized sounds
+  - **Game Sounds**: `correct1.mp3` through `correct5.mp3` for streak feedback
+  - **UI Sounds**: `button-click.mp3`, `button-hover.mp3`, `modal-open.mp3`, `modal-close.mp3`
+  - **Notification Sounds**: `player-join.mp3`, `player-leave.mp3`, `player-ready.mp3`
+  - **Timer Sounds**: `timer-warning.mp3`, `timer-urgent.mp3`, `countdown-tick.mp3`
+  - **Special Effects**: `applause.mp3`, `sparkle.mp3`, `whoosh.mp3`, `combobreaker.mp3`
+  - **Achievement Sounds**: `high-score.mp3`, `perfect-score.mp3`, `streak-bonus.mp3`, `multiplier-max.mp3`
+- **Background Music**: Ambient music track for immersive gameplay
+- **Progressive Feedback**: Streak-based sound effects for consecutive correct answers
 - **Independent Volume Controls**: Separate music and sound effects sliders
 - **Persistent Settings**: Volume preferences saved to localStorage
 
@@ -71,6 +86,7 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Responsive Design**: Optimized for desktop, tablet, and mobile
 - **Interactive Help System**: 6-section comprehensive documentation
 - **Loading States**: Progress indicators throughout the application
+- **Visual Assets**: SVG graphics including knowledge map and quiz pattern designs
 
 ## 🏗️ Architecture
 
@@ -96,7 +112,8 @@ learn2play/
 │   ├── routes/           # API endpoints
 │   ├── models/           # Data models
 │   ├── database/         # DB configuration & schemas
-│   └── middleware/       # Express middleware
+│   ├── middleware/       # Express middleware
+│   └── scripts/          # Database management tools
 ├── 📁 public/            # Frontend application
 │   ├── js/               # JavaScript modules
 │   │   ├── api/          # API communication
@@ -107,6 +124,7 @@ learn2play/
 │   └── assets/           # Images & audio files
 ├── 📁 docker/            # Docker build files
 ├── 📁 traefik_config/    # Reverse proxy config
+├── 📁 scripts/           # Setup and management scripts
 └── 📄 docker-compose.yml # Container orchestration
 ```
 
@@ -130,6 +148,14 @@ npm run setup -- \
   --traefik-pass=SecurePassword123! \
   --env-type=production
 ```
+
+The setup script will:
+- Generate secure JWT secrets
+- Create Traefik dashboard authentication
+- Configure SSL certificates
+- Set up database credentials
+- Configure CORS origins
+- Create production-ready `.env` file
 
 #### Manual Setup
 ```bash
@@ -157,7 +183,26 @@ npm run dev-mode:disable  # Disable development mode
 # Database Management
 docker-compose exec l2p-api node backend/scripts/db-manager.js status
 docker-compose exec l2p-api node backend/scripts/db-manager.js init
+docker-compose exec l2p-api node backend/scripts/db-manager.js reset --force
 ```
+
+### Database Management
+
+The `db-manager.js` script provides comprehensive database operations:
+
+#### Available Commands
+- **`status`**: Check current database status and required tables
+- **`init`**: Initialize or update database schema (safe, preserves data)
+- **`init --force`**: Reset and reinitialize database (destructive)
+- **`reset --force`**: Complete database reset (destructive)
+
+#### Database Schema
+The application uses the following tables:
+- **`users`**: User accounts and authentication
+- **`hall_of_fame`**: Leaderboard entries with scores and statistics
+- **`lobbies`**: Active game lobbies
+- **`lobby_players`**: Player-lobby relationships
+- **`question_sets`**: Question set metadata and content
 
 ### Making Changes
 1. **Frontend**: Edit files in `public/`, refresh browser
@@ -168,19 +213,40 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 
 ### Production Deployment
 1. **Configure Environment**: Set up `.env` file with production values
-2. **Start Services**: `docker-compose up -d`
-3. **Initialize Database**: `docker-compose exec l2p-api node backend/scripts/db-manager.js init`
-4. **Verify Health**: Check `https://your-domain.com/api/health`
+2. **Create Docker Network**: `docker network create l2p-network`
+3. **Start Services**: `docker-compose up -d`
+4. **Initialize Database**: `docker-compose exec l2p-api node backend/scripts/db-manager.js init`
+5. **Verify Health**: Check `https://your-domain.com/api/health`
 
 ### SSL Configuration
 - Automatic SSL via Let's Encrypt and Traefik
 - Certificates stored in `letsencrypt/` directory
 - Automatic renewal handled by Traefik
+- Secure file permissions: `chmod 600 letsencrypt/acme.json`
 
 ### Health Checks
 - **Backend**: `GET /api/health` - Service status and database connectivity
 - **Frontend**: `GET /` - Static file serving
 - **Database**: PostgreSQL health checks with schema validation
+- **Traefik**: Built-in ping healthcheck
+
+## 🛠️ Scripts & Utilities
+
+### Setup Scripts
+- **`scripts/setup-env.sh`**: Automated environment configuration
+- **`scripts/enable-dev-mode.sh`**: Enable development mode with cache clearing
+- **`scripts/disable-dev-mode.sh`**: Disable development mode
+- **`rebuild.sh`**: Quick application rebuild script
+
+### Database Scripts
+- **`backend/scripts/db-manager.js`**: Comprehensive database management tool
+
+### Development Mode
+Development mode provides:
+- Forced cache clearing on application startup
+- Enhanced logging and debugging
+- Automatic frontend cache invalidation
+- Development-specific middleware
 
 ## 🔍 API Documentation
 
@@ -204,6 +270,11 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - `POST /api/hall-of-fame` - Submit new score
 - `GET /api/hall-of-fame/leaderboard/:catalog` - Catalog-specific leaderboard
 
+### Question Set Endpoints
+- `GET /api/question-sets` - List available question sets
+- `POST /api/question-sets` - Upload new question set
+- `GET /api/question-sets/:id` - Get specific question set
+
 ## 🚨 Troubleshooting
 
 ### Common Issues
@@ -226,12 +297,33 @@ docker-compose logs traefik
 - Check `docker-compose ps` - all services should be "healthy"
 - Test API health: `curl http://localhost/api/health`
 
+**Docker Network Issues**
+```bash
+docker network create l2p-network
+docker-compose up -d
+```
+
 ### Debug Commands
 ```bash
 docker-compose ps                    # Service status
 docker-compose logs [service-name]   # Service logs
 curl http://localhost/api/health     # API health check
+docker-compose exec l2p-api node backend/scripts/db-manager.js status  # Database status
 ```
+
+## 📈 Performance & Monitoring
+
+### Health Monitoring
+- **Service Health Checks**: Automatic health monitoring for all services
+- **Database Monitoring**: Connection pool status and query performance
+- **Load Balancer**: Traefik health checks with automatic failover
+- **SSL Certificate Monitoring**: Automatic renewal and expiry tracking
+
+### Performance Features
+- **Database Connection Pooling**: Optimized PostgreSQL connections
+- **Static Asset Caching**: Frontend asset optimization
+- **Rate Limiting**: API protection with configurable limits
+- **Compression**: Gzip compression for all responses
 
 ## 🔄 Recent Updates
 
@@ -242,45 +334,37 @@ curl http://localhost/api/health     # API health check
 - **🔒 Security**: Enhanced JWT handling and input validation
 - **🐳 Docker**: Multi-stage builds and performance optimizations
 
-### Bug Fixes (Latest)
-- **🔢 Question Count Field Dark Mode**: Fixed question count input field under "Fragensatz" appearing too light in dark mode - enhanced contrast by using darker background (gray-800) for better visibility
-- **🎮 Join Game Screen Dark Mode**: Fixed join game screen (Spiel beitreten) not displaying correctly in dark mode - added comprehensive dark theme styling for join-game-container, lobby lists, manual join forms, input fields, buttons, and all related UI components including modal overlays
-- **🔧 Help System Dark Mode**: Fixed Help (Hilfe) page and modal system not displaying correctly in dark mode - added comprehensive dark theme styling for help navigation, content sections, and modal overlays with proper contrast and theming
-- **🎭 Modal System Enhancement**: Added general modal overlay support with dark mode compatibility for all modal dialogs including Help system, ensuring consistent theming across all modal components
-- **💾 Save Score Dark Mode**: Fixed "Save Your Score" button and Hall of Fame section in game results not displaying correctly in dark mode - added comprehensive dark theme styling for hall-of-fame-section, success/error messages, and secondary buttons
-- **🏆 Hall of Fame Dark Mode**: Fixed Hall of Fame visibility issues where white text on white background made elements invisible in dark mode - added comprehensive dark theme styling for all Hall of Fame components, leaderboard entries, selectors, and text elements
-- **🌙 Dark Mode**: Extended dark theme support to question set selection menus and "meine Sätze" (my sets) section
-- **🎨 UI Consistency**: Added complete dark mode styling for question set modals, cards, upload sections, and form controls
-- **⏱️ Timer Dark Mode**: Fixed timer/counter elements not displaying correctly in dark mode - added proper dark theme styles for all timer variants (normal, warning, danger)
-- **🔢 Counter Elements**: Enhanced dark mode support for player count, question count, and other counter displays
-- Fixed lobby player count display showing "0/8" instead of actual count
-- Resolved question set upload field name mismatch
-- Corrected authentication screen references
-- Enhanced error handling for session expiration
-- **🔧 Upload JSON Button Fix**: Fixed upload JSON button being greyed out/disabled by adding proper authentication checks, ensuring the button is only enabled when user is logged in and a valid JSON file is selected
+### Audio System Enhancements
+- **Complete Audio Library**: 32 categorized sound effects for immersive gameplay
+- **Background Music**: Ambient soundtrack for enhanced user experience
+- **Progressive Audio Feedback**: Streak-based sound progression system
+- **Volume Control**: Independent music and sound effects controls
 
-## 📞 Support & Contributing
+### Database Improvements
+- **Advanced Management**: Comprehensive database management tools
+- **Schema Validation**: Automatic database structure verification
+- **Safe Migrations**: Non-destructive database updates
+- **Health Monitoring**: Real-time database status checking
 
-### Getting Help
-- Check the **Troubleshooting** section above
-- Review logs: `npm run logs`
-- Test API health: `curl http://localhost/api/health`
+## 🤝 Contributing
 
-### Contributing
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+1. **Fork the Repository**: Create your own fork of the project
+2. **Create Feature Branch**: `git checkout -b feature/amazing-feature`
+3. **Make Changes**: Implement your feature or fix
+4. **Test Thoroughly**: Ensure all tests pass and features work
+5. **Update Documentation**: Add relevant documentation
+6. **Commit Changes**: `git commit -m 'Add amazing feature'`
+7. **Push to Branch**: `git push origin feature/amazing-feature`
+8. **Open Pull Request**: Create a detailed pull request
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+## 🙏 Acknowledgments
 
-**Version**: 1.6.0  
-**Status**: Production Ready  
-**Last Updated**: January 2025
-
-Built with ❤️ for multiplayer quiz gaming
+- **Traefik**: For excellent reverse proxy and SSL management
+- **PostgreSQL**: For robust database performance
+- **Docker**: For containerization and deployment simplification
+- **Let's Encrypt**: For free SSL certificates
+- **Audio Assets**: Custom sound effects and music for immersive experience

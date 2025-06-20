@@ -46,8 +46,15 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Formel**: `(60 - vergangene_sekunden) × persönlicher_multiplikator`
 
 ### 🎵 Immersive Audio-Erfahrung
-- **33 Soundeffekte**: Vollständiges Audio-System mit kategorisierten Sounds
-- **Progressive Rückmeldung**: Streak-basierte Soundeffekte (`correct1.mp3` bis `correct5.mp3`)
+- **32 Soundeffekte**: Vollständiges Audio-System mit kategorisierten Sounds
+  - **Spiel-Sounds**: `correct1.mp3` bis `correct5.mp3` für Streak-Feedback
+  - **UI-Sounds**: `button-click.mp3`, `button-hover.mp3`, `modal-open.mp3`, `modal-close.mp3`
+  - **Benachrichtigungs-Sounds**: `player-join.mp3`, `player-leave.mp3`, `player-ready.mp3`
+  - **Timer-Sounds**: `timer-warning.mp3`, `timer-urgent.mp3`, `countdown-tick.mp3`
+  - **Spezialeffekte**: `applause.mp3`, `sparkle.mp3`, `whoosh.mp3`, `combobreaker.mp3`
+  - **Achievement-Sounds**: `high-score.mp3`, `perfect-score.mp3`, `streak-bonus.mp3`, `multiplier-max.mp3`
+- **Hintergrundmusik**: Ambient-Musiktrack für immersives Gameplay
+- **Progressive Rückmeldung**: Streak-basierte Soundeffekte für aufeinanderfolgende richtige Antworten
 - **Unabhängige Lautstärkeregler**: Separate Musik- und Soundeffekt-Regler
 - **Persistente Einstellungen**: Lautstärke-Präferenzen werden in localStorage gespeichert
 
@@ -71,6 +78,7 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Responsive Design**: Optimiert für Desktop, Tablet und Mobilgeräte
 - **Interaktives Hilfesystem**: 6-Abschnitte umfassende Dokumentation
 - **Ladezustände**: Fortschrittsanzeigen in der gesamten Anwendung
+- **Visuelle Assets**: SVG-Grafiken einschließlich Wissenskarte und Quiz-Pattern-Designs
 
 ## 🏗️ Architektur
 
@@ -96,7 +104,8 @@ learn2play/
 │   ├── routes/           # API-Endpunkte
 │   ├── models/           # Datenmodelle
 │   ├── database/         # DB-Konfiguration & Schemas
-│   └── middleware/       # Express-Middleware
+│   ├── middleware/       # Express-Middleware
+│   └── scripts/          # Datenbankmanagement-Tools
 ├── 📁 public/            # Frontend-Anwendung
 │   ├── js/               # JavaScript-Module
 │   │   ├── api/          # API-Kommunikation
@@ -107,6 +116,7 @@ learn2play/
 │   └── assets/           # Bilder & Audio-Dateien
 ├── 📁 docker/            # Docker-Build-Dateien
 ├── 📁 traefik_config/    # Reverse-Proxy-Konfiguration
+├── 📁 scripts/           # Setup- und Management-Skripte
 └── 📄 docker-compose.yml # Container-Orchestrierung
 ```
 
@@ -130,6 +140,14 @@ npm run setup -- \
   --traefik-pass=SecurePassword123! \
   --env-type=production
 ```
+
+Das Setup-Skript wird:
+- Sichere JWT-Geheimnisse generieren
+- Traefik-Dashboard-Authentifizierung erstellen
+- SSL-Zertifikate konfigurieren
+- Datenbank-Anmeldedaten einrichten
+- CORS-Origins konfigurieren
+- Produktionsbereite `.env`-Datei erstellen
 
 #### Manuelle Einrichtung
 ```bash
@@ -157,7 +175,26 @@ npm run dev-mode:disable  # Entwicklungsmodus deaktivieren
 # Datenbankmanagement
 docker-compose exec l2p-api node backend/scripts/db-manager.js status
 docker-compose exec l2p-api node backend/scripts/db-manager.js init
+docker-compose exec l2p-api node backend/scripts/db-manager.js reset --force
 ```
+
+### Datenbankmanagement
+
+Das `db-manager.js`-Skript bietet umfassende Datenbankoperationen:
+
+#### Verfügbare Befehle
+- **`status`**: Aktuellen Datenbankstatus und erforderliche Tabellen prüfen
+- **`init`**: Datenbankschema initialisieren oder aktualisieren (sicher, erhält Daten)
+- **`init --force`**: Datenbank zurücksetzen und neu initialisieren (destruktiv)
+- **`reset --force`**: Vollständiger Datenbank-Reset (destruktiv)
+
+#### Datenbankschema
+Die Anwendung verwendet folgende Tabellen:
+- **`users`**: Benutzerkonten und Authentifizierung
+- **`hall_of_fame`**: Bestenlisten-Einträge mit Punkten und Statistiken
+- **`lobbies`**: Aktive Spiel-Lobbys
+- **`lobby_players`**: Spieler-Lobby-Beziehungen
+- **`question_sets`**: Fragensatz-Metadaten und -Inhalte
 
 ### Änderungen vornehmen
 1. **Frontend**: Dateien in `public/` bearbeiten, Browser aktualisieren
@@ -168,19 +205,40 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 
 ### Produktions-Deployment
 1. **Umgebung konfigurieren**: `.env`-Datei mit Produktionswerten einrichten
-2. **Services starten**: `docker-compose up -d`
-3. **Datenbank initialisieren**: `docker-compose exec l2p-api node backend/scripts/db-manager.js init`
-4. **Gesundheit überprüfen**: `https://ihre-domain.com/api/health` prüfen
+2. **Docker-Netzwerk erstellen**: `docker network create l2p-network`
+3. **Services starten**: `docker-compose up -d`
+4. **Datenbank initialisieren**: `docker-compose exec l2p-api node backend/scripts/db-manager.js init`
+5. **Gesundheit überprüfen**: `https://ihre-domain.com/api/health` prüfen
 
 ### SSL-Konfiguration
 - Automatisches SSL über Let's Encrypt und Traefik
 - Zertifikate im `letsencrypt/`-Verzeichnis gespeichert
 - Automatische Erneuerung durch Traefik
+- Sichere Dateiberechtigungen: `chmod 600 letsencrypt/acme.json`
 
 ### Gesundheitschecks
 - **Backend**: `GET /api/health` - Service-Status und Datenbankverbindung
 - **Frontend**: `GET /` - Statische Datei-Bereitstellung
 - **Datenbank**: PostgreSQL-Gesundheitschecks mit Schema-Validierung
+- **Traefik**: Eingebauter Ping-Gesundheitscheck
+
+## 🛠️ Skripte & Hilfsprogramme
+
+### Setup-Skripte
+- **`scripts/setup-env.sh`**: Automatisierte Umgebungskonfiguration
+- **`scripts/enable-dev-mode.sh`**: Entwicklungsmodus mit Cache-Clearing aktivieren
+- **`scripts/disable-dev-mode.sh`**: Entwicklungsmodus deaktivieren
+- **`rebuild.sh`**: Schnelles Anwendungs-Rebuild-Skript
+
+### Datenbank-Skripte
+- **`backend/scripts/db-manager.js`**: Umfassendes Datenbankmanagement-Tool
+
+### Entwicklungsmodus
+Der Entwicklungsmodus bietet:
+- Erzwungenes Cache-Clearing beim Anwendungsstart
+- Erweiterte Protokollierung und Debugging
+- Automatische Frontend-Cache-Invalidierung
+- Entwicklungsspezifische Middleware
 
 ## 🔍 API-Dokumentation
 
@@ -204,6 +262,11 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - `POST /api/hall-of-fame` - Neue Punktzahl einreichen
 - `GET /api/hall-of-fame/leaderboard/:catalog` - Katalog-spezifische Bestenliste
 
+### Fragensatz-Endpunkte
+- `GET /api/question-sets` - Verfügbare Fragensätze auflisten
+- `POST /api/question-sets` - Neuen Fragensatz hochladen
+- `GET /api/question-sets/:id` - Spezifischen Fragensatz abrufen
+
 ## 🚨 Fehlerbehebung
 
 ### Häufige Probleme
@@ -226,12 +289,33 @@ docker-compose logs traefik
 - `docker-compose ps` prüfen - alle Services sollten "healthy" sein
 - API-Gesundheit testen: `curl http://localhost/api/health`
 
+**Docker-Netzwerk-Probleme**
+```bash
+docker network create l2p-network
+docker-compose up -d
+```
+
 ### Debug-Befehle
 ```bash
 docker-compose ps                    # Service-Status
 docker-compose logs [service-name]   # Service-Logs
 curl http://localhost/api/health     # API-Gesundheitscheck
+docker-compose exec l2p-api node backend/scripts/db-manager.js status  # Datenbankstatus
 ```
+
+## 📈 Performance & Überwachung
+
+### Gesundheitsüberwachung
+- **Service-Gesundheitschecks**: Automatische Gesundheitsüberwachung für alle Services
+- **Datenbanküberwachung**: Connection-Pool-Status und Query-Performance
+- **Load Balancer**: Traefik-Gesundheitschecks mit automatischem Failover
+- **SSL-Zertifikat-Überwachung**: Automatische Erneuerung und Ablaufverfolgung
+
+### Performance-Features
+- **Datenbank-Connection-Pooling**: Optimierte PostgreSQL-Verbindungen
+- **Statisches Asset-Caching**: Frontend-Asset-Optimierung
+- **Rate Limiting**: API-Schutz mit konfigurierbaren Limits
+- **Komprimierung**: Gzip-Komprimierung für alle Antworten
 
 ## 🔄 Aktuelle Updates
 
@@ -242,34 +326,37 @@ curl http://localhost/api/health     # API-Gesundheitscheck
 - **🔒 Sicherheit**: Verbesserte JWT-Behandlung und Eingabevalidierung
 - **🐳 Docker**: Multi-Stage-Builds und Performance-Optimierungen
 
-### Fehlerbehebungen (Neueste)
-- Lobby-Spielerzahl-Anzeige behoben, die "0/8" statt der tatsächlichen Anzahl zeigte
-- Fragensatz-Upload-Feldnamen-Mismatch behoben
-- Authentifizierungs-Bildschirm-Referenzen korrigiert
-- Verbesserte Fehlerbehandlung für Session-Ablauf
+### Audio-System-Verbesserungen
+- **Vollständige Audio-Bibliothek**: 32 kategorisierte Soundeffekte für immersives Gameplay
+- **Hintergrundmusik**: Ambient-Soundtrack für verbesserte Benutzererfahrung
+- **Progressive Audio-Rückmeldung**: Streak-basiertes Sound-Progressionssystem
+- **Lautstärkeregelung**: Unabhängige Musik- und Soundeffekt-Kontrollen
 
-## 📞 Support & Beitrag
+### Datenbank-Verbesserungen
+- **Erweiterte Verwaltung**: Umfassende Datenbankmanagement-Tools
+- **Schema-Validierung**: Automatische Datenbankstruktur-Verifizierung
+- **Sichere Migrationen**: Nicht-destruktive Datenbank-Updates
+- **Gesundheitsüberwachung**: Echtzeit-Datenbankstatus-Prüfung
 
-### Hilfe erhalten
-- Prüfen Sie den **Fehlerbehebungs**-Abschnitt oben
-- Logs überprüfen: `npm run logs`
-- API-Gesundheit testen: `curl http://localhost/api/health`
+## 🤝 Mitwirken
 
-### Beitrag leisten
-1. Repository forken
-2. Feature-Branch erstellen: `git checkout -b feature/amazing-feature`
-3. Änderungen committen: `git commit -m 'Add amazing feature'`
-4. Zum Branch pushen: `git push origin feature/amazing-feature`
-5. Pull Request öffnen
+1. **Repository forken**: Erstellen Sie Ihren eigenen Fork des Projekts
+2. **Feature-Branch erstellen**: `git checkout -b feature/amazing-feature`
+3. **Änderungen vornehmen**: Implementieren Sie Ihr Feature oder Ihren Fix
+4. **Gründlich testen**: Stellen Sie sicher, dass alle Tests bestehen und Features funktionieren
+5. **Dokumentation aktualisieren**: Fügen Sie relevante Dokumentation hinzu
+6. **Änderungen committen**: `git commit -m 'Add amazing feature'`
+7. **Zu Branch pushen**: `git push origin feature/amazing-feature`
+8. **Pull Request öffnen**: Erstellen Sie einen detaillierten Pull Request
 
-## 📝 Lizenz
+## 📄 Lizenz
 
 Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe die [LICENSE](LICENSE)-Datei für Details.
 
----
+## 🙏 Danksagungen
 
-**Version**: 1.6.0  
-**Status**: Produktionsbereit  
-**Zuletzt aktualisiert**: Januar 2025
-
-Gebaut mit ❤️ für Multiplayer-Quiz-Gaming 
+- **Traefik**: Für exzellentes Reverse-Proxy und SSL-Management
+- **PostgreSQL**: Für robuste Datenbankperformance
+- **Docker**: Für Containerisierung und Deployment-Vereinfachung
+- **Let's Encrypt**: Für kostenlose SSL-Zertifikate
+- **Audio-Assets**: Benutzerdefinierte Soundeffekte und Musik für immersive Erfahrung 

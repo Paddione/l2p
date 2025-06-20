@@ -200,7 +200,7 @@ export function initGameController(lobbyManager, playerManager, storage, screenM
             }
         }
         
-        return 'Quiz Game';
+        return 'Learn2Play';
     }
 
     /**

@@ -10,7 +10,7 @@ let currentLanguage = localStorage.getItem('language') || 'de';
 const TRANSLATIONS_DE = {
     // Main Menu
     MAIN_MENU: {
-        TITLE: 'Quiz Spiel',
+        TITLE: 'Learn2Play',
         CREATE_GAME: 'Spiel erstellen',
         JOIN_GAME: 'Spiel beitreten',
         HALL_OF_FAME: 'Ruhmeshalle',
@@ -20,7 +20,7 @@ const TRANSLATIONS_DE = {
 
     // Authentication
     AUTH: {
-        WELCOME: 'Willkommen bei Quiz Spiel',
+        WELCOME: 'Willkommen bei Learn2Play',
         USERNAME: 'Benutzername',
         PASSWORD: 'Passwort',
         SIGN_IN: 'Anmelden',
@@ -95,7 +95,9 @@ const TRANSLATIONS_DE = {
         REJOIN_LOBBY: 'Lobby wieder beitreten',
         PLAYERS: 'Spieler (0/8)',
         QUESTION_COUNT_PLACEHOLDER: 'Anzahl der Fragen eingeben',
-        SET_COUNT: 'Anzahl festlegen'
+        SET_COUNT: 'Anzahl festlegen',
+        WAITING_FOR_HOST_QUESTION_SET: 'Warte auf Gastgeber um einen Fragensatz zu wählen',
+        HOST_WILL_SELECT_QUESTIONS: 'Der Gastgeber wählt die Fragen für das Spiel aus'
     },
 
     // Game
@@ -157,6 +159,8 @@ const TRANSLATIONS_DE = {
         QUESTIONS_COUNT: 'Fragen',
         SELECT: 'Auswählen',
         SELECTED: 'Ausgewählt',
+        QUESTIONS_AVAILABLE: 'Fragen verfügbar',
+        QUESTIONS_SELECTED: 'Fragen ausgewählt',
         QUESTION_COUNT_DESC: 'Wie viele Fragen sollen in diesem Spiel gestellt werden?',
         QUESTION_COUNT_PLACEHOLDER: 'Anzahl eingeben',
         AVAILABLE_QUESTIONS: 'verfügbaren Fragen',
@@ -195,7 +199,9 @@ const TRANSLATIONS_DE = {
     // Volume Controls
     VOLUME: {
         MUSIC: '🎵 Musik',
-        EFFECTS: '🔊 Effekte'
+        EFFECTS: '🔊 Effekte',
+        TOGGLE_MUSIC: 'Musik stumm schalten/aktivieren',
+        TOGGLE_EFFECTS: 'Effekte stumm schalten/aktivieren'
     },
 
     // Theme Controls
@@ -232,7 +238,10 @@ const TRANSLATIONS_DE = {
         QUESTION_COUNT_MIN_ONE: 'Die Anzahl der Fragen muss mindestens 1 betragen',
         NO_QUESTION_SET_SELECTED: 'Bitte wähle zunächst einen Fragensatz aus',
         SELECT_QUESTION_SET_FIRST: 'Bitte wähle zunächst einen Fragensatz aus, um die Anzahl der Fragen zu konfigurieren',
-        SET_QUESTION_COUNT_FIRST: 'Lege zunächst die Anzahl der Fragen fest'
+        SET_QUESTION_COUNT_FIRST: 'Lege zunächst die Anzahl der Fragen fest',
+        INVALID_QUESTION_COUNT: 'Bitte gib eine gültige Fragenanzahl ein',
+        PLEASE_LOGIN_FIRST: 'Bitte melde dich zuerst an',
+        QUESTION_COUNT_EXCEEDS_MAX: 'Maximale Anzahl an Fragen überschritten'
     },
 
     // Success Messages
@@ -466,7 +475,7 @@ const TRANSLATIONS_DE = {
 const TRANSLATIONS_EN = {
     // Main Menu
     MAIN_MENU: {
-        TITLE: 'Quiz Game',
+        TITLE: 'Learn2Play',
         CREATE_GAME: 'Create Game',
         JOIN_GAME: 'Join Game',
         HALL_OF_FAME: 'Hall of Fame',
@@ -476,7 +485,7 @@ const TRANSLATIONS_EN = {
 
     // Authentication
     AUTH: {
-        WELCOME: 'Welcome to Quiz Game',
+        WELCOME: 'Welcome to Learn2Play',
         USERNAME: 'Username',
         PASSWORD: 'Password',
         SIGN_IN: 'Sign In',
@@ -550,7 +559,9 @@ const TRANSLATIONS_EN = {
         REJOIN_LOBBY: 'Rejoin Lobby',
         PLAYERS: 'Players (0/8)',
         QUESTION_COUNT_PLACEHOLDER: 'Enter number of questions',
-        SET_COUNT: 'Set Count'
+        SET_COUNT: 'Set Count',
+        WAITING_FOR_HOST_QUESTION_SET: 'Waiting for host to choose a question set',
+        HOST_WILL_SELECT_QUESTIONS: 'The host will select questions for the game'
     },
 
     // Game
@@ -612,6 +623,8 @@ const TRANSLATIONS_EN = {
         QUESTIONS_COUNT: 'Questions',
         SELECT: 'Select',
         SELECTED: 'Selected',
+        QUESTIONS_AVAILABLE: 'questions available',
+        QUESTIONS_SELECTED: 'questions selected',
         QUESTION_COUNT_DESC: 'How many questions should be asked in this game?',
         QUESTION_COUNT_PLACEHOLDER: 'Enter number',
         AVAILABLE_QUESTIONS: 'available questions',
@@ -650,7 +663,9 @@ const TRANSLATIONS_EN = {
     // Volume Controls
     VOLUME: {
         MUSIC: '🎵 Music',
-        EFFECTS: '🔊 Effects'
+        EFFECTS: '🔊 Effects',
+        TOGGLE_MUSIC: 'Toggle Music Mute',
+        TOGGLE_EFFECTS: 'Toggle Sound Effects Mute'
     },
 
     // Theme Controls
@@ -690,7 +705,13 @@ const TRANSLATIONS_EN = {
         FAILED_TO_OPEN_HELP: 'Help could not be opened',
         FAILED_TO_START_NEW_GAME: 'New game could not be started',
         FAILED_TO_SHOW_HALL_OF_FAME: 'Hall of Fame could not be opened',
-        QUESTION_COUNT_MIN_ONE: 'Question count must be at least 1'
+        QUESTION_COUNT_MIN_ONE: 'Question count must be at least 1',
+        NO_QUESTION_SET_SELECTED: 'Please select a question set first',
+        SELECT_QUESTION_SET_FIRST: 'Please select a question set first to configure the number of questions',
+        SET_QUESTION_COUNT_FIRST: 'Please set the question count first',
+        INVALID_QUESTION_COUNT: 'Please enter a valid question count',
+        PLEASE_LOGIN_FIRST: 'Please log in first',
+        QUESTION_COUNT_EXCEEDS_MAX: 'Maximum number of questions exceeded'
     },
 
     // Success Messages
