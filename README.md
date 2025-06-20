@@ -243,6 +243,8 @@ curl http://localhost/api/health     # API health check
 - **🐳 Docker**: Multi-stage builds and performance optimizations
 
 ### Bug Fixes (Latest)
+- **🌙 Dark Mode**: Extended dark theme support to question set selection menus and "meine Sätze" (my sets) section
+- **🎨 UI Consistency**: Added complete dark mode styling for question set modals, cards, upload sections, and form controls
 - Fixed lobby player count display showing "0/8" instead of actual count
 - Resolved question set upload field name mismatch
 - Corrected authentication screen references

@@ -2430,6 +2430,181 @@
     color: var(--gray-200);
 }
 
+/* Dark mode styles for Question Set Modal */
+[data-theme="dark"] .question-set-modal {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .question-set-modal .modal-content {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-set-modal .modal-footer {
+    border-top-color: var(--border);
+}
+
+[data-theme="dark"] .question-set-tabs {
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .tab-btn {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .tab-btn:hover {
+    color: var(--primary);
+    background: var(--gray-100);
+}
+
+[data-theme="dark"] .tab-btn.active {
+    color: var(--primary);
+    background: var(--gray-100);
+}
+
+/* Dark mode styles for Question Set Items/Cards */
+[data-theme="dark"] .question-set-item {
+    border-color: var(--border);
+    background: var(--surface);
+}
+
+[data-theme="dark"] .question-set-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+[data-theme="dark"] .question-set-item.selected {
+    background: var(--success-light);
+}
+
+[data-theme="dark"] .question-set-card {
+    border-color: var(--border);
+    background: var(--surface);
+}
+
+[data-theme="dark"] .question-set-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+[data-theme="dark"] .question-set-card.selected {
+    background: var(--success-light);
+}
+
+[data-theme="dark"] .question-set-card-info h4 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .question-set-card-info p {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .question-set-card-meta {
+    color: var(--text-secondary);
+}
+
+/* Dark mode styles for Upload Sections */
+[data-theme="dark"] .upload-section {
+    border-color: var(--border);
+    background: var(--background);
+}
+
+[data-theme="dark"] .upload-questions-container {
+    background: var(--surface);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+[data-theme="dark"] .question-set-selection-container {
+    background: var(--surface);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+[data-theme="dark"] .file-upload input[type="file"] {
+    border-color: var(--border);
+    background: var(--background);
+}
+
+[data-theme="dark"] .file-upload input[type="file"]:hover {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .format-example {
+    background: var(--background);
+    border-color: var(--border);
+}
+
+/* Dark mode styles for Question Count Section */
+[data-theme="dark"] .question-count-section {
+    border-color: var(--border);
+    background: var(--gray-100);
+}
+
+[data-theme="dark"] .question-count-section h4 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-count-controls input {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-count-controls input:focus {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .question-count-controls input:disabled {
+    background-color: var(--gray-100);
+    color: var(--text-secondary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .question-count-info {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .question-count-info.has-count {
+    border-color: var(--success);
+    background: var(--success-light);
+}
+
+[data-theme="dark"] .question-count-validation.success {
+    background: var(--success-light);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+[data-theme="dark"] .question-count-validation.error {
+    background: var(--error);
+    color: var(--text-primary);
+    border-color: var(--error);
+}
+
+[data-theme="dark"] .total-available {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .no-count {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .host-only-note {
+    color: var(--text-secondary);
+}
+
+/* Dark mode styles for JSON textarea in upload section */
+[data-theme="dark"] textarea {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] textarea:focus {
+    border-color: var(--primary);
+}
+
 .upload-actions {
     display: flex;
     justify-content: center;
