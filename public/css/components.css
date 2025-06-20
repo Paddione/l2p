@@ -950,20 +950,20 @@
         gap: 1rem;
         text-align: center;
     }
-
+    
     .question-card {
         padding: 1.5rem;
         margin: 1rem;
     }
-
+    
     .question-text {
         font-size: 1.25rem;
     }
-
+    
     .player-list {
         grid-template-columns: 1fr;
     }
-
+    
     .answers-grid {
         grid-template-columns: 1fr;
     }
@@ -987,16 +987,16 @@
     .character-grid {
         grid-template-columns: repeat(4, 1fr);
     }
-
+    
     .question-card {
         padding: 1rem;
         border-radius: 1rem;
     }
-
+    
     .question-text {
         font-size: 1.1rem;
     }
-
+    
     .answer-btn {
         padding: 0.875rem;
         font-size: 0.9rem;
@@ -1005,7 +1005,7 @@
         overflow: hidden;
         box-sizing: border-box;
     }
-
+    
     .timer {
         font-size: 1.25rem;
         padding: 0.5rem 1rem;
@@ -2671,7 +2671,7 @@
 
 [data-theme="dark"] .question-count-controls input {
     border-color: var(--border);
-    background: var(--surface);
+    background: var(--gray-800, #1f2937);
     color: var(--text-primary);
 }
 
@@ -2686,7 +2686,7 @@
 }
 
 [data-theme="dark"] .question-count-info {
-    background: var(--surface);
+    background: var(--gray-800, #1f2937);
     border-color: var(--border);
     color: var(--text-primary);
 }
@@ -2925,4 +2925,181 @@
 [data-theme="dark"] .close-modal:hover {
     background: var(--gray-200);
     color: var(--text-primary);
+}
+
+/* Dark Mode styles for Join Game Screen */
+[data-theme="dark"] .join-game-container {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .join-game-container h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .active-lobbies h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .manual-join h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .lobby-list {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .lobby-item {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .lobby-item:hover {
+    background: var(--gray-100);
+}
+
+[data-theme="dark"] .lobby-code {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .lobby-host {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .lobby-players {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .join-lobby-form input {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .join-lobby-form input:focus {
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .join-lobby-form input::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .join-btn {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .join-btn:hover {
+    background: var(--secondary);
+}
+
+[data-theme="dark"] .loading {
+    background: var(--gray-100);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border-color: var(--error);
+}
+
+[data-theme="dark"] #back-to-menu-join {
+    background: var(--gray-100);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] #back-to-menu-join:hover {
+    background: var(--gray-200);
+}
+
+[data-theme="dark"] .join-game-screen .screen {
+    background: var(--background);
+}
+
+/* Dark Mode styles for Join Lobby Modal */
+[data-theme="dark"] #join-lobby-modal .modal-content {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #join-lobby-modal .modal-header {
+    border-color: var(--border);
+}
+
+[data-theme="dark"] #join-lobby-modal .modal-header h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #join-lobby-modal .active-lobbies h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #join-lobby-modal .manual-join h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #join-lobby-modal .lobby-list {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] #join-lobby-modal .join-lobby-form input {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #join-lobby-modal .join-lobby-form input::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] #join-lobby-modal .join-lobby-form button {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] #join-lobby-modal .join-lobby-form button:hover {
+    background: var(--secondary);
+}
+
+/* Dark Mode styles for Manual Join section */
+[data-theme="dark"] .manual-join {
+    border-color: var(--border);
+}
+
+/* Additional Join Game Screen Elements */
+[data-theme="dark"] .join-game-container .active-lobbies {
+    background: transparent;
+}
+
+[data-theme="dark"] .join-game-container .manual-join {
+    background: transparent;
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .join-game-form {
+    background: transparent;
+}
+
+[data-theme="dark"] .join-game-form input {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .join-game-form input::placeholder {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .join-game-form button {
+    background: var(--primary);
+    color: white;
+}
+
+[data-theme="dark"] .join-game-form button:hover {
+    background: var(--secondary);
 }

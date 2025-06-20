@@ -243,6 +243,8 @@ curl http://localhost/api/health     # API health check
 - **🐳 Docker**: Multi-stage builds and performance optimizations
 
 ### Bug Fixes (Latest)
+- **🔢 Question Count Field Dark Mode**: Fixed question count input field under "Fragensatz" appearing too light in dark mode - enhanced contrast by using darker background (gray-800) for better visibility
+- **🎮 Join Game Screen Dark Mode**: Fixed join game screen (Spiel beitreten) not displaying correctly in dark mode - added comprehensive dark theme styling for join-game-container, lobby lists, manual join forms, input fields, buttons, and all related UI components including modal overlays
 - **🔧 Help System Dark Mode**: Fixed Help (Hilfe) page and modal system not displaying correctly in dark mode - added comprehensive dark theme styling for help navigation, content sections, and modal overlays with proper contrast and theming
 - **🎭 Modal System Enhancement**: Added general modal overlay support with dark mode compatibility for all modal dialogs including Help system, ensuring consistent theming across all modal components
 - **💾 Save Score Dark Mode**: Fixed "Save Your Score" button and Hall of Fame section in game results not displaying correctly in dark mode - added comprehensive dark theme styling for hall-of-fame-section, success/error messages, and secondary buttons

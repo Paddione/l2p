@@ -40,6 +40,12 @@
             position: relative;
         }
 
+        /* Dark mode support for inline modal styles */
+        [data-theme="dark"] .modal-content {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -52,6 +58,14 @@
         .modal-header h2 {
             margin: 0;
             color: var(--primary);
+        }
+
+        [data-theme="dark"] .modal-header {
+            border-color: var(--border);
+        }
+
+        [data-theme="dark"] .modal-header h2 {
+            color: var(--text-primary);
         }
 
         .close-modal {
@@ -93,6 +107,16 @@
         .join-lobby-form input:focus {
             outline: none;
             border-color: var(--primary);
+        }
+
+        [data-theme="dark"] .join-lobby-form input {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .join-lobby-form input::placeholder {
+            color: var(--text-secondary);
         }
 
         .join-lobby-form button {
@@ -156,6 +180,43 @@
 
         .lobby-item:hover {
             background-color: var(--gray-100);
+        }
+
+        [data-theme="dark"] .lobby-item {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        [data-theme="dark"] .lobby-item:hover {
+            background-color: var(--gray-100);
+        }
+
+        [data-theme="dark"] .lobby-code {
+            color: var(--primary);
+        }
+
+        [data-theme="dark"] .lobby-host {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .lobby-players {
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .loading {
+            background: var(--gray-100);
+            color: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        [data-theme="dark"] .manual-join h3 {
+            color: var(--text-primary);
         }
 
         .lobby-info {
