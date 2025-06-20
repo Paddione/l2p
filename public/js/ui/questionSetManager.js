@@ -236,8 +236,11 @@ export function initQuestionSetManager() {
         if (fileInput) {
             fileInput.addEventListener('change', () => {
                 const file = fileInput.files[0];
+                const token = apiClient.getToken();
                 if (uploadBtn) {
-                    uploadBtn.disabled = !file;
+                    uploadBtn.disabled = !(file && token);
+                    uploadBtn.style.opacity = (file && token) ? '1' : '0.65';
+                    uploadBtn.style.cursor = (file && token) ? 'pointer' : 'not-allowed';
                 }
             });
         }
@@ -308,8 +311,12 @@ export function initQuestionSetManager() {
                 
                 showNotification(errorMessage, 'error');
             } finally {
-                uploadBtn.disabled = !fileInput.files[0]; // Re-enable only if file is still selected
+                const hasFile = fileInput.files[0];
+                const isAuthenticated = apiClient.getToken();
+                uploadBtn.disabled = !(hasFile && isAuthenticated);
                 uploadBtn.textContent = t('UPLOAD_QUESTIONS.UPLOAD');
+                uploadBtn.style.opacity = (hasFile && isAuthenticated) ? '1' : '0.65';
+                uploadBtn.style.cursor = (hasFile && isAuthenticated) ? 'pointer' : 'not-allowed';
             }
         });
 

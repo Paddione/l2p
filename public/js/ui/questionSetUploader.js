@@ -7,11 +7,13 @@ import { SCREENS } from '../utils/constants.js';
 import { showToast } from './notifications.js';
 import { t } from '../utils/translations.js';
 
-export function initQuestionSetUploader(questionSetsApi, screenManager) {
+export function initQuestionSetUploader(questionSetsApi, screenManager, apiClient) {
     let selectedFile = null;
 
     function init() {
         setupEventListeners();
+        // Initialize button state
+        resetFileInput();
     }
 
     function setupEventListeners() {
@@ -70,6 +72,14 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
                 return;
             }
 
+            // Check authentication before enabling upload
+            const token = apiClient.getToken();
+            if (!token) {
+                showToast('Please log in first to upload question sets', 'error');
+                resetFileInput();
+                return;
+            }
+
             // Update UI
             if (label) {
                 label.textContent = `Selected: ${file.name}`;
@@ -80,6 +90,8 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
 
             if (uploadBtn) {
                 uploadBtn.disabled = false;
+                uploadBtn.style.opacity = '1';
+                uploadBtn.style.cursor = 'pointer';
             }
 
             console.log('File selected:', file.name, 'Size:', file.size, 'bytes');
@@ -107,12 +119,21 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
 
         if (uploadBtn) {
             uploadBtn.disabled = true;
+            uploadBtn.style.opacity = '0.65';
+            uploadBtn.style.cursor = 'not-allowed';
         }
     }
 
     async function handleFileUpload() {
         if (!selectedFile) {
             showToast('Please select a file first', 'warning');
+            return;
+        }
+
+        // Check authentication before upload
+        const token = apiClient.getToken();
+        if (!token) {
+            showToast('Please log in first to upload question sets', 'error');
             return;
         }
 
@@ -123,6 +144,8 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
             if (uploadBtn) {
                 uploadBtn.disabled = true;
                 uploadBtn.textContent = t('UPLOAD_QUESTIONS.UPLOADING');
+                uploadBtn.style.opacity = '0.65';
+                uploadBtn.style.cursor = 'not-allowed';
             }
 
             console.log('Starting file upload:', selectedFile.name);
@@ -171,6 +194,8 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
                 errorMessage = 'JSON file must contain "name" and "questions" fields';
             } else if (error.message.includes('Invalid question format')) {
                 errorMessage = 'Invalid question format in the file';
+            } else if (error.message.includes('Authentication')) {
+                errorMessage = 'Authentication failed. Please log in again.';
             } else if (error.message) {
                 errorMessage = error.message;
             }
@@ -180,8 +205,12 @@ export function initQuestionSetUploader(questionSetsApi, screenManager) {
         } finally {
             // Reset button state
             if (uploadBtn) {
-                uploadBtn.disabled = !selectedFile;
+                const hasFile = selectedFile !== null;
+                const isAuthenticated = apiClient.getToken() !== null;
+                uploadBtn.disabled = !(hasFile && isAuthenticated);
                 uploadBtn.textContent = t('UPLOAD_QUESTIONS.UPLOAD');
+                uploadBtn.style.opacity = (hasFile && isAuthenticated) ? '1' : '0.65';
+                uploadBtn.style.cursor = (hasFile && isAuthenticated) ? 'pointer' : 'not-allowed';
             }
         }
     }

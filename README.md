@@ -257,6 +257,7 @@ curl http://localhost/api/health     # API health check
 - Resolved question set upload field name mismatch
 - Corrected authentication screen references
 - Enhanced error handling for session expiration
+- **🔧 Upload JSON Button Fix**: Fixed upload JSON button being greyed out/disabled by adding proper authentication checks, ensuring the button is only enabled when user is logged in and a valid JSON file is selected
 
 ## 📞 Support & Contributing
 

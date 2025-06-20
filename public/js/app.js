@@ -249,7 +249,8 @@ async function initializeApp() {
         // Initialize Question Set Uploader
         appState.modules.questionSetUploader = initQuestionSetUploader(
             questionSetsApi,
-            appState.modules.screenManager
+            appState.modules.screenManager,
+            apiClient
         );
         console.log('initializeApp: Question set uploader initialized successfully');
         
