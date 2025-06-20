@@ -562,5 +562,20 @@
 }
 
 [data-theme="dark"] .timer {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .timer.warning {
+    color: var(--warning);
+    border-color: var(--warning);
+    background: var(--surface);
+}
+
+[data-theme="dark"] .timer.danger {
+    color: var(--error);
+    border-color: var(--error);
+    background: var(--surface);
 } 

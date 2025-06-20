@@ -687,6 +687,26 @@
     border: 2px solid var(--error);
 }
 
+/* Dark mode timer styles */
+[data-theme="dark"] .timer {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .timer.warning {
+    color: var(--warning);
+    border-color: var(--warning);
+    background: var(--surface);
+}
+
+[data-theme="dark"] .timer.danger {
+    color: var(--error);
+    border-color: var(--error);
+    background: var(--surface);
+}
+
 /* Results Screen */
 .results-container {
     width: 100%;
@@ -989,6 +1009,13 @@
     .timer {
         font-size: 1.25rem;
         padding: 0.5rem 1rem;
+    }
+    
+    /* Dark mode timer for mobile */
+    [data-theme="dark"] .timer {
+        background: var(--surface);
+        color: var(--text-primary);
+        border-color: var(--border);
     }
 }
 
@@ -2018,6 +2045,106 @@
     background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-700) 100%);
 }
 
+/* Hall of Fame - Dark theme styles */
+[data-theme="dark"] .hall-of-fame {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .hall-of-fame-header {
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .hall-of-fame-header .subtitle {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .catalog-selection label {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .catalog-selector {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .catalog-selector:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .catalog-selector:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .leaderboard-container {
+    background: var(--background);
+}
+
+[data-theme="dark"] .leaderboard-header h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .leaderboard-entry {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .leaderboard-entry:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .leaderboard-entry.top-three {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, var(--surface) 0%, var(--background) 100%);
+}
+
+[data-theme="dark"] .rank-number {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .username {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .score {
+    color: var(--success);
+}
+
+[data-theme="dark"] .accuracy,
+[data-theme="dark"] .multiplier,
+[data-theme="dark"] .questions {
+    background: var(--gray-200);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .date-section {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .no-selection,
+[data-theme="dark"] .no-scores {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .no-scores h3 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .loading,
+[data-theme="dark"] .error {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .error {
+    color: var(--error);
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -2191,7 +2318,6 @@
 .player-status.ready {
     background: var(--success);
     color: white;
-    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
 }
 
 /* Lobby update indicators */
@@ -2592,6 +2718,20 @@
 
 [data-theme="dark"] .host-only-note {
     color: var(--text-secondary);
+}
+
+/* Dark mode styles for player count and other counters */
+[data-theme="dark"] .player-count {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .question-count {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .current-count {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* Dark mode styles for JSON textarea in upload section */

@@ -243,8 +243,11 @@ curl http://localhost/api/health     # API health check
 - **🐳 Docker**: Multi-stage builds and performance optimizations
 
 ### Bug Fixes (Latest)
+- **🏆 Hall of Fame Dark Mode**: Fixed Hall of Fame visibility issues where white text on white background made elements invisible in dark mode - added comprehensive dark theme styling for all Hall of Fame components, leaderboard entries, selectors, and text elements
 - **🌙 Dark Mode**: Extended dark theme support to question set selection menus and "meine Sätze" (my sets) section
 - **🎨 UI Consistency**: Added complete dark mode styling for question set modals, cards, upload sections, and form controls
+- **⏱️ Timer Dark Mode**: Fixed timer/counter elements not displaying correctly in dark mode - added proper dark theme styles for all timer variants (normal, warning, danger)
+- **🔢 Counter Elements**: Enhanced dark mode support for player count, question count, and other counter displays
 - Fixed lobby player count display showing "0/8" instead of actual count
 - Resolved question set upload field name mismatch
 - Corrected authentication screen references
