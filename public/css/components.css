@@ -2745,6 +2745,49 @@
     border-color: var(--primary);
 }
 
+/* Dark mode styles for Hall of Fame section in Results */
+[data-theme="dark"] .hall-of-fame-section {
+    background: linear-gradient(135deg, var(--dark-surface) 0%, var(--dark-bg) 100%);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .hall-of-fame-section h3 {
+    color: var(--primary);
+}
+
+[data-theme="dark"] .hall-of-fame-section p {
+    color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .hall-of-fame-disabled {
+    color: var(--gray-400);
+    background: rgba(75, 85, 99, 0.2);
+    border-color: var(--gray-600);
+}
+
+[data-theme="dark"] .hall-of-fame-status .success-message {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-theme="dark"] .hall-of-fame-status .error-message {
+    color: var(--error);
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .results-controls .btn-secondary {
+    background: var(--dark-surface);
+    color: var(--dark-text-primary);
+    border-color: var(--gray-600);
+}
+
+[data-theme="dark"] .results-controls .btn-secondary:hover {
+    background: var(--gray-700);
+    border-color: var(--gray-500);
+}
+
 .upload-actions {
     display: flex;
     justify-content: center;
@@ -2787,4 +2830,99 @@
     .format-example pre {
         font-size: 0.75rem;
     }
+}
+
+/* General Modal Overlay Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    color: var(--text-primary);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.25rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-modal:hover {
+    background: var(--gray-100);
+    color: var(--text-primary);
+}
+
+/* Dark mode styles for general modals */
+[data-theme="dark"] .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .modal-header {
+    background: var(--surface);
+    border-bottom-color: var(--border);
+}
+
+[data-theme="dark"] .modal-header h2 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .close-modal {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .close-modal:hover {
+    background: var(--gray-200);
+    color: var(--text-primary);
 }

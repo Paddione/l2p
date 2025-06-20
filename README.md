@@ -243,6 +243,9 @@ curl http://localhost/api/health     # API health check
 - **🐳 Docker**: Multi-stage builds and performance optimizations
 
 ### Bug Fixes (Latest)
+- **🔧 Help System Dark Mode**: Fixed Help (Hilfe) page and modal system not displaying correctly in dark mode - added comprehensive dark theme styling for help navigation, content sections, and modal overlays with proper contrast and theming
+- **🎭 Modal System Enhancement**: Added general modal overlay support with dark mode compatibility for all modal dialogs including Help system, ensuring consistent theming across all modal components
+- **💾 Save Score Dark Mode**: Fixed "Save Your Score" button and Hall of Fame section in game results not displaying correctly in dark mode - added comprehensive dark theme styling for hall-of-fame-section, success/error messages, and secondary buttons
 - **🏆 Hall of Fame Dark Mode**: Fixed Hall of Fame visibility issues where white text on white background made elements invisible in dark mode - added comprehensive dark theme styling for all Hall of Fame components, leaderboard entries, selectors, and text elements
 - **🌙 Dark Mode**: Extended dark theme support to question set selection menus and "meine Sätze" (my sets) section
 - **🎨 UI Consistency**: Added complete dark mode styling for question set modals, cards, upload sections, and form controls

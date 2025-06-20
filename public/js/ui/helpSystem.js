@@ -216,8 +216,8 @@ function addHelpStyles() {
 
             .help-navigation {
                 width: 250px;
-                background: var(--gray-50, #f9fafb);
-                border-right: 1px solid var(--gray-200, #e5e7eb);
+                background: var(--gray-50);
+                border-right: 1px solid var(--gray-200);
                 padding: 1rem 0;
                 overflow-y: auto;
             }
@@ -232,16 +232,16 @@ function addHelpStyles() {
                 cursor: pointer;
                 transition: all 0.2s ease;
                 font-size: 0.9rem;
-                color: var(--gray-700, #374151);
+                color: var(--gray-700);
             }
 
             .help-nav-btn:hover {
-                background: var(--gray-100, #f3f4f6);
-                color: var(--primary, #3b82f6);
+                background: var(--gray-100);
+                color: var(--primary);
             }
 
             .help-nav-btn.active {
-                background: var(--primary, #3b82f6);
+                background: var(--primary);
                 color: white;
                 font-weight: 500;
             }
@@ -250,6 +250,8 @@ function addHelpStyles() {
                 flex: 1;
                 padding: 2rem;
                 overflow-y: auto;
+                background: var(--surface);
+                color: var(--text-primary);
             }
 
             .help-section {
@@ -262,20 +264,20 @@ function addHelpStyles() {
             }
 
             .help-section h4 {
-                color: var(--primary, #3b82f6);
+                color: var(--primary);
                 margin-bottom: 1rem;
                 font-size: 1.25rem;
             }
 
             .help-section h5 {
-                color: var(--gray-800, #1f2937);
+                color: var(--text-primary);
                 margin: 1.5rem 0 0.75rem 0;
                 font-size: 1.1rem;
             }
 
             .help-section p {
                 margin-bottom: 1rem;
-                color: var(--gray-700, #374151);
+                color: var(--text-secondary);
             }
 
             .help-section ul, .help-section ol {
@@ -285,11 +287,12 @@ function addHelpStyles() {
 
             .help-section li {
                 margin-bottom: 0.5rem;
-                color: var(--gray-700, #374151);
+                color: var(--text-secondary);
             }
 
             .help-section code {
-                background: var(--gray-100, #f3f4f6);
+                background: var(--gray-100);
+                color: var(--text-primary);
                 padding: 0.2rem 0.4rem;
                 border-radius: 3px;
                 font-family: 'Courier New', monospace;
@@ -297,8 +300,58 @@ function addHelpStyles() {
             }
 
             .help-section strong {
-                color: var(--gray-900, #111827);
+                color: var(--text-primary);
                 font-weight: 600;
+            }
+
+            /* Dark mode styles */
+            [data-theme="dark"] .help-navigation {
+                background: var(--gray-100);
+                border-right: 1px solid var(--gray-200);
+            }
+
+            [data-theme="dark"] .help-nav-btn {
+                color: var(--gray-600);
+            }
+
+            [data-theme="dark"] .help-nav-btn:hover {
+                background: var(--gray-200);
+                color: var(--primary);
+            }
+
+            [data-theme="dark"] .help-nav-btn.active {
+                background: var(--primary);
+                color: white;
+            }
+
+            [data-theme="dark"] .help-sections {
+                background: var(--surface);
+                color: var(--text-primary);
+            }
+
+            [data-theme="dark"] .help-section h4 {
+                color: var(--primary);
+            }
+
+            [data-theme="dark"] .help-section h5 {
+                color: var(--text-primary);
+            }
+
+            [data-theme="dark"] .help-section p {
+                color: var(--text-secondary);
+            }
+
+            [data-theme="dark"] .help-section li {
+                color: var(--text-secondary);
+            }
+
+            [data-theme="dark"] .help-section code {
+                background: var(--gray-100);
+                color: var(--text-primary);
+            }
+
+            [data-theme="dark"] .help-section strong {
+                color: var(--text-primary);
             }
 
             /* Mobile responsiveness */
@@ -318,7 +371,7 @@ function addHelpStyles() {
                     overflow-x: auto;
                     padding: 0.5rem;
                     border-right: none;
-                    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+                    border-bottom: 1px solid var(--gray-200);
                 }
 
                 .help-nav-btn {
@@ -339,6 +392,11 @@ function addHelpStyles() {
 
                 .help-section h5 {
                     font-size: 1rem;
+                }
+
+                /* Dark mode mobile adjustments */
+                [data-theme="dark"] .help-navigation {
+                    border-bottom: 1px solid var(--gray-200);
                 }
             }
 
