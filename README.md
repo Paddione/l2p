@@ -58,6 +58,13 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 - **Adaptive Layout**: Responsive grid layouts that adjust based on screen size and orientation
 - **Performance Optimized**: GPU acceleration and performance enhancements for smooth experience across all devices
 
+### High Refresh Rate Display Optimization
+- **Performance Fix**: Resolved "jiggly" or "weird" movement of UI elements on high refresh rate displays (Samsung Galaxy S22 Ultra, etc.)
+- **Efficient CSS Transitions**: Replaced all `transition: all` properties with specific property transitions (background-color, border-color, box-shadow, color, opacity, transform)
+- **Layout Thrashing Prevention**: Eliminated layout-affecting property animations that cause performance issues on 120Hz+ displays
+- **Smooth Animations**: Optimized all CSS transitions to only animate GPU-accelerated properties for buttery smooth performance
+- **Mobile Performance**: Enhanced responsiveness and eliminated stuttering on high-end mobile devices with high refresh rate screens
+
 ### UI Updates
 - **Title Consistency**: Updated login screen and main menu titles to display "Learn2Play" consistently across all languages (previously showed "Quiz Game" in English and "Quiz Spiel" in German)
 - **Dark Mode Input Fields**: Fixed white background input fields to properly display with dark backgrounds in dark mode, improving visibility and theme consistency

@@ -51,7 +51,8 @@
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -263,14 +264,14 @@
 
 .auth-form input {
     width: 100%;
-    padding: clamp(0.75rem, 2vw, 1rem);
-    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    padding: clamp(0.875rem, 2.5vw, 1.125rem);
     border: 2px solid var(--border);
     border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
     font-size: clamp(0.875rem, 2vw, 1rem);
     background: var(--surface);
     color: var(--text-primary);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .auth-form input:focus {
@@ -301,7 +302,8 @@
     border: none;
     border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     margin-bottom: clamp(1rem, 3vw, 1.5rem);
 }
 
@@ -346,7 +348,8 @@
     border: 2px solid var(--border);
     border-radius: clamp(0.75rem, 2vw, 1rem);
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     font-size: clamp(0.875rem, 2vw, 1rem);
     color: var(--text-primary);
     display: flex;
@@ -397,7 +400,8 @@
     font-size: clamp(1rem, 2.8vw, 1.25rem);
     font-weight: 600;
     border-radius: clamp(0.875rem, 2.5vw, 1.25rem);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     border: 2px solid var(--primary);
     background: var(--primary);
     color: white;
@@ -522,7 +526,8 @@
     display: flex;
     align-items: center;
     gap: clamp(0.5rem, 1.5vw, 0.75rem);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .player-character {
@@ -553,7 +558,8 @@
     background: var(--gray-200);
     color: var(--text-primary);
     border: 2px solid var(--border);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 #select-question-set-btn.btn-primary {
@@ -632,7 +638,8 @@
     font-weight: 500;
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     text-align: center;
     word-wrap: break-word;
     line-height: 1.4;
@@ -691,7 +698,8 @@
     display: flex;
     align-items: center;
     gap: clamp(0.5rem, 1.5vw, 1rem);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     min-height: clamp(3rem, 8vw, 3.5rem);
 }
 
@@ -746,7 +754,8 @@
     font-size: clamp(1rem, 3vw, 1.5rem);
     font-weight: 700;
     box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .timer.warning {
@@ -803,7 +812,8 @@
     border-radius: clamp(0.75rem, 2vw, 1rem);
     border: 1px solid var(--border);
     align-items: center;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .result-item.winner {
@@ -898,7 +908,8 @@
     font-size: clamp(0.875rem, 2vw, 1rem);
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: clamp(0.5rem, 1.5vw, 0.75rem);
@@ -977,7 +988,8 @@
     font-size: clamp(0.875rem, 2vw, 1rem);
     font-weight: 600;
     border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .results-controls .btn-primary {
@@ -1162,7 +1174,8 @@
     background: white;
     cursor: pointer;
     min-width: 250px;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .catalog-selector:hover {
@@ -1217,7 +1230,8 @@
     background: white;
     border-radius: 8px;
     border: 2px solid transparent;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -1454,7 +1468,8 @@
     border: 2px solid var(--gray-300);
     border-radius: 8px;
     background: var(--gray-50);
-    transition: all 0.3s ease;
+    /* SOLUTION: Only transition colors and shadows, not layout (height/width/margin etc.) */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .question-set-section.has-selection {
@@ -1589,7 +1604,8 @@
     border: 2px solid var(--gray-300);
     border-radius: 8px;
     background: var(--gray-50);
-    transition: all 0.3s ease;
+    /* SOLUTION: Only transition colors and shadows, not layout properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .question-count-section h4 {
@@ -1819,7 +1835,8 @@
     color: var(--gray-600);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     border-bottom: 2px solid transparent;
 }
 
@@ -1855,7 +1872,8 @@
     padding: 1.5rem;
     border: 2px solid var(--gray-200);
     border-radius: 8px;
-    transition: all 0.2s;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     cursor: pointer;
 }
 
@@ -1967,7 +1985,8 @@
     border-radius: 6px;
     background: var(--gray-50);
     cursor: pointer;
-    transition: all 0.2s;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .file-upload input[type="file"]:hover {
@@ -2326,7 +2345,8 @@
     max-width: 400px;
     opacity: 0;
     transform: translateX(100%);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     pointer-events: all;
     box-shadow: 0 4px 12px var(--shadow);
     display: flex;
@@ -2357,7 +2377,8 @@
 
 /* Player join/leave animations */
 .player-item {
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     opacity: 1;
 }
 
@@ -2412,7 +2433,8 @@
     font-weight: 500;
     background: var(--gray-300);
     color: var(--text-secondary);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .player-status.ready {
@@ -2495,7 +2517,8 @@
     border-radius: 8px;
     background: var(--surface);
     cursor: pointer;
-    transition: all 0.2s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .question-set-card:hover {
@@ -2543,7 +2566,8 @@
     font-size: 0.85rem;
     font-weight: 600;
     border: 2px solid transparent;
-    transition: all 0.2s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -2615,7 +2639,8 @@
     border: 2px solid var(--primary);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
     font-weight: 500;
     text-align: center;
     min-width: 200px;
@@ -3045,7 +3070,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 4px;
-    transition: all 0.2s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .close-modal:hover {

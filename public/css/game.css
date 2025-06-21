@@ -82,7 +82,8 @@
     font-size: clamp(1rem, 3vw, 1.5rem);
     font-weight: 700;
     box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     flex-shrink: 0;
 }
 
@@ -147,7 +148,8 @@
     font-weight: 500;
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
     overflow: hidden;
     text-align: center;
     word-wrap: break-word;
@@ -234,7 +236,8 @@
     display: flex;
     align-items: center;
     gap: clamp(0.5rem, 1.5vw, 1rem);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     border: 1px solid var(--border);
     backdrop-filter: blur(4px);
     min-height: clamp(3rem, 8vw, 3.5rem);
@@ -262,7 +265,8 @@
     font-size: clamp(1rem, 3vw, 1.5rem);
     color: white;
     box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .player-avatar.flash-correct {
@@ -307,7 +311,8 @@
     box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
     min-width: clamp(1rem, 2.5vw, 1.25rem);
     text-align: center;
-    transition: all 0.3s ease;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
     z-index: 10;
 }
 
