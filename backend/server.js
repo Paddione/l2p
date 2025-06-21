@@ -72,6 +72,11 @@ function configureApp() {
                 fontSrc: ["'self'"],
                 scriptSrc: ["'self'"],
                 imgSrc: ["'self'", "data:", "https:"],
+                connectSrc: ["'self'"],
+                mediaSrc: ["'self'"],
+                objectSrc: ["'none'"],
+                frameSrc: ["'none'"],
+                baseUri: ["'self'"]
             },
         },
     }));

@@ -54,9 +54,9 @@
         </div>
         
         <h3>Schritt 1: Browser-Daten löschen</h3>
-        <button onclick="clearLocalStorage()">Lokalen Speicher löschen</button>
-        <button onclick="clearSessionStorage()">Session-Speicher löschen</button>
-        <button onclick="clearAllStorage()">Alle Daten löschen</button>
+        <button id="clear-local-storage">Lokalen Speicher löschen</button>
+        <button id="clear-session-storage">Session-Speicher löschen</button>
+        <button id="clear-all-storage">Alle Daten löschen</button>
         
         <div id="status"></div>
         
@@ -73,66 +73,9 @@
         </ol>
         
         <h3>Schritt 4: Zurück zum Spiel</h3>
-        <button onclick="goToGame()">Zurück zu Learn2Play</button>
+        <button id="go-to-game">Zurück zu Learn2Play</button>
     </div>
 
-    <script>
-        function clearLocalStorage() {
-            try {
-                localStorage.clear();
-                showStatus('✅ Lokaler Speicher erfolgreich geleert!');
-            } catch (error) {
-                showStatus('❌ Fehler beim Löschen des lokalen Speichers: ' + error.message);
-            }
-        }
-        
-        function clearSessionStorage() {
-            try {
-                sessionStorage.clear();
-                showStatus('✅ Session-Speicher erfolgreich geleert!');
-            } catch (error) {
-                showStatus('❌ Fehler beim Löschen des Session-Speichers: ' + error.message);
-            }
-        }
-        
-        function clearAllStorage() {
-            try {
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // Clear IndexedDB if available
-                if ('indexedDB' in window) {
-                    indexedDB.databases().then(databases => {
-                        databases.forEach(db => {
-                            indexedDB.deleteDatabase(db.name);
-                        });
-                    });
-                }
-                
-                showStatus('✅ Alle Daten erfolgreich geleert!');
-            } catch (error) {
-                showStatus('❌ Fehler beim Löschen der Daten: ' + error.message);
-            }
-        }
-        
-        function showStatus(message) {
-            const status = document.getElementById('status');
-            status.innerHTML = '<div class="success">' + message + '</div>';
-            setTimeout(() => {
-                status.innerHTML = '';
-            }, 3000);
-        }
-        
-        function goToGame() {
-            window.location.href = '/';
-        }
-        
-        // Auto-clear on page load
-        window.addEventListener('load', () => {
-            console.log('Cache-Leerungsseite geladen');
-            console.log('Aktuelle localStorage-Schlüssel:', Object.keys(localStorage));
-            console.log('Aktuelle sessionStorage-Schlüssel:', Object.keys(sessionStorage));
-        });
-    </script>
+    <script src="/js/clear-cache.js"></script>
 </body>
 </html> 

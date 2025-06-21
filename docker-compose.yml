@@ -77,6 +77,22 @@ services:
       - "traefik.http.routers.api-secure.middlewares=sec-headers@file,api-rate-limit@file" # Security Headers + Rate Limiting
       - "traefik.http.routers.api-secure.priority=200"
 
+      # HTTP API Router für Development Domain (l2p.korczewski.de, leitet auf HTTPS um)
+      - "traefik.http.routers.api-dev-http.rule=Host(`${DEV_DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-dev-http.entrypoints=web"
+      - "traefik.http.routers.api-dev-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.api-dev-http.priority=210"
+
+      # HTTPS API Router für Development Domain (l2p.korczewski.de)
+      - "traefik.http.routers.api-dev-secure.rule=Host(`${DEV_DOMAIN}`) && PathPrefix(`/api`)" 
+      - "traefik.http.routers.api-dev-secure.entrypoints=websecure" 
+      - "traefik.http.routers.api-dev-secure.service=api-backend"
+      - "traefik.http.routers.api-dev-secure.tls=true" 
+      - "traefik.http.routers.api-dev-secure.tls.certresolver=letsencrypt" 
+      - "traefik.http.routers.api-dev-secure.tls.options=default"
+      - "traefik.http.routers.api-dev-secure.middlewares=sec-headers@file,api-rate-limit@file"
+      - "traefik.http.routers.api-dev-secure.priority=200"
+
       # HTTP API Router (Lokal für 10.0.0.44)
       - "traefik.http.routers.api-local.rule=Host(`${LOCAL_IP}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api-local.entrypoints=web"
@@ -125,6 +141,22 @@ services:
       - "traefik.http.routers.web-secure.tls.options=default"
       - "traefik.http.routers.web-secure.middlewares=sec-headers@file" # Security Headers
       - "traefik.http.routers.web-secure.priority=100"
+
+      # HTTP Frontend Router für Development Domain (l2p.korczewski.de, leitet auf HTTPS um)
+      - "traefik.http.routers.web-dev-http.rule=Host(`${DEV_DOMAIN}`)"
+      - "traefik.http.routers.web-dev-http.entrypoints=web"
+      - "traefik.http.routers.web-dev-http.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.web-dev-http.priority=110"
+
+      # HTTPS Frontend Router für Development Domain (l2p.korczewski.de)
+      - "traefik.http.routers.web-dev-secure.rule=Host(`${DEV_DOMAIN}`)"
+      - "traefik.http.routers.web-dev-secure.entrypoints=websecure"
+      - "traefik.http.routers.web-dev-secure.service=web-frontend"
+      - "traefik.http.routers.web-dev-secure.tls=true"
+      - "traefik.http.routers.web-dev-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-dev-secure.tls.options=default"
+      - "traefik.http.routers.web-dev-secure.middlewares=sec-headers@file"
+      - "traefik.http.routers.web-dev-secure.priority=100"
 
       # HTTP Frontend Router (Lokal für 10.0.0.44)
       - "traefik.http.routers.web-local.rule=Host(`${LOCAL_IP}`)"

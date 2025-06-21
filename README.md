@@ -26,9 +26,37 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 
 **Access the application:**
 - **Local**: http://localhost:8080
-- **Production**: https://your-domain.com
+- **Production**: https://game.korczewski.de
+- **Development/Cache Clearing**: https://l2p.korczewski.de
 
 ## 📋 Recent Changes
+
+### Content Security Policy (CSP) Enhancement
+- **CSP Compliance**: Fixed Content Security Policy violations by removing all inline JavaScript
+- **External Scripts**: Moved inline scripts from `clear-cache.html` to external `clear-cache.js` file
+- **Security Improvement**: Enhanced CSP directives with proper `connectSrc`, `mediaSrc`, `objectSrc`, `frameSrc`, and `baseUri` policies
+- **Event Listeners**: Replaced inline `onclick` attributes with proper DOM event listeners
+- **No Eval Usage**: Confirmed no usage of `eval()`, `new Function()`, or unsafe JavaScript execution patterns
+- **Template Literal Safety**: All dynamic HTML injection through `innerHTML` with template literals remains secure
+
+### Development Domain Integration
+- **New Domain**: Added `l2p.korczewski.de` as development domain with cache clearing functionality
+- **Traefik Configuration**: Extended Traefik router configuration to support multiple domains with SSL/TLS
+- **CORS Support**: Added the new domain to CORS_ORIGINS for cross-origin API access
+- **SSL Certificates**: Automatic Let's Encrypt certificate generation for the new domain
+- **Cache Clearing Access**: Development environment with cache clearing utilities now accessible via internet
+- **Domain Separation**: Production (`game.korczewski.de`) and development (`l2p.korczewski.de`) domains properly separated
+
+### Universal Responsive Design
+- **Comprehensive Breakpoints**: Implemented responsive design with breakpoints for all screen sizes (320px to 1440px+)
+- **Smart Scaling**: CSS clamp() functions provide fluid scaling across all device types and screen sizes
+- **Touch-Optimized**: Enhanced button sizes and touch targets that scale appropriately for different devices
+- **High-DPI Support**: Optimized typography and UI elements for crisp rendering on all high-DPI displays
+- **120Hz Display Support**: Optimized animations and transitions for high refresh rate displays
+- **AMOLED Compatibility**: Enhanced contrast and text shadows for perfect visibility on OLED/AMOLED screens
+- **Safe Area Support**: Added support for notch displays and punch-hole cameras across all devices
+- **Adaptive Layout**: Responsive grid layouts that adjust based on screen size and orientation
+- **Performance Optimized**: GPU acceleration and performance enhancements for smooth experience across all devices
 
 ### UI Updates
 - **Title Consistency**: Updated login screen and main menu titles to display "Learn2Play" consistently across all languages (previously showed "Quiz Game" in English and "Quiz Spiel" in German)
@@ -83,7 +111,8 @@ docker-compose exec l2p-api node backend/scripts/db-manager.js init
 ### 🎨 Modern UI/UX
 - **Dark/Light Mode**: Complete theme support with smooth transitions
 - **Visual Feedback**: Animated answer responses with color coding
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
+- **Universal Responsive Design**: Fluid scaling across all devices from 320px phones to 1440px+ desktops
+- **Comprehensive Breakpoints**: Optimized layouts for phones, tablets, laptops, and large screens
 - **Interactive Help System**: 6-section comprehensive documentation
 - **Loading States**: Progress indicators throughout the application
 - **Visual Assets**: SVG graphics including knowledge map and quiz pattern designs
@@ -278,6 +307,12 @@ Development mode provides:
 ## 🚨 Troubleshooting
 
 ### Common Issues
+
+**Content Security Policy (CSP) Errors**
+- **Issue**: Browser console shows CSP violations about 'eval' usage
+- **Solution**: The application is now CSP-compliant with external scripts
+- **Check**: Ensure all inline JavaScript is moved to external files
+- **Rebuild**: Run `./rebuild.sh` after CSP-related changes
 
 **Database Connection Errors**
 ```bash
