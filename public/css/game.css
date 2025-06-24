@@ -1,0 +1,928 @@
+/* Game-specific styles and animations */
+
+/* Game Background */
+.game-screen {
+    background: var(--background);
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1rem, 3vw, 2rem);
+}
+
+.game-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/assets/images/quiz-pattern.svg');
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+/* Game Container with responsive sizing */
+.game-container {
+    max-width: min(100%, 1200px);
+    margin: 0 auto;
+    padding: clamp(0.5rem, 2vw, 1.5rem);
+    padding-top: calc(var(--top-bar-height) + clamp(0.5rem, 2vw, 1.5rem));
+    padding-bottom: calc(var(--bottom-bar-height) + clamp(0.5rem, 2vw, 1.5rem));
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* TOP SECTION: Game Code and Timer Box */
+.game-top-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--surface);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+    box-shadow: 0 4px 16px var(--shadow);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.game-info-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.game-code {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: clamp(0.5rem, 1vw, 0.75rem);
+    border-radius: clamp(0.375rem, 1vw, 0.5rem);
+    border: 1px solid var(--border-focus);
+}
+
+.player-count {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.timer-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Enhanced Timer with responsive sizing */
+.timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(3rem, 8vw, 4rem);
+    height: clamp(3rem, 8vw, 4rem);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--button-primary-text);
+    border-radius: 50%;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-weight: 700;
+    box-shadow: 0 4px 16px var(--shadow);
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.timer.warning {
+    background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+    animation: pulse 1s infinite;
+}
+
+.timer.danger {
+    background: linear-gradient(135deg, var(--error), var(--error-dark));
+    animation: pulse 0.5s infinite;
+}
+
+/* MIDDLE SECTION: Question and Answer Box */
+.question-answer-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Enhanced Question Card with better responsive design */
+.question-card {
+    background: var(--surface);
+    border-radius: clamp(1rem, 3vw, 1.5rem);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    box-shadow: 0 8px 32px var(--shadow);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    transform: translateY(0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+}
+
+.question-text {
+    font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    line-height: 1.4;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Enhanced Answer Grid with better responsive layout */
+.answers-grid {
+    display: grid;
+    /* NEW: Use responsive grid that falls back to one column if not enough space */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: clamp(0.75rem, 2vw, 1rem);
+    flex: 1;
+    align-content: start;
+}
+
+/* Enhanced Answer Buttons with better responsive sizing */
+.answer-btn {
+    position: relative;
+    padding: clamp(1rem, 3vw, 1.25rem);
+    background: var(--answer-bg);
+    border: 2px solid var(--border);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+    font-size: clamp(0.875rem, 2.5vw, 1.1rem);
+    font-weight: 500;
+    color: var(--button-primary-text);
+    cursor: pointer;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
+    overflow: hidden;
+    text-align: center;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.4;
+    min-height: clamp(3rem, 8vw, 3.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    box-sizing: border-box;
+    white-space: normal;
+}
+
+.answer-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+}
+
+.answer-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-elevated);
+}
+
+.answer-btn.selected {
+    background: var(--primary);
+    color: var(--button-primary-text);
+    border-color: var(--primary);
+    transform: scale(1.02);
+}
+
+/* Enhanced Correct Answer Animation */
+.answer-btn.correct {
+    background: var(--success) !important;
+    color: var(--button-primary-text) !important;
+    border-color: var(--success) !important;
+    animation: correctFlash 1.5s ease-in-out;
+    box-shadow: var(--shadow-elevated);
+}
+
+/* Enhanced Wrong Answer Animation */
+.answer-btn.incorrect {
+    background: var(--error) !important;
+    color: var(--button-primary-text) !important;
+    border-color: var(--error) !important;
+    animation: incorrectFlash 1s ease-in-out;
+    box-shadow: var(--shadow-elevated);
+}
+
+/* Show correct answer even if not selected */
+.answer-btn.show-correct {
+    background: var(--success) !important;
+    color: var(--button-primary-text) !important;
+    border-color: var(--success) !important;
+    animation: correctGlow 2s ease-in-out;
+    box-shadow: var(--shadow);
+}
+
+/* BOTTOM SECTION: Player Avatars */
+.players-section {
+    flex-shrink: 0;
+}
+
+/* Enhanced Player List with better responsive layout */
+.player-list {
+    display: grid;
+    /* Force exactly 4 columns for consistent layout */
+    grid-template-columns: repeat(4, 1fr);
+    /* Calculate minimum height for 2 rows of players */
+    grid-template-rows: repeat(2, minmax(clamp(3rem, 8vw, 3.5rem), auto));
+    gap: clamp(0.75rem, 2vw, 1rem);
+    /* Ensure minimum height to accommodate 8 players in 2 rows */
+    min-height: calc(2 * clamp(3rem, 8vw, 3.5rem) + clamp(0.75rem, 2vw, 1rem));
+    /* Align items to start to prevent stretching */
+    align-items: start;
+}
+
+/* Enhanced Player Cards */
+.player-card {
+    background: var(--surface);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+    padding: clamp(0.75rem, 2vw, 1rem);
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(4px);
+    min-height: clamp(3rem, 8vw, 3.5rem);
+}
+
+.player-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+}
+
+.player-avatar-container {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.player-avatar {
+    width: clamp(2.5rem, 6vw, 3rem);
+    height: clamp(2.5rem, 6vw, 3rem);
+    border-radius: 50%;
+    background: var(--primary);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: var(--button-primary-text);
+    box-shadow: 0 2px 8px var(--shadow);
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.player-avatar.flash-correct {
+    animation: avatarFlashCorrect 0.8s ease-out;
+}
+
+.player-avatar.flash-incorrect {
+    animation: avatarFlashIncorrect 0.8s ease-out;
+}
+
+.player-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.player-name {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: clamp(0.125rem, 0.5vw, 0.25rem);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-score {
+    font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.multiplier-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--secondary);
+    color: var(--button-primary-text);
+    font-size: clamp(0.625rem, 1.5vw, 0.75rem);
+    font-weight: 600;
+    padding: clamp(0.125rem, 0.5vw, 0.25rem) clamp(0.25rem, 1vw, 0.375rem);
+    border-radius: clamp(0.5rem, 1vw, 0.625rem);
+    box-shadow: var(--shadow);
+    min-width: clamp(1rem, 2.5vw, 1.25rem);
+    text-align: center;
+    /* Performance fix: Only transition safe properties */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    z-index: 10;
+}
+
+.multiplier-badge.glow {
+    animation: multiplierGlow 0.6s ease-out;
+    transform: scale(1.2);
+}
+
+.multiplier-badge.shake {
+    animation: multiplierShake 0.5s ease-out;
+}
+
+@keyframes correctFlash {
+    0% {
+        background: var(--success);
+        box-shadow: var(--shadow-elevated);
+    }
+    25% {
+        background: var(--success-dark);
+        box-shadow: var(--shadow-elevated);
+        transform: scale(1.05);
+    }
+    50% {
+        background: var(--success);
+        box-shadow: var(--shadow-elevated);
+        transform: scale(1.02);
+    }
+    75% {
+        background: var(--success-dark);
+        box-shadow: var(--shadow-elevated);
+        transform: scale(1.03);
+    }
+    100% {
+        background: var(--success);
+        box-shadow: var(--shadow);
+        transform: scale(1);
+    }
+}
+
+@keyframes incorrectFlash {
+    0% {
+        background: var(--error);
+        box-shadow: var(--shadow-elevated);
+        transform: translateX(0);
+    }
+    10% {
+        background: var(--error-dark);
+        transform: translateX(-5px);
+    }
+    20% {
+        background: var(--error);
+        transform: translateX(5px);
+    }
+    30% {
+        background: var(--error-dark);
+        transform: translateX(-3px);
+    }
+    40% {
+        background: var(--error);
+        transform: translateX(3px);
+    }
+    50% {
+        background: var(--error-dark);
+        transform: translateX(-2px);
+    }
+    60% {
+        background: var(--error);
+        transform: translateX(2px);
+    }
+    70% {
+        background: var(--error-dark);
+        transform: translateX(-1px);
+    }
+    80% {
+        background: var(--error);
+        transform: translateX(1px);
+    }
+    90% {
+        background: var(--error-dark);
+        transform: translateX(0);
+    }
+    100% {
+        background: var(--error);
+        box-shadow: var(--shadow);
+        transform: translateX(0);
+    }
+}
+
+@keyframes correctGlow {
+    0%, 100% {
+        box-shadow: var(--shadow);
+    }
+    50% {
+        box-shadow: var(--shadow-elevated);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.score-display {
+    background: var(--success);
+    color: var(--button-primary-text);
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+    border-radius: clamp(0.375rem, 1vw, 0.5rem);
+    font-weight: 600;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    box-shadow: var(--shadow);
+}
+
+.score-display.score-update {
+    animation: scoreUpdate 0.6s ease-out;
+}
+
+@keyframes scoreUpdate {
+    0% {
+        transform: scale(1);
+        box-shadow: var(--shadow);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: var(--shadow-elevated);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: var(--shadow);
+    }
+}
+
+.multiplier-display {
+    background: var(--secondary);
+    color: var(--button-primary-text);
+    padding: clamp(0.25rem, 1vw, 0.5rem) clamp(0.5rem, 1.5vw, 0.75rem);
+    border-radius: clamp(0.75rem, 1.5vw, 1rem);
+    font-weight: 600;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    box-shadow: var(--shadow);
+    animation: multiplierPop 0.5s ease-out;
+}
+
+@keyframes multiplierPop {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Updated responsive rule: show two columns when viewport is wide enough */
+@media (min-width: 640px) {
+    .answers-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+}
+
+/* Comprehensive Responsive Design */
+@media (max-width: 1024px) {
+    .answers-grid {
+        /* Stack vertically on all screen sizes */
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .player-list {
+        /* Keep 4 columns on tablets for proper layout */
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, minmax(clamp(2.75rem, 7vw, 3.25rem), auto));
+        min-height: calc(2 * clamp(2.75rem, 7vw, 3.25rem) + clamp(0.75rem, 2vw, 1rem));
+    }
+}
+
+@media (max-width: 768px) {
+    .game-container {
+        padding: clamp(0.75rem, 2vw, 1rem);
+        gap: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .game-top-section {
+        flex-direction: column;
+        gap: clamp(0.75rem, 2vw, 1rem);
+        text-align: center;
+    }
+    
+    .game-info-box {
+        justify-content: center;
+        gap: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .question-card {
+        padding: clamp(1rem, 3vw, 1.5rem);
+    }
+    
+    .question-text {
+        font-size: clamp(1rem, 4vw, 1.25rem);
+        margin-bottom: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .answers-grid {
+        /* Stack vertically on all screen sizes */
+        grid-template-columns: 1fr;
+        gap: clamp(0.5rem, 1.5vw, 0.75rem);
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    
+    .answer-btn {
+        padding: clamp(0.75rem, 2vw, 1rem);
+        font-size: clamp(0.875rem, 2.5vw, 1rem);
+        min-height: clamp(2.75rem, 7vw, 3rem);
+    }
+    
+    .player-list {
+        /* Maintain 4 columns on smaller tablets */
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, minmax(clamp(2.5rem, 6vw, 3rem), auto));
+        gap: clamp(0.5rem, 1.5vw, 0.75rem);
+        min-height: calc(2 * clamp(2.5rem, 6vw, 3rem) + clamp(0.5rem, 1.5vw, 0.75rem));
+    }
+    
+    .player-card {
+        padding: clamp(0.5rem, 1.5vw, 0.75rem);
+        gap: clamp(0.375rem, 1vw, 0.5rem);
+        min-height: clamp(2.5rem, 6vw, 3rem);
+    }
+    
+    .player-avatar {
+        width: clamp(2rem, 5vw, 2.5rem);
+        height: clamp(2rem, 5vw, 2.5rem);
+        font-size: clamp(0.875rem, 2.5vw, 1.25rem);
+    }
+    
+    .multiplier-badge {
+        font-size: clamp(0.5rem, 1.25vw, 0.625rem);
+        padding: clamp(0.125rem, 0.375vw, 0.1875rem) clamp(0.1875rem, 0.75vw, 0.3125rem);
+        min-width: clamp(0.875rem, 2vw, 1rem);
+    }
+}
+
+@media (max-width: 640px) {
+    .game-screen {
+        padding: clamp(0.5rem, 2vw, 1rem);
+    }
+    
+    .answers-grid {
+        gap: clamp(0.375rem, 1vw, 0.5rem);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .player-list {
+        /* Switch to 2 columns on small screens for better readability */
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(4, minmax(clamp(2.25rem, 6vw, 2.75rem), auto));
+        min-height: calc(4 * clamp(2.25rem, 6vw, 2.75rem) + 3 * clamp(0.375rem, 1vw, 0.5rem));
+    }
+}
+
+@media (max-width: 480px) {
+    .game-container {
+        height: 100vh;
+        height: 100dvh;
+        padding: clamp(0.5rem, 2vw, 1rem);
+        gap: clamp(0.75rem, 2vh, 1rem);
+    }
+    
+    .game-top-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: clamp(0.5rem, 2vw, 1rem);
+        padding: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .game-info-box {
+        flex-direction: column;
+        align-items: center;
+        gap: clamp(0.5rem, 2vw, 0.75rem);
+    }
+    
+    .question-card {
+        padding: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .question-text {
+        font-size: clamp(0.875rem, 3.5vw, 1.125rem);
+        line-height: 1.3;
+    }
+    
+    .answers-grid {
+        grid-template-columns: 1fr !important;
+        gap: clamp(0.75rem, 2.5vw, 1rem);
+    }
+    
+    .answer-btn {
+        padding: clamp(0.75rem, 2vw, 1rem);
+        font-size: clamp(0.75rem, 2.5vw, 0.875rem);
+        min-height: clamp(3rem, 8vh, 4rem);
+        line-height: 1.3;
+    }
+    
+    .timer {
+        width: clamp(2.5rem, 7vw, 3rem);
+        height: clamp(2.5rem, 7vw, 3rem);
+        font-size: clamp(0.875rem, 2.5vw, 1.25rem);
+    }
+    
+    .player-list {
+        grid-template-columns: repeat(4, 1fr) !important;
+        grid-template-rows: repeat(2, minmax(clamp(2rem, 5vw, 2.5rem), auto));
+        gap: clamp(0.25rem, 1vw, 0.5rem);
+        max-height: 25vh;
+        overflow-y: auto;
+    }
+    
+    .player-card {
+        padding: clamp(0.25rem, 1vw, 0.5rem);
+        min-height: auto;
+    }
+    
+    .player-avatar {
+        width: clamp(2rem, 6vw, 2.5rem) !important;
+        height: clamp(2rem, 6vw, 2.5rem) !important;
+        font-size: clamp(1rem, 3vw, 1.25rem) !important;
+    }
+    
+    .player-name {
+        font-size: clamp(0.625rem, 2vw, 0.75rem);
+        margin-top: clamp(0.25rem, 1vw, 0.5rem);
+    }
+    
+    .player-score {
+        font-size: clamp(0.625rem, 2vw, 0.75rem);
+    }
+    
+    .multiplier-badge {
+        width: clamp(1rem, 3vw, 1.25rem);
+        height: clamp(1rem, 3vw, 1.25rem);
+        font-size: clamp(0.5rem, 1.5vw, 0.625rem);
+    }
+}
+
+@media (max-width: 360px) {
+    .answer-btn {
+        padding: clamp(0.5rem, 2vw, 0.75rem);
+        font-size: clamp(0.75rem, 2vw, 0.8125rem);
+        min-height: clamp(2.25rem, 6vw, 2.5rem);
+        border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
+    }
+    
+    .player-list {
+        /* Single column on very small screens for 8 players */
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(8, minmax(clamp(1.75rem, 5vw, 2.25rem), auto));
+        min-height: calc(8 * clamp(1.75rem, 5vw, 2.25rem) + 7 * clamp(0.375rem, 1vw, 0.5rem));
+    }
+    
+    .game-top-section {
+        padding: clamp(0.75rem, 2vw, 1rem);
+    }
+}
+
+/* Landscape orientation optimizations */
+@media (orientation: landscape) and (max-height: 600px) {
+    .game-container {
+        padding: clamp(0.5rem, 2vw, 1rem);
+        gap: clamp(0.5rem, 2vw, 1rem);
+    }
+    
+    .game-top-section {
+        padding: clamp(0.5rem, 2vw, 1rem);
+    }
+    
+    .question-card {
+        padding: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .question-text {
+        font-size: clamp(1rem, 3vw, 1.25rem);
+        margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+    }
+    
+    .answers-grid {
+        grid-template-columns: 1fr;
+        gap: clamp(0.5rem, 1.5vw, 0.75rem);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .player-list {
+        /* Landscape mode: 4 columns for proper 8-player layout */
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, minmax(clamp(2rem, 5vw, 2.5rem), auto));
+        gap: clamp(0.375rem, 1vw, 0.5rem);
+        min-height: calc(2 * clamp(2rem, 5vw, 2.5rem) + clamp(0.375rem, 1vw, 0.5rem));
+    }
+    
+    .player-card {
+        padding: clamp(0.375rem, 1vw, 0.5rem);
+        min-height: clamp(2rem, 5vw, 2.5rem);
+    }
+    
+    .timer {
+        width: clamp(2.25rem, 6vw, 2.75rem);
+        height: clamp(2.25rem, 6vw, 2.75rem);
+        font-size: clamp(0.875rem, 2vw, 1rem);
+    }
+}
+
+/* Ultra-wide screen optimizations */
+@media (min-width: 1400px) {
+    .game-container {
+        max-width: 1400px;
+    }
+    
+    .answers-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .player-list {
+        /* Ultra-wide: 4 columns for perfect 8-player layout */
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, minmax(3.5rem, auto));
+        gap: 1.25rem;
+        min-height: calc(2 * 3.5rem + 1.25rem);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+}
+
+@keyframes avatarFlashCorrect {
+    0% {
+        background: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+        transform: scale(1);
+    }
+    25% {
+        background: var(--success);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+        transform: scale(1.1);
+    }
+    50% {
+        background: var(--success-dark);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        transform: scale(1.15);
+    }
+    75% {
+        background: var(--success);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+        transform: scale(1.05);
+    }
+    100% {
+        background: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+        transform: scale(1);
+    }
+}
+
+@keyframes avatarFlashIncorrect {
+    0% {
+        background: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+        transform: translateX(0) scale(1);
+    }
+    10% {
+        background: var(--error);
+        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.5);
+        transform: translateX(-3px) scale(1.05);
+    }
+    20% {
+        background: var(--error-dark);
+        transform: translateX(3px) scale(1.05);
+    }
+    30% {
+        background: var(--error);
+        transform: translateX(-2px) scale(1.05);
+    }
+    40% {
+        background: var(--error-dark);
+        transform: translateX(2px) scale(1.05);
+    }
+    50% {
+        background: var(--error);
+        transform: translateX(-1px) scale(1.05);
+    }
+    60% {
+        background: var(--error-dark);
+        transform: translateX(1px) scale(1.05);
+    }
+    70% {
+        background: var(--error);
+        transform: translateX(0) scale(1.02);
+    }
+    80% {
+        background: var(--error-dark);
+        transform: translateX(0) scale(1.01);
+    }
+    90% {
+        background: var(--error);
+        box-shadow: 0 3px 12px rgba(220, 38, 38, 0.4);
+        transform: translateX(0) scale(1.005);
+    }
+    100% {
+        background: var(--primary);
+        box-shadow: 0 2px 8px var(--shadow);
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes multiplierGlow {
+    0% {
+        background: var(--secondary);
+        box-shadow: 0 2px 6px rgba(164, 120, 100, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        background: var(--clay-terracotta);
+        box-shadow: 0 4px 12px rgba(164, 120, 100, 0.6);
+        transform: scale(1.3);
+    }
+    100% {
+        background: var(--secondary);
+        box-shadow: 0 2px 6px rgba(164, 120, 100, 0.3);
+        transform: scale(1.2);
+    }
+}
+
+@keyframes multiplierShake {
+    0%, 100% {
+        transform: translateX(0) scale(1.2);
+    }
+    10% { transform: translateX(-2px) scale(1.2); }
+    20% { transform: translateX(2px) scale(1.2); }
+    30% { transform: translateX(-1px) scale(1.2); }
+    40% { transform: translateX(1px) scale(1.2); }
+    50% { transform: translateX(0) scale(1.2); }
+}
+
+[data-theme="dark"] .game-screen::before {
+    opacity: 0.03;
+}
+
+[data-theme="dark"] .question-card {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .answer-btn:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+[data-theme="dark"] .player-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .timer {
+    box-shadow: var(--shadow-elevated);
+}
+
+[data-theme="dark"] .timer.warning {
+    background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+    box-shadow: var(--shadow-elevated);
+}
+
+[data-theme="dark"] .timer.danger {
+    background: linear-gradient(135deg, var(--error), var(--error-dark));
+    box-shadow: var(--shadow-elevated);
+}
+
+/* Ensure question text remains readable in dark mode */
+[data-theme="dark"] .question-text {
+    color: var(--text-primary);
+}
+
+/* Updated: ensure answer button text is dark in dark mode for optimal contrast on light blue background */
+[data-theme="dark"] .answer-btn {
+    color: var(--button-primary-text);
+} 

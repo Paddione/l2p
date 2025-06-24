@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8fafc"/>
+  
+  <!-- Knowledge Areas as Islands -->
+  
+  <!-- Science Island -->
+  <ellipse cx="200" cy="150" rx="120" ry="80" fill="#3b82f6" opacity="0.7"/>
+  <text x="200" y="150" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">🧪 Science</text>
+  <text x="200" y="170" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Biology • Chemistry • Physics</text>
+  
+  <!-- History Island -->
+  <ellipse cx="600" cy="120" rx="100" ry="70" fill="#ef4444" opacity="0.7"/>
+  <text x="600" y="120" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">🏛️ History</text>
+  <text x="600" y="140" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Ancient • Modern • World</text>
+  
+  <!-- Geography Island -->
+  <ellipse cx="150" cy="350" rx="110" ry="85" fill="#10b981" opacity="0.7"/>
+  <text x="150" y="350" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">🌍 Geography</text>
+  <text x="150" y="370" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Countries • Capitals • Rivers</text>
+  
+  <!-- Literature Island -->
+  <ellipse cx="500" cy="320" rx="90" ry="60" fill="#8b5cf6" opacity="0.7"/>
+  <text x="500" y="320" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">📚 Literature</text>
+  <text x="500" y="340" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Authors • Books • Poetry</text>
+  
+  <!-- Math Island -->
+  <ellipse cx="400" cy="480" rx="100" ry="70" fill="#f59e0b" opacity="0.7"/>
+  <text x="400" y="480" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">🔢 Mathematics</text>
+  <text x="400" y="500" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Algebra • Geometry • Logic</text>
+  
+  <!-- Sports Island -->
+  <ellipse cx="650" cy="450" rx="80" ry="60" fill="#ec4899" opacity="0.7"/>
+  <text x="650" y="450" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">⚽ Sports</text>
+  <text x="650" y="470" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Football • Olympics • Records</text>
+  
+  <!-- Technology Island -->
+  <ellipse cx="350" cy="200" rx="85" ry="55" fill="#06b6d4" opacity="0.7"/>
+  <text x="350" y="200" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">💻 Technology</text>
+  <text x="350" y="220" text-anchor="middle" fill="white" font-family="Arial" font-size="10">Computing • Internet • AI</text>
+  
+  <!-- Connecting Paths -->
+  <path d="M 280 180 Q 320 190 320 200" stroke="#cbd5e1" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 320 230 Q 360 280 450 290" stroke="#cbd5e1" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 240 220 Q 280 280 260 320" stroke="#cbd5e1" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 530 350 Q 570 400 620 420" stroke="#cbd5e1" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M 450 440 Q 500 420 550 380" stroke="#cbd5e1" stroke-width="2" fill="none" opacity="0.5"/>
+  
+  <!-- Legend -->
+  <rect x="20" y="20" width="200" height="80" fill="white" stroke="#e2e8f0" stroke-width="1" rx="5"/>
+  <text x="30" y="40" font-family="Arial" font-size="12" font-weight="bold" fill="#374151">🗺️ Knowledge Map</text>
+  <text x="30" y="60" font-family="Arial" font-size="10" fill="#6b7280">Explore different quiz categories</text>
+  <text x="30" y="80" font-family="Arial" font-size="10" fill="#6b7280">and test your knowledge!</text>
+</svg> 

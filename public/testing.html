@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn2Play - Testing Dashboard</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <style>
+        /* Testing-specific styles */
+        .testing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--surface);
+            min-height: 100vh;
+        }
+
+        .test-section {
+            background: var(--surface-elevated);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border);
+        }
+
+        .test-section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .test-section h3 {
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .test-card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .test-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .test-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .test-btn {
+            background: var(--button-primary-bg);
+            color: var(--button-primary-text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .test-btn:hover {
+            background: var(--button-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .test-btn.secondary {
+            background: var(--button-secondary-bg);
+            color: var(--button-secondary-text);
+        }
+
+        .test-btn.danger {
+            background: var(--button-danger-bg);
+            color: var(--button-danger-text);
+        }
+
+        .test-result {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .test-result.success {
+            background: var(--success-light);
+            color: var(--success-text);
+            border: 1px solid var(--success);
+        }
+
+        .test-result.error {
+            background: var(--error-light);
+            color: var(--error-text);
+            border: 1px solid var(--error);
+        }
+
+        .test-result.info {
+            background: var(--info-light);
+            color: var(--info-text);
+            border: 1px solid var(--info);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.success { background: var(--success); }
+        .status-indicator.error { background: var(--error); }
+        .status-indicator.warning { background: var(--warning); }
+        .status-indicator.info { background: var(--info); }
+
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible:hover {
+            color: var(--primary);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 1000px;
+        }
+
+        .test-log {
+            background: var(--gray-900);
+            color: var(--gray-100);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .navigation-bar {
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-bottom: 2px solid var(--border);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            z-index: 100;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            background: var(--button-secondary-bg);
+            color: var(--button-secondary-text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--button-secondary-hover);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: var(--button-primary-text);
+        }
+
+        @media (max-width: 768px) {
+            .testing-container {
+                padding: 1rem;
+            }
+            
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .test-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Dark theme support */
+        [data-theme="dark"] .testing-container {
+            background: var(--surface);
+        }
+
+        [data-theme="dark"] .test-log {
+            background: var(--gray-800);
+            color: var(--gray-200);
+        }
+    </style>
+</head>
+<body>
+    <div class="testing-container">
+        <header>
+            <h1>🧪 Learn2Play Testing Dashboard</h1>
+            <p>Comprehensive testing interface for all Learn2Play functionality</p>
+            <a href="/index.html" style="background: var(--success); color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; margin: 1rem 0; display: inline-block;">Return to App</a>
+        </header>
+
+        <nav class="navigation-bar">
+            <div class="nav-buttons">
+                <a href="#overview" class="nav-btn">Overview</a>
+                <a href="#system" class="nav-btn">System Tests</a>
+                <a href="#auth" class="nav-btn">Authentication</a>
+                <a href="#ui" class="nav-btn">UI Components</a>
+                <a href="#game" class="nav-btn">Game Flow</a>
+                <a href="#api" class="nav-btn">API Tests</a>
+                <a href="#performance" class="nav-btn">Performance</a>
+                <a href="/index.html" class="nav-btn" style="background: var(--success);">Return to App</a>
+            </div>
+        </nav>
+
+        <!-- Overview Section -->
+        <section id="overview" class="test-section">
+            <h2>🎯 System Overview Tests</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h4>🏗️ System Health</h4>
+                    <p>Test overall system connectivity and core services</p>
+                    <div class="test-buttons">
+                        <button class="test-btn" onclick="testSystemHealth()">Test System Health</button>
+                        <button class="test-btn" onclick="testServiceConnectivity()">Test Services</button>
+                    </div>
+                    <div id="system-status" class="test-result info">Click buttons to test system health...</div>
+                </div>
+
+                <div class="test-card">
+                    <h4>🎮 Game Flow</h4>
+                    <p>Test complete game workflows from start to finish</p>
+                    <div class="test-buttons">
+                        <button class="test-btn" onclick="testGameFlow()">Test Game Flow</button>
+                        <button class="test-btn" onclick="openMainApp()">Open Main App</button>
+                    </div>
+                    <div id="gameflow-status" class="test-result info">Click buttons to test game flow...</div>
+                </div>
+
+                <div class="test-card">
+                    <h4>🔐 Authentication</h4>
+                    <p>Test user authentication and session management</p>
+                    <div class="test-buttons">
+                        <button class="test-btn" onclick="testAuth()">Test Authentication</button>
+                        <button class="test-btn" onclick="testUserFlow()">Test User Flow</button>
+                    </div>
+                    <div id="auth-status" class="test-result info">Click buttons to test authentication...</div>
+                </div>
+
+                <div class="test-card">
+                    <h4>🎨 UI Components</h4>
+                    <p>Test UI components and responsive design</p>
+                    <div class="test-buttons">
+                        <button class="test-btn" onclick="testUI()">Test UI Components</button>
+                        <button class="test-btn" onclick="testResponsive()">Test Responsive</button>
+                    </div>
+                    <div id="ui-status" class="test-result info">Click buttons to test UI components...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Tests Section -->
+        <section id="system" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('system-content')">⚙️ System Tests</h2>
+            <div id="system-content" class="collapsible-content expanded">
+                <h3>Service Connectivity</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testBackendConnection()">Backend API</button>
+                    <button class="test-btn" onclick="testDatabaseConnection()">Database</button>
+                    <button class="test-btn" onclick="testStaticAssets()">Static Assets</button>
+                    <button class="test-btn" onclick="testWebSocketConnection()">WebSocket</button>
+                </div>
+
+                <h3>Core Modules</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testModuleLoading()">Module Loading</button>
+                    <button class="test-btn" onclick="testScreenManager()">Screen Manager</button>
+                    <button class="test-btn" onclick="testStorageSystem()">Storage System</button>
+                    <button class="test-btn" onclick="testAudioSystem()">Audio System</button>
+                </div>
+
+                <h3>Environment</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testEnvironmentConfig()">Environment Config</button>
+                    <button class="test-btn" onclick="testDevelopmentMode()">Development Mode</button>
+                    <button class="test-btn" onclick="testThemeSystem()">Theme System</button>
+                    <button class="test-btn" onclick="testLanguageSystem()">Language System</button>
+                </div>
+
+                <div id="system-test-log" class="test-log">System test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- Authentication Tests Section -->
+        <section id="auth" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('auth-content')">🔐 Authentication Tests</h2>
+            <div id="auth-content" class="collapsible-content">
+                <h3>User Registration & Login</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testUserRegistration()">User Registration</button>
+                    <button class="test-btn" onclick="testUserLogin()">User Login</button>
+                    <button class="test-btn" onclick="testUserLogout()">User Logout</button>
+                    <button class="test-btn" onclick="testCharacterSelection()">Character Selection</button>
+                </div>
+
+                <h3>Session Management</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testSessionPersistence()">Session Persistence</button>
+                    <button class="test-btn" onclick="testSessionExpiry()">Session Expiry</button>
+                    <button class="test-btn" onclick="testMultipleDevices()">Multiple Devices</button>
+                </div>
+
+                <div id="auth-test-log" class="test-log">Authentication test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- UI Component Tests Section -->
+        <section id="ui" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('ui-content')">🎨 UI Component Tests</h2>
+            <div id="ui-content" class="collapsible-content">
+                <h3>Screen Navigation</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testScreenTransitions()">Screen Transitions</button>
+                    <button class="test-btn" onclick="testMainMenu()">Main Menu</button>
+                    <button class="test-btn" onclick="testUnifiedGameScreen()">Unified Game Screen</button>
+                    <button class="test-btn" onclick="testBackNavigation()">Back Navigation</button>
+                </div>
+
+                <h3>Forms & Inputs</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testCreateGameForm()">Create Game Form</button>
+                    <button class="test-btn" onclick="testJoinGameForm()">Join Game Form</button>
+                    <button class="test-btn" onclick="testQuestionSetUpload()">Question Set Upload</button>
+                    <button class="test-btn" onclick="testFormValidation()">Form Validation</button>
+                </div>
+
+                <h3>Interactive Elements</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testButtons()">Buttons</button>
+                    <button class="test-btn" onclick="testModals()">Modals</button>
+                    <button class="test-btn" onclick="testNotifications()">Notifications</button>
+                    <button class="test-btn" onclick="testAnimations()">Animations</button>
+                </div>
+
+                <h3>Responsive Design</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testMobileLayout()">Mobile Layout</button>
+                    <button class="test-btn" onclick="testTabletLayout()">Tablet Layout</button>
+                    <button class="test-btn" onclick="testDesktopLayout()">Desktop Layout</button>
+                    <button class="test-btn" onclick="testLandscapeMode()">Landscape Mode</button>
+                </div>
+
+                <div id="ui-test-log" class="test-log">UI test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- Game Flow Tests Section -->
+        <section id="game" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('game-content')">🎮 Game Flow Tests</h2>
+            <div id="game-content" class="collapsible-content">
+                <h3>Lobby Management</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testLobbyCreation()">Lobby Creation</button>
+                    <button class="test-btn" onclick="testLobbyJoining()">Lobby Joining</button>
+                    <button class="test-btn" onclick="testPlayerManagement()">Player Management</button>
+                    <button class="test-btn" onclick="testQuestionSetSelection()">Question Set Selection</button>
+                    <button class="test-btn" onclick="testReadySystem()">Ready System</button>
+                </div>
+
+                <h3>Game Mechanics</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testGameStart()">Game Start</button>
+                    <button class="test-btn" onclick="testQuestionFlow()">Question Flow</button>
+                    <button class="test-btn" onclick="testAnswerSubmission()">Answer Submission</button>
+                    <button class="test-btn" onclick="testScoringSystem()">Scoring System</button>
+                    <button class="test-btn" onclick="testTimerSystem()">Timer System</button>
+                </div>
+
+                <h3>Game End & Results</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testGameCompletion()">Game Completion</button>
+                    <button class="test-btn" onclick="testResultsScreen()">Results Screen</button>
+                    <button class="test-btn" onclick="testHallOfFame()">Hall of Fame</button>
+                    <button class="test-btn" onclick="testReplaySystem()">Replay System</button>
+                </div>
+
+                <div id="game-test-log" class="test-log">Game flow test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- API Tests Section -->
+        <section id="api" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('api-content')">🔌 API Tests</h2>
+            <div id="api-content" class="collapsible-content">
+                <h3>Authentication API</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testAuthAPI()">Auth Endpoints</button>
+                    <button class="test-btn" onclick="testTokenValidation()">Token Validation</button>
+                    <button class="test-btn" onclick="testUserAPI()">User Management</button>
+                </div>
+
+                <h3>Game API</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testLobbyAPI()">Lobby Endpoints</button>
+                    <button class="test-btn" onclick="testQuestionSetAPI()">Question Set API</button>
+                    <button class="test-btn" onclick="testHallOfFameAPI()">Hall of Fame API</button>
+                </div>
+
+                <h3>Real-time Communication</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testPollingSystem()">Polling System</button>
+                    <button class="test-btn" onclick="testRealTimeUpdates()">Real-time Updates</button>
+                    <button class="test-btn" onclick="testErrorHandling()">Error Handling</button>
+                </div>
+
+                <div id="api-test-log" class="test-log">API test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- Performance Tests Section -->
+        <section id="performance" class="test-section">
+            <h2 class="collapsible" onclick="toggleSection('performance-content')">⚡ Performance Tests</h2>
+            <div id="performance-content" class="collapsible-content">
+                <h3>Load Testing</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testPageLoadTime()">Page Load Time</button>
+                    <button class="test-btn" onclick="testAssetLoading()">Asset Loading</button>
+                    <button class="test-btn" onclick="testMemoryUsage()">Memory Usage</button>
+                </div>
+
+                <h3>Animation Performance</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testAnimationPerformance()">Animation FPS</button>
+                    <button class="test-btn" onclick="testScrollPerformance()">Scroll Performance</button>
+                    <button class="test-btn" onclick="testTransitionPerformance()">Transition Performance</button>
+                </div>
+
+                <h3>Network Performance</h3>
+                <div class="test-buttons">
+                    <button class="test-btn" onclick="testAPIResponseTime()">API Response Time</button>
+                    <button class="test-btn" onclick="testPollingEfficiency()">Polling Efficiency</button>
+                    <button class="test-btn" onclick="testOfflineHandling()">Offline Handling</button>
+                </div>
+
+                <div id="performance-test-log" class="test-log">Performance test logs will appear here...</div>
+            </div>
+        </section>
+
+        <!-- Test Results Summary -->
+        <section class="test-section">
+            <h2>📊 Test Results Summary</h2>
+            <div id="test-summary" class="test-result info">
+                <p>Run tests to see results summary here...</p>
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-btn" onclick="runAllTests()">Run All Tests</button>
+                <button class="test-btn secondary" onclick="clearResults()">Clear Results</button>
+                <button class="test-btn secondary" onclick="exportResults()">Export Results</button>
+            </div>
+
+            <div id="test-log" class="test-log">Test logs will appear here...</div>
+        </section>
+    </div>
+
+    <script>
+        // Global test state
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0,
+            logs: []
+        };
+
+        // Utility functions
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            testResults.logs.push(logEntry);
+            console.log(logEntry);
+            
+            // Update all log containers
+            document.querySelectorAll('.test-log').forEach(logContainer => {
+                logContainer.innerHTML += logEntry + '\n';
+                logContainer.scrollTop = logContainer.scrollHeight;
+            });
+        }
+
+        function updateTestResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = `test-result ${type}`;
+                element.innerHTML = `<span class="status-indicator ${type}"></span>${message}`;
+            }
+        }
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            if (content) {
+                content.classList.toggle('expanded');
+            }
+        }
+
+        // System Tests
+        async function testSystemHealth() {
+            log('Testing system health...');
+            updateTestResult('system-status', 'Testing system health...', 'info');
+            
+            try {
+                const response = await fetch('/index.html');
+                if (response.ok) {
+                    log('System health check passed', 'success');
+                    updateTestResult('system-status', '✅ System health check passed - Main app accessible', 'success');
+                    testResults.passed++;
+                } else {
+                    throw new Error('Main app not accessible');
+                }
+            } catch (error) {
+                log(`System health check failed: ${error.message}`, 'error');
+                updateTestResult('system-status', `❌ System health check failed: ${error.message}`, 'error');
+                testResults.failed++;
+            }
+            testResults.total++;
+            updateSummary();
+        }
+
+        async function testServiceConnectivity() {
+            log('Testing service connectivity...');
+            
+            const services = [
+                { name: 'Frontend', url: '/index.html' },
+                { name: 'CSS', url: '/css/main.css' },
+                { name: 'JavaScript', url: '/js/app.js' }
+            ];
+
+            let allPassed = true;
+            let results = [];
+            
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    if (response.ok) {
+                        log(`${service.name} service: OK`, 'success');
+                        results.push(`✅ ${service.name}: OK`);
+                    } else {
+                        log(`${service.name} service: Failed`, 'error');
+                        results.push(`❌ ${service.name}: Failed`);
+                        allPassed = false;
+                    }
+                } catch (error) {
+                    log(`${service.name} service: Error`, 'error');
+                    results.push(`❌ ${service.name}: Error`);
+                    allPassed = false;
+                }
+            }
+
+            const resultType = allPassed ? 'success' : 'error';
+            updateTestResult('system-status', results.join('<br>'), resultType);
+            
+            if (allPassed) testResults.passed++;
+            else testResults.failed++;
+            testResults.total++;
+            updateSummary();
+        }
+
+        // Authentication Tests
+        async function testAuth() {
+            log('Testing authentication...');
+            updateTestResult('auth-status', '🔐 Authentication test - Manual verification required', 'info');
+        }
+
+        function testUserFlow() {
+            log('Testing user flow...');
+            updateTestResult('auth-status', '👤 User flow test - Check registration/login in main app', 'info');
+        }
+
+        // Game Flow Tests
+        async function testGameFlow() {
+            log('Testing game flow...');
+            updateTestResult('gameflow-status', '🎮 Game flow test - Opening main app for manual testing', 'info');
+            openMainApp();
+        }
+
+        function openMainApp() {
+            log('Opening main application...');
+            window.open('/index.html', '_blank');
+            updateTestResult('gameflow-status', '✅ Main application opened in new tab', 'success');
+        }
+
+        // UI Component Tests
+        async function testUI() {
+            log('Testing UI components...');
+            updateTestResult('ui-status', '�� UI components test - Visual inspection required', 'info');
+        }
+
+        function testResponsive() {
+            log('Testing responsive design...');
+            updateTestResult('ui-status', '📱 Responsive design test - Resize browser window to test', 'info');
+        }
+
+        // Placeholder functions for all other tests
+        function testSessionManagement() { log('Session management test - placeholder'); }
+        function testLobbyFlow() { log('Lobby flow test - placeholder'); }
+        function testBackendConnection() { log('Backend connection test - placeholder'); }
+        function testDatabaseConnection() { log('Database connection test - placeholder'); }
+        function testStaticAssets() { log('Static assets test - placeholder'); }
+        function testWebSocketConnection() { log('WebSocket connection test - placeholder'); }
+        function testModuleLoading() { log('Module loading test - placeholder'); }
+        function testScreenManager() { log('Screen manager test - placeholder'); }
+        function testStorageSystem() { log('Storage system test - placeholder'); }
+        function testAudioSystem() { log('Audio system test - placeholder'); }
+        function testEnvironmentConfig() { log('Environment config test - placeholder'); }
+        function testDevelopmentMode() { log('Development mode test - placeholder'); }
+        function testThemeSystem() { log('Theme system test - placeholder'); }
+        function testLanguageSystem() { log('Language system test - placeholder'); }
+        function testUserRegistration() { log('User registration test - placeholder'); }
+        function testUserLogin() { log('User login test - placeholder'); }
+        function testUserLogout() { log('User logout test - placeholder'); }
+        function testCharacterSelection() { log('Character selection test - placeholder'); }
+        function testSessionPersistence() { log('Session persistence test - placeholder'); }
+        function testSessionExpiry() { log('Session expiry test - placeholder'); }
+        function testMultipleDevices() { log('Multiple devices test - placeholder'); }
+        function testScreenTransitions() { log('Screen transitions test - placeholder'); }
+        function testMainMenu() { log('Main menu test - placeholder'); }
+        function testUnifiedGameScreen() { log('Unified game screen test - placeholder'); }
+        function testBackNavigation() { log('Back navigation test - placeholder'); }
+        function testCreateGameForm() { log('Create game form test - placeholder'); }
+        function testJoinGameForm() { log('Join game form test - placeholder'); }
+        function testQuestionSetUpload() { log('Question set upload test - placeholder'); }
+        function testFormValidation() { log('Form validation test - placeholder'); }
+        function testButtons() { log('Buttons test - placeholder'); }
+        function testModals() { log('Modals test - placeholder'); }
+        function testNotifications() { log('Notifications test - placeholder'); }
+        function testAnimations() { log('Animations test - placeholder'); }
+        function testMobileLayout() { log('Mobile layout test - placeholder'); }
+        function testTabletLayout() { log('Tablet layout test - placeholder'); }
+        function testDesktopLayout() { log('Desktop layout test - placeholder'); }
+        function testLandscapeMode() { log('Landscape mode test - placeholder'); }
+        function testLobbyCreation() { log('Lobby creation test - placeholder'); }
+        function testLobbyJoining() { log('Lobby joining test - placeholder'); }
+        function testPlayerManagement() { log('Player management test - placeholder'); }
+        function testQuestionSetSelection() { log('Question set selection test - placeholder'); }
+        function testReadySystem() { log('Ready system test - placeholder'); }
+        function testGameStart() { log('Game start test - placeholder'); }
+        function testQuestionFlow() { log('Question flow test - placeholder'); }
+        function testAnswerSubmission() { log('Answer submission test - placeholder'); }
+        function testScoringSystem() { log('Scoring system test - placeholder'); }
+        function testTimerSystem() { log('Timer system test - placeholder'); }
+        function testGameCompletion() { log('Game completion test - placeholder'); }
+        function testResultsScreen() { log('Results screen test - placeholder'); }
+        function testHallOfFame() { log('Hall of fame test - placeholder'); }
+        function testReplaySystem() { log('Replay system test - placeholder'); }
+        function testAuthAPI() { log('Auth API test - placeholder'); }
+        function testTokenValidation() { log('Token validation test - placeholder'); }
+        function testUserAPI() { log('User API test - placeholder'); }
+        function testLobbyAPI() { log('Lobby API test - placeholder'); }
+        function testQuestionSetAPI() { log('Question set API test - placeholder'); }
+        function testHallOfFameAPI() { log('Hall of fame API test - placeholder'); }
+        function testPollingSystem() { log('Polling system test - placeholder'); }
+        function testRealTimeUpdates() { log('Real-time updates test - placeholder'); }
+        function testErrorHandling() { log('Error handling test - placeholder'); }
+        function testPageLoadTime() { log('Page load time test - placeholder'); }
+        function testAssetLoading() { log('Asset loading test - placeholder'); }
+        function testMemoryUsage() { log('Memory usage test - placeholder'); }
+        function testAnimationPerformance() { log('Animation performance test - placeholder'); }
+        function testScrollPerformance() { log('Scroll performance test - placeholder'); }
+        function testTransitionPerformance() { log('Transition performance test - placeholder'); }
+        function testAPIResponseTime() { log('API response time test - placeholder'); }
+        function testPollingEfficiency() { log('Polling efficiency test - placeholder'); }
+        function testOfflineHandling() { log('Offline handling test - placeholder'); }
+
+        // Master test functions
+        async function runAllTests() {
+            log('Starting comprehensive test suite...');
+            testResults = { passed: 0, failed: 0, total: 0, logs: [] };
+            
+            await testSystemHealth();
+            await testServiceConnectivity();
+            
+            log('All automated tests completed');
+            updateSummary();
+        }
+
+        function clearResults() {
+            testResults = { passed: 0, failed: 0, total: 0, logs: [] };
+            document.getElementById('test-log').innerHTML = '';
+            document.querySelectorAll('.test-result').forEach(result => {
+                result.className = 'test-result info';
+                result.innerHTML = 'Results cleared...';
+            });
+            updateSummary();
+        }
+
+        function exportResults() {
+            const results = {
+                timestamp: new Date().toISOString(),
+                summary: testResults,
+                logs: testResults.logs
+            };
+            
+            const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `learn2play-test-results-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('test-summary');
+            if (summary) {
+                const passRate = testResults.total > 0 ? ((testResults.passed / testResults.total) * 100).toFixed(1) : 0;
+                summary.innerHTML = `
+                    <h3>📊 Test Results Summary</h3>
+                    <p><strong>Total Tests:</strong> ${testResults.total}</p>
+                    <p><strong>Passed:</strong> <span style="color: var(--success)">${testResults.passed}</span></p>
+                    <p><strong>Failed:</strong> <span style="color: var(--error)">${testResults.failed}</span></p>
+                    <p><strong>Pass Rate:</strong> ${passRate}%</p>
+                `;
+                
+                if (testResults.total > 0) {
+                    summary.className = passRate >= 80 ? 'test-result success' : 'test-result error';
+                }
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Testing dashboard initialized');
+            
+            // Set up navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (btn.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        const target = document.querySelector(btn.getAttribute('href'));
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

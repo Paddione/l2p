@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI Analysis</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+        <h1>🔍 Learn2Play UI Analysis</h1>
+        
+        <h2>Current Complexity Issues</h2>
+        <ul>
+            <li><strong>Screen Redundancy:</strong> 12 screens with duplicate functionality</li>
+            <li><strong>Form Duplication:</strong> Multiple forms with same purpose but different IDs</li>
+            <li><strong>CSS Bloat:</strong> 3000+ lines with many unused styles</li>
+            <li><strong>Complex Navigation:</strong> Overlapping functionality across screens</li>
+        </ul>
+
+        <h2>Simplification Recommendations</h2>
+        <ol>
+            <li><strong>Consolidate Screens:</strong> Merge create/join/lobby into single game-setup screen</li>
+            <li><strong>Eliminate Duplicates:</strong> Remove redundant forms and elements</li>
+            <li><strong>Streamline Navigation:</strong> Create clear, linear user flow</li>
+            <li><strong>Optimize CSS:</strong> Remove unused styles, consolidate breakpoints</li>
+        </ol>
+
+        <h2>Expected Benefits</h2>
+        <ul>
+            <li>33% fewer screens (12 → 8)</li>
+            <li>40% less code complexity</li>
+            <li>50% less maintenance effort</li>
+            <li>Better user experience</li>
+        </ul>
+
+        <div style="margin-top: 2rem;">
+            <a href="/testing.html" style="background: var(--primary); color: white; padding: 1rem; border-radius: 6px; text-decoration: none;">Testing Dashboard</a>
+            <a href="/index.html" style="background: var(--success); color: white; padding: 1rem; border-radius: 6px; text-decoration: none; margin-left: 1rem;">Main App</a>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn2Play - Simplified</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <style>
+        /* Simplified UI Styles */
+        .simplified-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            background: var(--surface-elevated);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid var(--border);
+        }
+
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: var(--focus-ring);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--button-primary-bg);
+            color: var(--button-primary-text);
+        }
+
+        .btn-primary:hover {
+            background: var(--button-primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--button-secondary-bg);
+            color: var(--button-secondary-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--button-secondary-hover);
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .player-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .player-character {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .player-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .player-status.ready {
+            color: var(--success);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .lobby-code {
+            background: var(--primary);
+            color: var(--button-primary-text);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 0.2em;
+            margin: 1rem 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.connected {
+            background: var(--success);
+        }
+
+        .status-indicator.disconnected {
+            background: var(--error);
+        }
+
+        @media (max-width: 768px) {
+            .simplified-container {
+                padding: 1rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .players-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="simplified-container">
+        <header>
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 2rem;">
+                🎯 Learn2Play - Simplified UI
+            </h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                A streamlined interface demonstrating UI simplification recommendations
+            </p>
+        </header>
+
+        <!-- Authentication Section -->
+        <section class="section" id="auth-section">
+            <h2>🔐 Authentication</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="login()">🔑 Login</button>
+                <button class="btn btn-secondary" onclick="register()">📝 Register</button>
+            </div>
+        </section>
+
+        <!-- Character Selection Section -->
+        <section class="section hidden" id="character-section">
+            <h2>👤 Select Character</h2>
+            <div class="players-grid">
+                <div class="player-card" onclick="selectCharacter('🐶')">
+                    <div class="player-character">🐶</div>
+                    <div class="player-name">Dog</div>
+                </div>
+                <div class="player-card" onclick="selectCharacter('🐱')">
+                    <div class="player-character">🐱</div>
+                    <div class="player-name">Cat</div>
+                </div>
+                <div class="player-card" onclick="selectCharacter('🐭')">
+                    <div class="player-character">🐭</div>
+                    <div class="player-name">Mouse</div>
+                </div>
+                <div class="player-card" onclick="selectCharacter('🐹')">
+                    <div class="player-character">🐹</div>
+                    <div class="player-name">Hamster</div>
+                </div>
+                <div class="player-card" onclick="selectCharacter('🦊')">
+                    <div class="player-character">🦊</div>
+                    <div class="player-name">Fox</div>
+                </div>
+                <div class="player-card" onclick="selectCharacter('🐻')">
+                    <div class="player-character">🐻</div>
+                    <div class="player-name">Bear</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Setup Section -->
+        <section class="section hidden" id="game-setup-section">
+            <h2>🎮 Game Setup</h2>
+            
+            <!-- Create or Join Toggle -->
+            <div class="button-group" style="margin-bottom: 2rem;">
+                <button class="btn btn-primary" id="create-toggle" onclick="showCreateGame()">
+                    ➕ Create Game
+                </button>
+                <button class="btn btn-secondary" id="join-toggle" onclick="showJoinGame()">
+                    🔗 Join Game
+                </button>
+            </div>
+
+            <!-- Create Game Form -->
+            <div id="create-game-form" class="form-section">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Create New Game</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="max-players">Max Players</label>
+                        <select id="max-players">
+                            <option value="2">2 Players</option>
+                            <option value="3">3 Players</option>
+                            <option value="4" selected>4 Players</option>
+                            <option value="6">6 Players</option>
+                            <option value="8">8 Players</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="question-count">Questions</label>
+                        <select id="question-count">
+                            <option value="5">5 Questions</option>
+                            <option value="10" selected>10 Questions</option>
+                            <option value="15">15 Questions</option>
+                            <option value="20">20 Questions</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="question-set">Question Set</label>
+                        <select id="question-set">
+                            <option value="">Select question set...</option>
+                            <option value="general">General Knowledge</option>
+                            <option value="science">Science</option>
+                            <option value="history">History</option>
+                            <option value="sports">Sports</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="createGame()">🎯 Create Game</button>
+                </div>
+            </div>
+
+            <!-- Join Game Form -->
+            <div id="join-game-form" class="form-section hidden">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Join Existing Game</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="game-code">Game Code</label>
+                        <input type="text" id="game-code" placeholder="Enter 4-digit code" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.2em;">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="joinGame()">🔗 Join Game</button>
+                </div>
+                
+                <!-- Active Games List -->
+                <div style="margin-top: 2rem;">
+                    <h4 style="text-align: center; margin-bottom: 1rem;">Active Games</h4>
+                    <div id="active-games-list" class="info-grid">
+                        <!-- Active games will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lobby Section -->
+        <section class="section hidden" id="lobby-section">
+            <h2>🎯 Game Lobby</h2>
+            
+            <div class="lobby-code" id="lobby-code-display">
+                ABCD
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Question Set</div>
+                    <div class="info-value" id="lobby-question-set">General Knowledge</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Questions</div>
+                    <div class="info-value" id="lobby-question-count">10</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Max Players</div>
+                    <div class="info-value" id="lobby-max-players">4</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" id="lobby-status">Waiting</div>
+                </div>
+            </div>
+
+            <h3 style="text-align: center; margin: 2rem 0 1rem 0;">Players</h3>
+            <div class="players-grid" id="lobby-players">
+                <!-- Players will be populated here -->
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="ready-btn" onclick="toggleReady()">
+                    ✅ Ready
+                </button>
+                <button class="btn btn-primary hidden" id="start-btn" onclick="startGame()">
+                    🚀 Start Game
+                </button>
+                <button class="btn btn-secondary" onclick="leaveLobby()">
+                    🚪 Leave Lobby
+                </button>
+            </div>
+        </section>
+
+        <!-- Game Section -->
+        <section class="section hidden" id="game-section">
+            <h2>🎮 Game in Progress</h2>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Question</div>
+                    <div class="info-value" id="question-number">1 / 10</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Time Left</div>
+                    <div class="info-value" id="time-left">30s</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Your Score</div>
+                    <div class="info-value" id="current-score">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Multiplier</div>
+                    <div class="info-value" id="multiplier">1x</div>
+                </div>
+            </div>
+
+            <div style="background: var(--surface); border-radius: 8px; padding: 2rem; margin: 2rem 0; border: 2px solid var(--border);">
+                <h3 id="question-text" style="text-align: center; margin-bottom: 2rem; color: var(--text-primary);">
+                    What is the capital of France?
+                </h3>
+                
+                <div class="form-grid" id="answers-grid">
+                    <button class="btn btn-secondary answer-btn" onclick="selectAnswer(0)">A) London</button>
+                    <button class="btn btn-secondary answer-btn" onclick="selectAnswer(1)">B) Paris</button>
+                    <button class="btn btn-secondary answer-btn" onclick="selectAnswer(2)">C) Berlin</button>
+                    <button class="btn btn-secondary answer-btn" onclick="selectAnswer(3)">D) Madrid</button>
+                </div>
+            </div>
+
+            <h3 style="text-align: center; margin: 2rem 0 1rem 0;">Players</h3>
+            <div class="players-grid" id="game-players">
+                <!-- Game players will be populated here -->
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="section hidden" id="results-section">
+            <h2>🏆 Game Results</h2>
+            
+            <div id="results-content">
+                <!-- Results will be populated here -->
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="playAgain()">🔄 Play Again</button>
+                <button class="btn btn-secondary" onclick="backToMenu()">🏠 Main Menu</button>
+            </div>
+        </section>
+
+        <!-- Status Bar -->
+        <div style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 2px solid var(--border); padding: 1rem;">
+            <div style="max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span class="status-indicator connected"></span>
+                    <span>Connected</span>
+                </div>
+                <div>
+                    <span id="current-user">🐶 Player</span>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="logout()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        🚪 Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simplified UI Demo Functions
+        let currentSection = 'auth-section';
+        let isReady = false;
+        let selectedCharacter = null;
+        let gameMode = 'create'; // 'create' or 'join'
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show target section
+            document.getElementById(sectionId).classList.remove('hidden');
+            currentSection = sectionId;
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                document.getElementById('current-user').textContent = `🐶 ${username}`;
+                showSection('character-section');
+            } else {
+                alert('Please enter username and password');
+            }
+        }
+
+        function register() {
+            // Same as login for demo
+            login();
+        }
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            document.getElementById('current-user').textContent = `${character} ${document.getElementById('username').value}`;
+            
+            // Highlight selected character
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.style.border = '2px solid var(--border)';
+            });
+            event.target.closest('.player-card').style.border = '2px solid var(--primary)';
+            
+            setTimeout(() => {
+                showSection('game-setup-section');
+            }, 1000);
+        }
+
+        function showCreateGame() {
+            gameMode = 'create';
+            document.getElementById('create-toggle').className = 'btn btn-primary';
+            document.getElementById('join-toggle').className = 'btn btn-secondary';
+            document.getElementById('create-game-form').classList.remove('hidden');
+            document.getElementById('join-game-form').classList.add('hidden');
+        }
+
+        function showJoinGame() {
+            gameMode = 'join';
+            document.getElementById('create-toggle').className = 'btn btn-secondary';
+            document.getElementById('join-toggle').className = 'btn btn-primary';
+            document.getElementById('create-game-form').classList.add('hidden');
+            document.getElementById('join-game-form').classList.remove('hidden');
+            
+            // Populate active games for demo
+            populateActiveGames();
+        }
+
+        function populateActiveGames() {
+            const activeGamesList = document.getElementById('active-games-list');
+            activeGamesList.innerHTML = `
+                <div class="info-item" style="cursor: pointer;" onclick="joinGameByCode('ABCD')">
+                    <div class="info-label">Code: ABCD</div>
+                    <div class="info-value">2/4 Players</div>
+                </div>
+                <div class="info-item" style="cursor: pointer;" onclick="joinGameByCode('EFGH')">
+                    <div class="info-label">Code: EFGH</div>
+                    <div class="info-value">1/6 Players</div>
+                </div>
+                <div class="info-item" style="cursor: pointer;" onclick="joinGameByCode('IJKL')">
+                    <div class="info-label">Code: IJKL</div>
+                    <div class="info-value">3/8 Players</div>
+                </div>
+            `;
+        }
+
+        function createGame() {
+            const maxPlayers = document.getElementById('max-players').value;
+            const questionCount = document.getElementById('question-count').value;
+            const questionSet = document.getElementById('question-set').value;
+            
+            if (!questionSet) {
+                alert('Please select a question set');
+                return;
+            }
+            
+            // Update lobby info
+            document.getElementById('lobby-question-set').textContent = questionSet;
+            document.getElementById('lobby-question-count').textContent = questionCount;
+            document.getElementById('lobby-max-players').textContent = maxPlayers;
+            document.getElementById('lobby-code-display').textContent = 'ABCD';
+            
+            populateLobbyPlayers();
+            showSection('lobby-section');
+        }
+
+        function joinGame() {
+            const gameCode = document.getElementById('game-code').value;
+            if (gameCode.length === 4) {
+                joinGameByCode(gameCode);
+            } else {
+                alert('Please enter a 4-digit game code');
+            }
+        }
+
+        function joinGameByCode(code) {
+            document.getElementById('lobby-code-display').textContent = code;
+            populateLobbyPlayers();
+            showSection('lobby-section');
+        }
+
+        function populateLobbyPlayers() {
+            const lobbyPlayers = document.getElementById('lobby-players');
+            lobbyPlayers.innerHTML = `
+                <div class="player-card">
+                    <div class="player-character">${selectedCharacter}</div>
+                    <div class="player-name">${document.getElementById('username').value}</div>
+                    <div class="player-status" id="my-status">Not Ready</div>
+                </div>
+                <div class="player-card">
+                    <div class="player-character">🐱</div>
+                    <div class="player-name">Alice</div>
+                    <div class="player-status ready">Ready</div>
+                </div>
+                <div class="player-card">
+                    <div class="player-character">🐭</div>
+                    <div class="player-name">Bob</div>
+                    <div class="player-status">Not Ready</div>
+                </div>
+            `;
+        }
+
+        function toggleReady() {
+            isReady = !isReady;
+            const readyBtn = document.getElementById('ready-btn');
+            const myStatus = document.getElementById('my-status');
+            
+            if (isReady) {
+                readyBtn.textContent = '⏳ Not Ready';
+                readyBtn.className = 'btn btn-secondary';
+                myStatus.textContent = 'Ready';
+                myStatus.className = 'player-status ready';
+                
+                // Show start button if host (for demo)
+                document.getElementById('start-btn').classList.remove('hidden');
+            } else {
+                readyBtn.textContent = '✅ Ready';
+                readyBtn.className = 'btn btn-primary';
+                myStatus.textContent = 'Not Ready';
+                myStatus.className = 'player-status';
+                
+                document.getElementById('start-btn').classList.add('hidden');
+            }
+        }
+
+        function startGame() {
+            populateGamePlayers();
+            showSection('game-section');
+            
+            // Start demo game timer
+            startGameTimer();
+        }
+
+        function populateGamePlayers() {
+            const gamePlayers = document.getElementById('game-players');
+            gamePlayers.innerHTML = `
+                <div class="player-card">
+                    <div class="player-character">${selectedCharacter}</div>
+                    <div class="player-name">${document.getElementById('username').value}</div>
+                    <div class="player-status">Score: 0</div>
+                </div>
+                <div class="player-card">
+                    <div class="player-character">🐱</div>
+                    <div class="player-name">Alice</div>
+                    <div class="player-status">Score: 150</div>
+                </div>
+                <div class="player-card">
+                    <div class="player-character">🐭</div>
+                    <div class="player-name">Bob</div>
+                    <div class="player-status">Score: 75</div>
+                </div>
+            `;
+        }
+
+        function startGameTimer() {
+            let timeLeft = 30;
+            const timer = setInterval(() => {
+                document.getElementById('time-left').textContent = timeLeft + 's';
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    showResults();
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(index) {
+            // Highlight selected answer
+            document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.className = 'btn btn-primary answer-btn';
+                    btn.style.background = 'var(--primary)';
+                } else {
+                    btn.className = 'btn btn-secondary answer-btn';
+                }
+            });
+            
+            // Update score for demo
+            const currentScore = parseInt(document.getElementById('current-score').textContent);
+            document.getElementById('current-score').textContent = currentScore + 50;
+        }
+
+        function showResults() {
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = `
+                <div class="players-grid">
+                    <div class="player-card" style="border: 3px solid gold;">
+                        <div class="player-character">🐱</div>
+                        <div class="player-name">Alice</div>
+                        <div class="player-status">🥇 Winner - 450 points</div>
+                    </div>
+                    <div class="player-card" style="border: 3px solid silver;">
+                        <div class="player-character">${selectedCharacter}</div>
+                        <div class="player-name">${document.getElementById('username').value}</div>
+                        <div class="player-status">🥈 2nd Place - 350 points</div>
+                    </div>
+                    <div class="player-card" style="border: 3px solid #CD7F32;">
+                        <div class="player-character">🐭</div>
+                        <div class="player-name">Bob</div>
+                        <div class="player-status">🥉 3rd Place - 275 points</div>
+                    </div>
+                </div>
+            `;
+            
+            showSection('results-section');
+        }
+
+        function leaveLobby() {
+            showSection('game-setup-section');
+        }
+
+        function playAgain() {
+            showSection('game-setup-section');
+        }
+
+        function backToMenu() {
+            showSection('game-setup-section');
+        }
+
+        function logout() {
+            showSection('auth-section');
+            // Reset form
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            selectedCharacter = null;
+            isReady = false;
+        }
+
+        // Initialize with demo data
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Simplified UI Demo loaded');
+        });
+    </script>
+</body>
+</html> 

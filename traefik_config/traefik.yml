@@ -1,0 +1,68 @@
+# traefik_config/traefik.yml
+
+# API und Dashboard Einstellungen
+api:
+  dashboard: true # Aktiviert das Dashboard [cite: 1016]
+  # insecure: true # Für lokale Entwicklung. In Produktion entfernen oder sichern (ist hier über Router gesichert)
+  debug: true # Erlaubt Debug-Informationen [cite: 1017]
+
+# EntryPoints für HTTP und HTTPS
+entryPoints:
+  web:
+    address: ":80" # HTTP EntryPoint [cite: 1011]
+    # HTTP zu HTTPS Umleitung wird jetzt per Middleware auf den Routern gehandhabt
+    # um mehr Flexibilität zu haben (z.B. lokale HTTP Endpunkte nicht umleiten)
+
+  websecure:
+    address: ":443" # HTTPS EntryPoint [cite: 1012]
+    http:
+      tls: # Globale TLS Aktivierung für diesen EntryPoint, kann pro Router überschrieben/spezifiziert werden
+        certResolver: letsencrypt # Standard CertResolver für diesen EntryPoint
+        options: default@file # Standard TLS Optionen von dynamic_conf.yml
+
+# Provider Konfiguration
+providers:
+  docker:
+    exposedByDefault: false # Container müssen explizit aktiviert werden [cite: 1013]
+    network: quiz-network # Standard-Netzwerk für Docker-Services [cite: 1014]
+    watch: true # Docker Events beobachten
+    # endpoint: "unix:///var/run/docker.sock" # Standard, kann explizit gesetzt werden [cite: 1015]
+
+  file:
+    directory: /etc/traefik/dynamic # Verzeichnis für dynamische Konfigurationsdateien (Middlewares, TLS-Optionen)
+    watch: true # Änderungen in den dynamischen Konfigurationsdateien beobachten
+
+# Zertifikatsresolver für Let's Encrypt
+certificatesResolvers:
+  letsencrypt: # Name des Resolvers
+    acme:
+      email: ${LETSENCRYPT_EMAIL}
+      storage: /letsencrypt/acme.json # Speicherort für Zertifikate [cite: 1080]
+      # Staging Server für Tests (um Rate Limits zu vermeiden):
+      # caServer: "https://acme-staging-v02.api.letsencrypt.org/directory" [cite: 1081]
+      httpChallenge:
+        entryPoint: web # Verwendet den 'web' EntryPoint für die HTTP-01 Challenge [cite: 1080, 1083]
+
+# Logging Konfiguration
+log:
+  level: ${TRAEFIK_LOG_LEVEL:-INFO} # Loglevel (DEBUG, INFO, WARNING, ERROR) [cite: 1018]
+  format: json # Strukturiertes Logging im JSON-Format [cite: 1025]
+  # filePath: /var/log/traefik/traefik.log # Optional: Pfad zur Logdatei
+
+accessLog:
+  format: json # JSON-Format für Access Logs [cite: 1026]
+  # filePath: /var/log/traefik/access.log # Optional: Pfad zur Accesslog-Datei
+  # bufferingSize: 100 # Optional: Anzahl der Logzeilen, die gepuffert werden
+
+# Ping Endpoint für Healthchecks
+ping: true # Aktiviert den /ping Endpoint [cite: 1017]
+
+# Metriken für Prometheus (optional)
+metrics:
+  prometheus: true # Aktiviert den /metrics Endpoint für Prometheus [cite: 1017]
+  # entryPoint: metrics # Optional: Eigener EntryPoint für Metriken
+
+# Global configuration
+global:
+  checkNewVersion: false # Disable version check for security
+  sendAnonymousUsage: false # Disable anonymous usage statistics
