@@ -198,6 +198,14 @@ router.post('/refresh', async (req, res) => {
             });
         }
         
+        // Check if error comes from verifyRefreshToken middleware
+        if (error.status === 401 && error.code === 'INVALID_REFRESH_TOKEN') {
+            return res.status(401).json({ 
+                error: 'Invalid refresh token',
+                code: 'INVALID_REFRESH_TOKEN'
+            });
+        }
+        
         res.status(500).json({ 
             error: 'Token refresh failed',
             code: 'REFRESH_ERROR'

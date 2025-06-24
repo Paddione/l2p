@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Direct Lobby Creation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .result { margin: 20px 0; padding: 10px; border-left: 4px solid #007bff; background: #f8f9fa; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>Test Direct Lobby Creation</h1>
+    <p>This page tests the direct lobby creation functionality without going through question set selection.</p>
+    
+    <button onclick="testDirectLobbyCreation()">Test Direct Lobby Creation</button>
+    <button onclick="testWithAuth()">Test with Authentication</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://10.0.0.44/api';
+        
+        function showResult(message, type = 'result') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        async function testDirectLobbyCreation() {
+            showResult('Testing direct lobby creation...');
+            
+            try {
+                // First, try to register/login a test user
+                const loginResponse = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'testpass'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    // Try to register first
+                    const registerResponse = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: 'testuser',
+                            password: 'testpass',
+                            character: 'wiz'
+                        })
+                    });
+                    
+                    if (!registerResponse.ok) {
+                        throw new Error('Failed to register user');
+                    }
+                    
+                    showResult('User registered successfully', 'success');
+                    
+                    // Now try to login
+                    const retryLogin = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: 'testuser',
+                            password: 'testpass'
+                        })
+                    });
+                    
+                    if (!retryLogin.ok) {
+                        throw new Error('Failed to login after registration');
+                    }
+                    
+                    var loginData = await retryLogin.json();
+                } else {
+                    var loginData = await loginResponse.json();
+                }
+                
+                showResult('User authenticated successfully', 'success');
+                const token = loginData.token;
+                
+                // Now test direct lobby creation (without question set)
+                const lobbyResponse = await fetch(`${API_BASE}/lobby/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        character: 'wiz'
+                        // Note: No question_set_id provided
+                    })
+                });
+                
+                if (!lobbyResponse.ok) {
+                    const errorData = await lobbyResponse.json();
+                    throw new Error(`Lobby creation failed: ${errorData.error}`);
+                }
+                
+                const lobbyData = await lobbyResponse.json();
+                showResult(`✅ Lobby created successfully! Code: ${lobbyData.code}`, 'success');
+                showResult(`Lobby has ${lobbyData.players.length} players`, 'success');
+                showResult(`Question set: ${lobbyData.question_set ? lobbyData.question_set.name : 'None (can be set later)'}`, 'success');
+                
+                // Test that we can retrieve the lobby
+                const retrieveResponse = await fetch(`${API_BASE}/lobby/${lobbyData.code}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (retrieveResponse.ok) {
+                    showResult('✅ Lobby can be retrieved successfully', 'success');
+                } else {
+                    showResult('⚠️ Warning: Could not retrieve lobby', 'error');
+                }
+                
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testWithAuth() {
+            showResult('Testing authentication endpoints...');
+            
+            try {
+                const healthResponse = await fetch(`${API_BASE}/health`);
+                const healthData = await healthResponse.json();
+                showResult(`API Health: ${healthData.status}`, healthData.status === 'OK' ? 'success' : 'error');
+                
+                const questionSetsResponse = await fetch(`${API_BASE}/question-sets`);
+                if (questionSetsResponse.ok) {
+                    const questionSets = await questionSetsResponse.json();
+                    showResult(`Found ${questionSets.length} question sets`, 'success');
+                } else {
+                    showResult('Could not fetch question sets', 'error');
+                }
+                
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

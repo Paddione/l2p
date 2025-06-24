@@ -1,0 +1,103 @@
+{
+  "executionMode": "sequential",
+  "totalDuration": 103761,
+  "startTime": "2025-06-24T06:10:01.716Z",
+  "endTime": "2025-06-24T06:11:45.477Z",
+  "testResults": [
+    {
+      "file": "test_all_lobby_features.cjs",
+      "exitCode": 0,
+      "duration": 79894,
+      "startTime": "2025-06-24T06:10:01.874Z",
+      "stdout": "",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_all_lobby_features.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_question_sets.cjs",
+      "exitCode": 0,
+      "duration": 296,
+      "startTime": "2025-06-24T06:11:21.768Z",
+      "stdout": "",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_question_sets.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_frontend_ui.cjs",
+      "exitCode": 0,
+      "duration": 23122,
+      "startTime": "2025-06-24T06:11:22.065Z",
+      "stdout": "",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_frontend_ui.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_scoring_system.cjs",
+      "exitCode": 1,
+      "duration": 33,
+      "startTime": "2025-06-24T06:11:45.187Z",
+      "stdout": "",
+      "stderr": "",
+      "success": false,
+      "analysis": {
+        "file": "test_scoring_system.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "debug_api.cjs",
+      "exitCode": 0,
+      "duration": 255,
+      "startTime": "2025-06-24T06:11:45.220Z",
+      "stdout": "",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "debug_api.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 4,
+    "failed": 1
+  }
+}

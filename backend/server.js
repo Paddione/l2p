@@ -181,9 +181,35 @@ function configureApp() {
         }
     });
 
-    // Apply database readiness check to all API routes except health
+    // Ready endpoint (simpler than health, just checks database readiness)
+    app.get('/api/ready', (req, res) => {
+        try {
+            if (dbReady) {
+                res.status(200).json({
+                    status: 'ready',
+                    timestamp: new Date().toISOString(),
+                    database: 'ready'
+                });
+            } else {
+                res.status(503).json({
+                    status: 'not_ready',
+                    timestamp: new Date().toISOString(),
+                    database: 'not_ready'
+                });
+            }
+        } catch (error) {
+            console.error('Error in ready check:', error);
+            res.status(503).json({
+                status: 'error',
+                timestamp: new Date().toISOString(),
+                error: 'Ready check failed'
+            });
+        }
+    });
+
+    // Apply database readiness check to all API routes except health and ready
     app.use('/api', (req, res, next) => {
-        if (req.path === '/health') {
+        if (req.path === '/health' || req.path === '/ready') {
             return next();
         }
         checkDatabaseReady(req, res, next);

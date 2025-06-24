@@ -490,9 +490,9 @@ function setupMainMenuHandlers() {
 
     // Add click handlers
     if (createGameBtn) {
-        createGameBtn.addEventListener('click', () => {
-            // Show question set selection screen for creating a game
-            appState.modules.screenManager.showScreen(SCREENS.QUESTION_SET_SELECTION);
+        createGameBtn.addEventListener('click', async () => {
+            // Skip question set selection and directly create a lobby
+            await handleDirectLobbyCreation();
         });
     }
     if (joinGameBtn) {
@@ -594,7 +594,105 @@ function setupMainMenuHandlers() {
     }
 }
 
+/**
+ * Handles direct lobby creation without question set selection
+ */
+async function handleDirectLobbyCreation() {
+    try {
+        // Get current user data for character information
+        let currentUser = await appState.modules.storage.getCurrentUser();
+        console.log('Current user data for direct lobby creation:', currentUser);
+        
+        if (!currentUser) {
+            showNotification(t('ERRORS.PLEASE_LOGIN_FIRST'), 'error');
+            return;
+        }
+        
+        // If character is missing, try to refresh user data from API
+        if (!currentUser.character) {
+            console.warn('User character is missing for direct lobby creation, attempting to refresh user data...');
+            try {
+                // Force refresh from API
+                const refreshedUser = await apiClient.getCurrentUser();
+                console.log('Refreshed user data for direct lobby creation:', refreshedUser);
+                
+                if (refreshedUser && refreshedUser.character) {
+                    currentUser = refreshedUser;
+                    // Update localStorage with fresh data
+                    appState.modules.storage.saveData('learn2play_current_user', {
+                        ...refreshedUser,
+                        lastLogin: new Date().toISOString()
+                    });
+                } else {
+                    console.error('Refreshed user data still missing character for direct lobby creation:', refreshedUser);
+                    showNotification(t('ERRORS.NO_CHARACTER'), 'error');
+                    return;
+                }
+            } catch (refreshError) {
+                console.error('Failed to refresh user data for direct lobby creation:', refreshError);
+                showNotification(t('ERRORS.CONNECTION_ERROR'), 'error');
+                return;
+            }
+        }
+        
+        if (!currentUser.character) {
+            console.error('User character is still missing after refresh for direct lobby creation:', currentUser);
+            showNotification(t('ERRORS.NO_CHARACTER'), 'error');
+            return;
+        }
+        
+        console.log('Creating lobby directly without question set...');
+        
+        // Create lobby without question set (will be selected later in lobby)
+        const lobbyData = await appState.modules.lobbyManager.createLobby(
+            {
+                username: currentUser.username,
+                character: currentUser.character
+            },
+            null // No question set initially
+        );
+        
+        console.log('Lobby created successfully:', lobbyData);
 
+        if (lobbyData) {
+            // Notify playerManager about the new lobby and current player
+            if (appState.modules.playerManager) {
+                if (typeof appState.modules.playerManager.setCurrentPlayer === 'function') {
+                    console.log('Setting current player in playerManager:', currentUser);
+                    appState.modules.playerManager.setCurrentPlayer(currentUser);
+                }
+                
+                if (typeof appState.modules.playerManager.setCurrentLobby === 'function') {
+                    console.log('Setting current lobby in playerManager:', lobbyData);
+                    appState.modules.playerManager.setCurrentLobby(lobbyData);
+                }
+            }
+            
+            // Dispatch custom event for lobby creation
+            const lobbyCreatedEvent = new CustomEvent('lobbyCreated', {
+                detail: { 
+                    lobby: lobbyData,
+                    isHost: true,
+                    player: currentUser
+                }
+            });
+            window.dispatchEvent(lobbyCreatedEvent);
+            
+            // Show lobby screen
+            appState.modules.screenManager.showScreen(SCREENS.LOBBY);
+            
+            showNotification(t('SUCCESS.GAME_CREATED'), 'success');
+        }
+        
+    } catch (error) {
+        console.error('Failed to create lobby directly:', error);
+        if (error.code === 'MISSING_CHARACTER') {
+            showNotification(t('ERRORS.NO_CHARACTER'), 'error');
+        } else {
+            showNotification(t('ERRORS.FAILED_TO_CREATE_GAME') + ': ' + error.message, 'error');
+        }
+    }
+}
 
 /**
  * Refreshes the list of active lobbies

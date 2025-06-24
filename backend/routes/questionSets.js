@@ -127,7 +127,8 @@ router.post('/', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Create question set error:', error);
         
-        if (error.message.includes('Invalid question format')) {
+        if (error.message.includes('Invalid question format') || 
+            error.message.includes('Questions must be a non-empty array')) {
             return res.status(400).json({ 
                 error: error.message,
                 code: 'INVALID_QUESTION_FORMAT'
@@ -252,7 +253,8 @@ router.post('/upload', authenticateToken, (req, res, next) => {
     } catch (error) {
         console.error('Upload question set error:', error);
         
-        if (error.message.includes('Invalid question format')) {
+        if (error.message.includes('Invalid question format') || 
+            error.message.includes('Questions must be a non-empty array')) {
             return res.status(400).json({ 
                 error: error.message,
                 code: 'INVALID_QUESTION_FORMAT'

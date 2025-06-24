@@ -35,9 +35,9 @@ async function verifyToken(token, optional = false) {
             throw { status: 401, message: 'Token expired', code: 'TOKEN_EXPIRED' };
         }
         if (error.name === 'JsonWebTokenError') {
-            throw { status: 403, message: 'Invalid token', code: 'INVALID_TOKEN' };
+            throw { status: 401, message: 'Invalid token', code: 'INVALID_TOKEN' };
         }
-        throw { status: 403, message: 'Token verification failed', code: 'TOKEN_ERROR' };
+        throw { status: 401, message: 'Token verification failed', code: 'TOKEN_ERROR' };
     }
 }
 
@@ -139,7 +139,7 @@ async function verifyRefreshToken(token) {
         
         return decoded;
     } catch (error) {
-        throw { status: 403, message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' };
+        throw { status: 401, message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' };
     }
 }
 

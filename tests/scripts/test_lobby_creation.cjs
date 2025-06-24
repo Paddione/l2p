@@ -1,55 +1,62 @@
 #!/usr/bin/env node
 
-// Test script to verify lobby creation functionality
-const https = require('https');
-const http = require('http');
+/**
+ * Lobby Creation Test Suite
+ * Simple test for lobby creation functionality
+ */
 
-const BASE_URL = 'http://10.0.0.44';
+require('dotenv').config();
+const axios = require('axios');
 
-// Helper function to make HTTP requests
-function makeRequest(method, path, data = null, headers = {}) {
-    return new Promise((resolve, reject) => {
-        const url = new URL(path, BASE_URL);
-        const options = {
-            hostname: url.hostname,
-            port: url.port || 80,
-            path: url.pathname + url.search,
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...headers
-            }
+// Configuration from environment variables
+const BASE_URL = `http://${process.env.LOCAL_IP || '10.0.0.44'}`;
+const API_BASE = `${BASE_URL}/api`;
+
+// Test data
+let authToken = null;
+
+// Utility functions
+function log(message, level = 'INFO') {
+    const timestamp = new Date().toISOString();
+    const colors = {
+        INFO: '\x1b[36m',    // Cyan
+        SUCCESS: '\x1b[32m', // Green
+        ERROR: '\x1b[31m',   // Red
+        WARNING: '\x1b[33m', // Yellow
+        RESET: '\x1b[0m'     // Reset
+    };
+    console.log(`${colors[level]}[${timestamp}] ${level}: ${message}${colors.RESET}`);
+}
+
+async function makeRequest(method, endpoint, data = null, token = null) {
+    try {
+        const config = {
+            method,
+            url: `${API_BASE}${endpoint}`,
+            headers: {},
+            timeout: 10000, // 10 second timeout
+            validateStatus: () => true // Don't throw errors for non-2xx status codes
         };
 
-        const req = http.request(options, (res) => {
-            let body = '';
-            res.on('data', (chunk) => body += chunk);
-            res.on('end', () => {
-                try {
-                    const responseData = body ? JSON.parse(body) : {};
-                    resolve({
-                        status: res.statusCode,
-                        headers: res.headers,
-                        data: responseData
-                    });
-                } catch (e) {
-                    resolve({
-                        status: res.statusCode,
-                        headers: res.headers,
-                        data: body
-                    });
-                }
-            });
-        });
-
-        req.on('error', reject);
-
-        if (data) {
-            req.write(JSON.stringify(data));
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
 
-        req.end();
-    });
+        if (data) {
+            config.data = data;
+            config.headers['Content-Type'] = 'application/json';
+        }
+
+        const response = await axios(config);
+        return { success: response.status >= 200 && response.status < 300, data: response.data, status: response.status };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.response?.data || error.message,
+            status: error.response?.status || 500,
+            fullError: error.response?.data ? JSON.stringify(error.response.data, null, 2) : error.message
+        };
+    }
 }
 
 async function testLobbyCreation() {
@@ -59,7 +66,7 @@ async function testLobbyCreation() {
     try {
         // Step 1: Test API health
         console.log('1️⃣ Testing API health...');
-        const healthResponse = await makeRequest('GET', '/api/health');
+        const healthResponse = await makeRequest('GET', '/health');
         console.log(`   Status: ${healthResponse.status}`);
         console.log(`   Response: ${JSON.stringify(healthResponse.data, null, 2)}\n`);
 
@@ -69,7 +76,7 @@ async function testLobbyCreation() {
 
         // Step 2: Test question sets endpoint
         console.log('2️⃣ Testing question sets endpoint...');
-        const questionSetsResponse = await makeRequest('GET', '/api/question-sets');
+        const questionSetsResponse = await makeRequest('GET', '/question-sets');
         console.log(`   Status: ${questionSetsResponse.status}`);
         
         if (questionSetsResponse.status === 200) {
@@ -84,7 +91,7 @@ async function testLobbyCreation() {
 
         // Step 3: Test lobby creation (this will fail without auth, but we can check the error)
         console.log('3️⃣ Testing lobby creation endpoint...');
-        const lobbyResponse = await makeRequest('POST', '/api/lobbies/create', {
+        const lobbyResponse = await makeRequest('POST', '/lobbies/create', {
             character: '🎯',
             question_set_id: 1
         });
@@ -93,7 +100,7 @@ async function testLobbyCreation() {
 
         // Step 4: Test lobby list endpoint
         console.log('4️⃣ Testing lobby list endpoint...');
-        const lobbyListResponse = await makeRequest('GET', '/api/lobbies/list');
+        const lobbyListResponse = await makeRequest('GET', '/lobbies/list');
         console.log(`   Status: ${lobbyListResponse.status}`);
         console.log(`   Response: ${JSON.stringify(lobbyListResponse.data, null, 2)}\n`);
 
