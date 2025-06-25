@@ -4,7 +4,7 @@
  */
 
 import { GAME_SETTINGS, GAME_PHASES, EVENTS, QUESTION_TYPES, PERFORMANCE_SETTINGS } from '../utils/constants.js';
-import { calculateScore, getNextMultiplier } from '../utils/helpers.js';
+import { calculateScore, calculateScoreFromElapsed, getNextMultiplier } from '../utils/helpers.js';
 import { initAudioManager } from '../audio/audioManager.js';
 import { initAnimations } from '../ui/animations.js';
 
@@ -81,6 +81,9 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                 console.warn(`[Engine ${engineId}] Failed to play game start sound:`, error);
             }
             
+            // Join WebSocket game room
+            joinGameRoom(lobbyCode);
+
             // Start polling for game state updates
             startGameStatePolling();
 
@@ -157,19 +160,25 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     }
 
     /**
-     * Syncs game state with server
+     * Handle WebSocket game update
+     * @param {Object} gameData - Updated game data from WebSocket
      */
-    async function syncGameState() {
-        try {
-            console.log(`[Engine ${engineId}] 🔄 Syncing game state for lobby: ${currentGame.lobbyCode}`);
-            const gameState = await lobbyManager.getGameState(currentGame.lobbyCode);
-            
-            if (!gameState) {
-                console.error(`[Engine ${engineId}] ❌ No game state received`);
-                return;
-            }
+    function handleWebSocketGameUpdate(gameData) {
+        console.log(`[Engine ${engineId}] 📢 Handling WebSocket game update:`, gameData.code);
+        
+        if (currentGame && currentGame.lobbyCode === gameData.code) {
+            // Process the update similar to syncGameState but without the API call
+            processGameStateUpdate(gameData);
+        }
+    }
 
-            console.log(`[Engine ${engineId}] ✅ Received game state:`, gameState);
+    /**
+     * Process game state update (used by both polling and WebSocket)
+     * @param {Object} gameState - Game state data
+     */
+    async function processGameStateUpdate(gameState) {
+        try {
+            console.log(`[Engine ${engineId}] 🔄 Processing game state update:`, gameState);
 
             const previousPhase = currentGame.phase;
             const previousQuestion = currentGame.currentQuestion;
@@ -219,6 +228,55 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
                     updateQuestionUI(gameState);
                 }, 100);
             }
+
+        } catch (error) {
+            console.error(`[Engine ${engineId}] ❌ Failed to process game state update:`, error);
+        }
+    }
+
+    /**
+     * Join game room via WebSocket
+     * @param {string} lobbyCode - Lobby code to join
+     */
+    function joinGameRoom(lobbyCode) {
+        if (window.appState?.modules?.websocket) {
+            console.log(`[Engine ${engineId}] 🔌 Joining game room via WebSocket:`, lobbyCode);
+            window.appState.modules.websocket.joinGame(lobbyCode);
+        } else {
+            console.warn(`[Engine ${engineId}] ⚠️ WebSocket not available for game room join`);
+        }
+    }
+
+    /**
+     * Leave game room via WebSocket
+     * @param {string} lobbyCode - Lobby code to leave
+     */
+    function leaveGameRoom(lobbyCode) {
+        if (window.appState?.modules?.websocket) {
+            console.log(`[Engine ${engineId}] 🔌 Leaving game room via WebSocket:`, lobbyCode);
+            window.appState.modules.websocket.leaveGame(lobbyCode);
+        } else {
+            console.warn(`[Engine ${engineId}] ⚠️ WebSocket not available for game room leave`);
+        }
+    }
+
+    /**
+     * Syncs game state with server
+     */
+    async function syncGameState() {
+        try {
+            console.log(`[Engine ${engineId}] 🔄 Syncing game state for lobby: ${currentGame.lobbyCode}`);
+            const gameState = await lobbyManager.getGameState(currentGame.lobbyCode);
+            
+            if (!gameState) {
+                console.error(`[Engine ${engineId}] ❌ No game state received`);
+                return;
+            }
+
+            console.log(`[Engine ${engineId}] ✅ Received game state:`, gameState);
+
+            // Use the shared processing function
+            await processGameStateUpdate(gameState);
 
         } catch (error) {
             console.error(`[Engine ${engineId}] ❌ Failed to sync game state:`, error);
@@ -476,8 +534,10 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
             const isCorrect = validateAnswer(question, answer);
 
             // Calculate timing
-            const timeElapsed = Date.now() - (currentGame.questionStartTime?.getTime() || Date.now());
-            const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - Math.floor(timeElapsed / 1000));
+            const timeElapsed = currentGame.questionStartTime 
+                ? Math.floor((Date.now() - currentGame.questionStartTime.getTime()) / 1000)
+                : 0;
+            const timeRemaining = Math.max(0, GAME_SETTINGS.QUESTION_TIME - timeElapsed);
 
             // Get current multiplier before any changes
             const currentMultiplier = currentGame.playerMultipliers[username] || 1;
@@ -703,6 +763,12 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
     function cleanup() {
         stopUITimer();
         stopGameStatePolling();
+        
+        // Leave WebSocket game room
+        if (currentGame && currentGame.lobbyCode) {
+            leaveGameRoom(currentGame.lobbyCode);
+        }
+        
         currentGame = null;
     }
 
@@ -710,6 +776,9 @@ export function initGameEngine(lobbyManager, questionManager, storage) {
         initGame,
         submitAnswer,
         getCurrentGame,
-        cleanup
+        cleanup,
+        handleWebSocketGameUpdate,
+        joinGameRoom,
+        leaveGameRoom
     };
 } 

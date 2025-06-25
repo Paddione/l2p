@@ -8,27 +8,51 @@ class ThemeManager {
     constructor() {
         this.currentTheme = localStorage.getItem('theme') || 'light';
         this.themeButtons = {};
+        this.initialized = false;
         
-        this.initializeTheme();
+        // Initialize immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initialize());
+        } else {
+            this.initialize();
+        }
+        
         this.setupEventListeners();
     }
 
     /**
      * Initialize the theme system
      */
-    initializeTheme() {
-        // Apply the saved theme
+    initialize() {
+        if (this.initialized) return;
+        
+        // Apply the saved theme first
         this.applyTheme(this.currentTheme);
         
-        // Get theme buttons
-        this.themeButtons.light = document.getElementById('theme-light');
-        this.themeButtons.dark = document.getElementById('theme-dark');
+        // Get theme buttons with retry mechanism
+        this.updateButtonReferences();
         
         // Update button states
         this.updateButtonStates();
         
         // Update translations
         this.updateTranslations();
+        
+        this.initialized = true;
+        console.log('Theme manager initialized with theme:', this.currentTheme);
+    }
+
+    /**
+     * Update button references with retry mechanism
+     */
+    updateButtonReferences() {
+        this.themeButtons.light = document.getElementById('theme-light');
+        this.themeButtons.dark = document.getElementById('theme-dark');
+        
+        // If buttons aren't found, try again in a moment (DOM might still be loading)
+        if (!this.themeButtons.light || !this.themeButtons.dark) {
+            setTimeout(() => this.updateButtonReferences(), 100);
+        }
     }
 
     /**
@@ -80,8 +104,10 @@ class ThemeManager {
             if (button) {
                 if (theme === this.currentTheme) {
                     button.classList.add('active');
+                    button.setAttribute('aria-pressed', 'true');
                 } else {
                     button.classList.remove('active');
+                    button.setAttribute('aria-pressed', 'false');
                 }
             }
         });
@@ -103,24 +129,14 @@ class ThemeManager {
      * Setup event listeners for theme buttons
      */
     setupEventListeners() {
-        // Wait for DOM to be ready
-        document.addEventListener('DOMContentLoaded', () => {
-            this.initializeTheme();
-            
-            // Theme button event listeners
-            const lightButton = document.getElementById('theme-light');
-            const darkButton = document.getElementById('theme-dark');
-            
-            if (lightButton) {
-                lightButton.addEventListener('click', () => {
-                    this.switchTheme('light');
-                });
-            }
-            
-            if (darkButton) {
-                darkButton.addEventListener('click', () => {
-                    this.switchTheme('dark');
-                });
+        // Use event delegation to handle dynamically added buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('#theme-light')) {
+                e.preventDefault();
+                this.switchTheme('light');
+            } else if (e.target.matches('#theme-dark')) {
+                e.preventDefault();
+                this.switchTheme('dark');
             }
         });
 
@@ -136,6 +152,21 @@ class ThemeManager {
                 e.preventDefault();
                 this.toggleTheme();
             }
+        });
+
+        // Re-initialize when DOM content changes (for dynamic content)
+        const observer = new MutationObserver(() => {
+            if (!this.initialized) {
+                this.initialize();
+            } else {
+                this.updateButtonReferences();
+                this.updateButtonStates();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
         });
     }
 

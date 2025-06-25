@@ -793,6 +793,112 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
     }
 
     /**
+     * Handle WebSocket lobby update
+     * @param {Object} lobbyData - Updated lobby data from WebSocket
+     */
+    function handleWebSocketLobbyUpdate(lobbyData) {
+        console.log('📢 Handling WebSocket lobby update:', lobbyData.code);
+        
+        // Update current lobby data
+        if (currentLobby && currentLobby.code === lobbyData.code) {
+            const previousLobby = { ...currentLobby };
+            currentLobby = lobbyData;
+            storage.saveLobbyState(lobbyData);
+            
+            // Update UI
+            updateLobbyUI();
+            
+            // Check for significant changes that need notifications
+            handleLobbyChanges(previousLobby, lobbyData);
+        }
+    }
+
+    /**
+     * Handle significant lobby changes for notifications
+     * @param {Object} previousLobby - Previous lobby state
+     * @param {Object} currentLobby - Current lobby state
+     */
+    function handleLobbyChanges(previousLobby, currentLobby) {
+        if (!previousLobby || !currentLobby) return;
+
+        const currentPlayerName = currentPlayer?.username;
+
+        // Check for player changes
+        const previousPlayers = new Map((previousLobby.players || []).map(p => [p.username, p]));
+        const currentPlayers = new Map((currentLobby.players || []).map(p => [p.username, p]));
+
+        // Find players who joined
+        currentPlayers.forEach((player, username) => {
+            if (!previousPlayers.has(username) && username !== currentPlayerName) {
+                showNotification(`${username} joined the lobby`, 'info');
+                
+                // Play join sound if audio manager is available
+                if (window.audioManager) {
+                    window.audioManager.playPlayerJoin().catch(e => console.warn('Failed to play join sound:', e));
+                }
+            }
+        });
+
+        // Find players who left
+        previousPlayers.forEach((player, username) => {
+            if (!currentPlayers.has(username) && username !== currentPlayerName) {
+                showNotification(`${username} left the lobby`, 'info');
+                
+                // Play leave sound if audio manager is available
+                if (window.audioManager) {
+                    window.audioManager.playPlayerLeave().catch(e => console.warn('Failed to play leave sound:', e));
+                }
+            }
+        });
+
+        // Check for question set changes
+        if (previousLobby.question_set_id !== currentLobby.question_set_id && currentLobby.question_set_id) {
+            const questionSetName = currentLobby.question_set?.name || 'Unknown';
+            showNotification(`Question set changed to "${questionSetName}"`, 'info');
+        }
+
+        // Check for game start
+        if (!previousLobby.started && currentLobby.started) {
+            showNotification('Game is starting!', 'success');
+            
+            // Stop lobby polling and switch to game screen
+            stopLobbyPolling();
+            screenManager.showScreen(SCREENS.GAME);
+            
+            // Dispatch game started event
+            document.dispatchEvent(new CustomEvent(EVENTS.GAME_STARTED, {
+                detail: { lobby: currentLobby }
+            }));
+        }
+    }
+
+    /**
+     * Join lobby room via WebSocket
+     * @param {string} lobbyCode - Lobby code to join
+     */
+    function joinLobbyRoom(lobbyCode) {
+        if (window.appState?.modules?.websocket) {
+            console.log('🔌 Joining lobby room via WebSocket:', lobbyCode);
+            window.appState.modules.websocket.joinLobby(lobbyCode);
+        } else {
+            console.warn('⚠️ WebSocket not available for lobby room join');
+        }
+    }
+
+    /**
+     * Leave lobby room via WebSocket
+     * @param {string} lobbyCode - Lobby code to leave
+     */
+    function leaveLobbyRoom(lobbyCode) {
+        if (window.appState?.modules?.websocket) {
+            console.log('🔌 Leaving lobby room via WebSocket:', lobbyCode);
+            window.appState.modules.websocket.leaveLobby(lobbyCode);
+        } else {
+            console.warn('⚠️ WebSocket not available for lobby room leave');
+        }
+    }
+
+    /**
      * Handles lobby updates from other tabs
      * @param {CustomEvent} event
      */
@@ -1529,10 +1635,27 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
      */
     function setCurrentLobby(lobby) {
         console.log('PlayerManager: setCurrentLobby called with:', lobby);
+        const previousLobbyCode = currentLobby?.code;
+        
         currentLobby = lobby;
         
-        // Save lobby state to storage
-        storage.saveLobbyState(lobby);
+        if (lobby) {
+            // Save lobby state to storage
+            storage.saveLobbyState(lobby);
+            
+            // Join WebSocket lobby room if it's a new lobby
+            if (lobby.code !== previousLobbyCode) {
+                joinLobbyRoom(lobby.code);
+            }
+        } else {
+            // Clear lobby state
+            storage.clearLobbyState();
+            
+            // Leave WebSocket lobby room
+            if (previousLobbyCode) {
+                leaveLobbyRoom(previousLobbyCode);
+            }
+        }
         
         // Update UI if we're on the lobby screen
         if (document.getElementById('lobby-screen').classList.contains('active')) {
@@ -1567,6 +1690,9 @@ export function initPlayerManager(lobbyManager, storage, screenManager) {
         showJoinLobbyModal,
         hideJoinLobbyModal,
         startPostGamePolling,
-        stopLobbyPolling
+        stopLobbyPolling,
+        handleWebSocketLobbyUpdate,
+        joinLobbyRoom,
+        leaveLobbyRoom
     };
 }

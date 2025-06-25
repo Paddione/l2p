@@ -185,7 +185,6 @@ The application uses these tables:
 - **Main Interface**: http://10.0.0.44
 - **Testing Dashboard**: http://10.0.0.44/testing.html
 - **UI Analysis**: http://10.0.0.44/analysis.html
-- **Simplified Interface**: http://10.0.0.44/simplified.html
 
 #### Automated Testing
 ```bash

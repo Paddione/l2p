@@ -39,6 +39,15 @@ http:
         average: 20
         period: 1m
 
+    # WebSocket headers middleware for Socket.IO support
+    websocket-headers:
+      headers:
+        customResponseHeaders:
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, POST, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+          Access-Control-Allow-Credentials: "true"
+
 tls:
   options:
     default:

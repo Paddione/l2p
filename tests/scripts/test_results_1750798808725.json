@@ -1,14 +1,14 @@
 {
   "executionMode": "sequential",
-  "totalDuration": 103761,
-  "startTime": "2025-06-24T06:10:01.716Z",
-  "endTime": "2025-06-24T06:11:45.477Z",
+  "totalDuration": 103309,
+  "startTime": "2025-06-24T20:58:25.416Z",
+  "endTime": "2025-06-24T21:00:08.725Z",
   "testResults": [
     {
       "file": "test_all_lobby_features.cjs",
       "exitCode": 0,
-      "duration": 79894,
-      "startTime": "2025-06-24T06:10:01.874Z",
+      "duration": 79643,
+      "startTime": "2025-06-24T20:58:25.576Z",
       "stdout": "",
       "stderr": "",
       "success": true,
@@ -25,8 +25,8 @@
     {
       "file": "test_question_sets.cjs",
       "exitCode": 0,
-      "duration": 296,
-      "startTime": "2025-06-24T06:11:21.768Z",
+      "duration": 118,
+      "startTime": "2025-06-24T20:59:45.220Z",
       "stdout": "",
       "stderr": "",
       "success": true,
@@ -43,8 +43,8 @@
     {
       "file": "test_frontend_ui.cjs",
       "exitCode": 0,
-      "duration": 23122,
-      "startTime": "2025-06-24T06:11:22.065Z",
+      "duration": 21448,
+      "startTime": "2025-06-24T20:59:45.338Z",
       "stdout": "",
       "stderr": "",
       "success": true,
@@ -60,12 +60,12 @@
     },
     {
       "file": "test_scoring_system.cjs",
-      "exitCode": 1,
-      "duration": 33,
-      "startTime": "2025-06-24T06:11:45.187Z",
+      "exitCode": 0,
+      "duration": 117,
+      "startTime": "2025-06-24T21:00:06.786Z",
       "stdout": "",
       "stderr": "",
-      "success": false,
+      "success": true,
       "analysis": {
         "file": "test_scoring_system.cjs",
         "totalTests": 0,
@@ -77,10 +77,28 @@
       }
     },
     {
+      "file": "test_dashboard.cjs",
+      "exitCode": 0,
+      "duration": 1597,
+      "startTime": "2025-06-24T21:00:06.903Z",
+      "stdout": "",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_dashboard.cjs",
+        "totalTests": 0,
+        "passedTests": 0,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
       "file": "debug_api.cjs",
       "exitCode": 0,
-      "duration": 255,
-      "startTime": "2025-06-24T06:11:45.220Z",
+      "duration": 222,
+      "startTime": "2025-06-24T21:00:08.501Z",
       "stdout": "",
       "stderr": "",
       "success": true,
@@ -96,8 +114,8 @@
     }
   ],
   "summary": {
-    "total": 5,
-    "successful": 4,
-    "failed": 1
+    "total": 6,
+    "successful": 6,
+    "failed": 0
   }
 }

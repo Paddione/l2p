@@ -65,13 +65,72 @@ export function isValidPassword(password) {
  * Calculates score based on time remaining and multiplier
  * @param {number} timeRemaining - Time remaining in seconds
  * @param {number} multiplier - Current multiplier
+ * @param {number} baseScore - Base score for correct answer (default 60)
  * @returns {number} Calculated score
  */
-export function calculateScore(timeRemaining, multiplier) {
-    // New scoring logic: 60 points base, lose 1 point per second elapsed
-    // If 45 seconds left, get 45 points, then multiply by personal multiplier
-    const basePoints = Math.max(0, timeRemaining);
-    return Math.round(basePoints * multiplier);
+export function calculateScore(timeRemaining, multiplier = 1, baseScore = 60) {
+    // Ensure we have valid inputs
+    if (typeof timeRemaining !== 'number' || timeRemaining < 0) {
+        console.warn('Invalid timeRemaining for score calculation:', timeRemaining);
+        return 0;
+    }
+    
+    if (typeof multiplier !== 'number' || multiplier < 1) {
+        console.warn('Invalid multiplier for score calculation:', multiplier);
+        multiplier = 1;
+    }
+    
+    if (typeof baseScore !== 'number' || baseScore <= 0) {
+        baseScore = 60;
+    }
+    
+    // Score calculation logic:
+    // Start with baseScore (60), award points based on time remaining
+    // Faster answers get more points, up to the full baseScore amount
+    const timeBasedPoints = Math.max(0, Math.round(timeRemaining));
+    const finalScore = Math.round(timeBasedPoints * multiplier);
+    
+    console.log(`Score calculation: timeRemaining=${timeRemaining}s, multiplier=${multiplier}x, baseScore=${baseScore}, timeBasedPoints=${timeBasedPoints}, finalScore=${finalScore}`);
+    
+    return finalScore;
+}
+
+/**
+ * Alternative score calculation for backend compatibility
+ * @param {boolean} isCorrect - Whether the answer was correct
+ * @param {number} timeElapsed - Time elapsed in seconds when answer was given
+ * @param {number} multiplier - Current multiplier
+ * @param {number} baseScore - Base score for correct answer (default 60)
+ * @returns {number} Calculated score
+ */
+export function calculateScoreFromElapsed(isCorrect, timeElapsed, multiplier = 1, baseScore = 60) {
+    if (!isCorrect) return 0;
+    
+    // Ensure we have valid inputs
+    if (typeof timeElapsed !== 'number' || timeElapsed < 0) {
+        console.warn('Invalid timeElapsed for score calculation:', timeElapsed);
+        return 0;
+    }
+    
+    if (typeof multiplier !== 'number' || multiplier < 1) {
+        console.warn('Invalid multiplier for score calculation:', multiplier);
+        multiplier = 1;
+    }
+    
+    if (typeof baseScore !== 'number' || baseScore <= 0) {
+        baseScore = 60;
+    }
+    
+    // Calculate time remaining from elapsed time
+    const timeRemaining = Math.max(0, baseScore - timeElapsed);
+    
+    // Use the same logic as the main calculateScore function
+    const timeBasedPoints = Math.max(0, Math.round(timeRemaining));
+    const finalScore = Math.round(timeBasedPoints * multiplier);
+    
+    console.log(`Score calculation from elapsed: isCorrect=${isCorrect}, timeElapsed=${timeElapsed}s, multiplier=${multiplier}x, baseScore=${baseScore}, timeRemaining=${timeRemaining}s, finalScore=${finalScore}`);
+    
+    return finalScore;
 }
 
 /**

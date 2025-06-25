@@ -24,7 +24,7 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false # Container müssen explizit aktiviert werden [cite: 1013]
-    network: quiz-network # Standard-Netzwerk für Docker-Services [cite: 1014]
+    network: l2p-network # Standard-Netzwerk für Docker-Services [cite: 1014]
     watch: true # Docker Events beobachten
     # endpoint: "unix:///var/run/docker.sock" # Standard, kann explizit gesetzt werden [cite: 1015]
 

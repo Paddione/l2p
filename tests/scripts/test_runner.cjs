@@ -21,6 +21,7 @@ const TEST_FILES = [
     'test_question_sets.cjs',
     'test_frontend_ui.cjs',
     'test_scoring_system.cjs',
+    'test_dashboard.cjs',
     'debug_api.cjs'
 ];
 

@@ -15,10 +15,11 @@ export const PERFORMANCE_SETTINGS = {
     FRAME_TIME: 1000 / 60, // ~16.67ms for 60 FPS
     TIMER_UPDATE_INTERVAL: 1000 / 60, // 60 FPS for smooth timer updates
     ANIMATION_FRAME_LIMIT: 1000 / 60, // Limit requestAnimationFrame to 60 FPS
+    WEBSOCKET_ENABLED: true, // Enable WebSocket real-time communication
     POLLING_INTERVALS: {
-        GAME_STATE_MIN: 3000, // Minimum game state polling interval (3s)
+        GAME_STATE_MIN: 3000, // Minimum game state polling interval (3s) - used as fallback when WebSocket unavailable
         GAME_STATE_MAX: 23000, // Maximum game state polling interval (23s)
-        LOBBY_STANDARD: 3000, // Standard lobby polling (3s, increased from 2s)
+        LOBBY_STANDARD: 3000, // Standard lobby polling (3s, increased from 2s) - used as fallback when WebSocket unavailable
         LOBBY_POST_GAME: 5000, // Post-game lobby polling (5s, increased from 3s)
         UI_UPDATES: 100 // UI update throttling (100ms)
     }
@@ -121,6 +122,7 @@ export const EVENTS = {
 
 // Error messages
 export const ERROR_MESSAGES = {
+    // Legacy error messages (kept for backward compatibility)
     USERNAME_EXISTS: 'Benutzername existiert bereits',
     INVALID_USERNAME: 'Benutzername muss 3-16 Zeichen lang sein und darf nur Buchstaben, Zahlen, Unterstriche und Bindestriche enthalten',
     INVALID_PASSWORD: 'Passwort muss mindestens 6 Zeichen lang sein',
@@ -131,4 +133,40 @@ export const ERROR_MESSAGES = {
     INVALID_LOBBY: 'Ungültiger Lobby-Code',
     NOT_ENOUGH_PLAYERS: 'Nicht genügend Spieler zum Starten',
     GAME_IN_PROGRESS: 'Spiel bereits im Gange'
+};
+
+// Standardized error codes (matching backend)
+export const ERROR_CODES = {
+    // Authentication errors
+    INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    
+    // Validation errors
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    MISSING_FIELDS: 'MISSING_FIELDS',
+    
+    // Resource errors
+    RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+    RESOURCE_CONFLICT: 'RESOURCE_CONFLICT',
+    
+    // Game-specific errors
+    LOBBY_FULL: 'LOBBY_FULL',
+    GAME_IN_PROGRESS: 'GAME_IN_PROGRESS',
+    INVALID_GAME_STATE: 'INVALID_GAME_STATE',
+    
+    // Database errors
+    DB_CONNECTION_ERROR: 'DB_CONNECTION_ERROR',
+    DB_QUERY_ERROR: 'DB_QUERY_ERROR',
+    
+    // Rate limiting
+    RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+    
+    // File upload errors
+    FILE_TOO_LARGE: 'FILE_TOO_LARGE',
+    INVALID_FILE_FORMAT: 'INVALID_FILE_FORMAT',
+    
+    // Generic errors
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE'
 }; 

@@ -9,31 +9,63 @@ let isMusicMuted = false;
 let isSoundMuted = false;
 let lastMusicVolume = 30;
 let lastSoundVolume = 13;
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 10;
 
 /**
- * Initialize volume controls
+ * Initialize volume controls with retry mechanism
  * @param {Object} audioManagerInstance - The audio manager instance
  */
 export function initVolumeControls(audioManagerInstance) {
     audioManager = audioManagerInstance;
+    initializationAttempts = 0;
     
-    // Get volume control elements
-    const musicVolumeSlider = document.getElementById('music-volume');
-    const soundVolumeSlider = document.getElementById('sound-volume');
-    const musicVolumeValue = document.getElementById('music-volume-value');
-    const soundVolumeValue = document.getElementById('sound-volume-value');
-    const musicMuteBtn = document.getElementById('music-mute-btn');
-    const soundMuteBtn = document.getElementById('sound-mute-btn');
+    // Try to initialize immediately, with retry mechanism
+    attemptInitialization();
+}
+
+/**
+ * Attempt to initialize volume controls with retry mechanism
+ */
+function attemptInitialization() {
+    initializationAttempts++;
     
-    if (!musicVolumeSlider || !soundVolumeSlider || !musicVolumeValue || !soundVolumeValue) {
-        console.warn('Volume control elements not found');
+    if (initializationAttempts > MAX_INIT_ATTEMPTS) {
+        console.error('Failed to initialize volume controls after', MAX_INIT_ATTEMPTS, 'attempts');
         return;
     }
     
-    if (!musicMuteBtn || !soundMuteBtn) {
-        console.warn('Mute button elements not found');
+    // Get volume control elements with better selectors
+    const musicVolumeSlider = document.getElementById('music-volume') || document.querySelector('[id="music-volume"]');
+    const soundVolumeSlider = document.getElementById('sound-volume') || document.querySelector('[id="sound-volume"]');
+    const musicVolumeValue = document.getElementById('music-volume-value') || document.querySelector('[id="music-volume-value"]');
+    const soundVolumeValue = document.getElementById('sound-volume-value') || document.querySelector('[id="sound-volume-value"]');
+    const musicMuteBtn = document.getElementById('music-mute-btn') || document.querySelector('[id="music-mute-btn"]');
+    const soundMuteBtn = document.getElementById('sound-mute-btn') || document.querySelector('[id="sound-mute-btn"]');
+    
+    // Check if all required elements are found
+    const allElementsFound = musicVolumeSlider && soundVolumeSlider && musicVolumeValue && soundVolumeValue && musicMuteBtn && soundMuteBtn;
+    
+    if (!allElementsFound) {
+        console.warn(`Volume control elements not found (attempt ${initializationAttempts}/${MAX_INIT_ATTEMPTS}). Retrying...`);
+        
+        // Log which elements are missing for debugging
+        const missingElements = [];
+        if (!musicVolumeSlider) missingElements.push('music-volume slider');
+        if (!soundVolumeSlider) missingElements.push('sound-volume slider');
+        if (!musicVolumeValue) missingElements.push('music-volume-value display');
+        if (!soundVolumeValue) missingElements.push('sound-volume-value display');
+        if (!musicMuteBtn) missingElements.push('music-mute-btn button');
+        if (!soundMuteBtn) missingElements.push('sound-mute-btn button');
+        
+        console.warn('Missing elements:', missingElements);
+        
+        // Retry after a short delay
+        setTimeout(attemptInitialization, 200);
         return;
     }
+    
+    console.log('Volume controls found, initializing...');
     
     // Set initial values from audio manager
     const settings = audioManager.getSettings();
@@ -59,63 +91,17 @@ export function initVolumeControls(audioManagerInstance) {
         toggleSoundMute();
     }
     
+    // Remove any existing event listeners to prevent duplicates
+    musicVolumeSlider.removeEventListener('input', handleMusicVolumeChange);
+    soundVolumeSlider.removeEventListener('input', handleSoundVolumeChange);
+    musicMuteBtn.removeEventListener('click', toggleMusicMute);
+    soundMuteBtn.removeEventListener('click', toggleSoundMute);
+    
     // Music volume control
-    musicVolumeSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        const volume = value / 100;
-        
-        // If user moves slider and was muted, unmute
-        if (isMusicMuted && value > 0) {
-            isMusicMuted = false;
-            musicMuteBtn.classList.remove('muted');
-            localStorage.setItem('musicMuted', 'false');
-        }
-        
-        // Update audio manager
-        audioManager.setMusicVolume(volume);
-        
-        // Update display
-        musicVolumeValue.textContent = `${value}%`;
-        
-        // Save to localStorage
-        localStorage.setItem('musicVolume', volume.toString());
-        
-        // Update last known volume
-        if (value > 0) {
-            lastMusicVolume = value;
-        }
-        
-        console.log(`Music volume set to ${value}%`);
-    });
+    musicVolumeSlider.addEventListener('input', handleMusicVolumeChange);
     
     // Sound effects volume control
-    soundVolumeSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        const volume = value / 100;
-        
-        // If user moves slider and was muted, unmute
-        if (isSoundMuted && value > 0) {
-            isSoundMuted = false;
-            soundMuteBtn.classList.remove('muted');
-            localStorage.setItem('soundMuted', 'false');
-        }
-        
-        // Update audio manager
-        audioManager.setSoundVolume(volume);
-        
-        // Update display
-        soundVolumeValue.textContent = `${value}%`;
-        
-        // Save to localStorage
-        localStorage.setItem('soundVolume', volume.toString());
-        
-        // Update last known volume
-        if (value > 0) {
-            lastSoundVolume = value;
-        }
-        
-        console.log(`Sound effects volume set to ${value}%`);
-    });
+    soundVolumeSlider.addEventListener('input', handleSoundVolumeChange);
     
     // Music mute button
     musicMuteBtn.addEventListener('click', toggleMusicMute);
@@ -126,7 +112,95 @@ export function initVolumeControls(audioManagerInstance) {
     // Load saved volumes from localStorage
     loadSavedVolumes();
     
-    console.log('Volume controls with mute functionality initialized');
+    console.log('Volume controls with mute functionality initialized successfully');
+}
+
+/**
+ * Handle music volume change
+ */
+function handleMusicVolumeChange(e) {
+    const value = parseInt(e.target.value);
+    const volume = value / 100;
+    
+    // Update ARIA attributes for accessibility
+    e.target.setAttribute('aria-valuenow', value);
+    e.target.setAttribute('aria-valuetext', `${value} percent`);
+    
+    // If user moves slider and was muted, unmute
+    if (isMusicMuted && value > 0) {
+        isMusicMuted = false;
+        const musicMuteBtn = document.getElementById('music-mute-btn');
+        if (musicMuteBtn) {
+            musicMuteBtn.classList.remove('muted');
+            musicMuteBtn.setAttribute('aria-pressed', 'false');
+        }
+        localStorage.setItem('musicMuted', 'false');
+    }
+    
+    // Update audio manager
+    if (audioManager) {
+        audioManager.setMusicVolume(volume);
+    }
+    
+    // Update display
+    const musicVolumeValue = document.getElementById('music-volume-value');
+    if (musicVolumeValue) {
+        musicVolumeValue.textContent = `${value}%`;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('musicVolume', volume.toString());
+    
+    // Update last known volume
+    if (value > 0) {
+        lastMusicVolume = value;
+    }
+    
+    console.log(`Music volume set to ${value}%`);
+}
+
+/**
+ * Handle sound volume change
+ */
+function handleSoundVolumeChange(e) {
+    const value = parseInt(e.target.value);
+    const volume = value / 100;
+    
+    // Update ARIA attributes for accessibility
+    e.target.setAttribute('aria-valuenow', value);
+    e.target.setAttribute('aria-valuetext', `${value} percent`);
+    
+    // If user moves slider and was muted, unmute
+    if (isSoundMuted && value > 0) {
+        isSoundMuted = false;
+        const soundMuteBtn = document.getElementById('sound-mute-btn');
+        if (soundMuteBtn) {
+            soundMuteBtn.classList.remove('muted');
+            soundMuteBtn.setAttribute('aria-pressed', 'false');
+        }
+        localStorage.setItem('soundMuted', 'false');
+    }
+    
+    // Update audio manager
+    if (audioManager) {
+        audioManager.setSoundVolume(volume);
+    }
+    
+    // Update display
+    const soundVolumeValue = document.getElementById('sound-volume-value');
+    if (soundVolumeValue) {
+        soundVolumeValue.textContent = `${value}%`;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('soundVolume', volume.toString());
+    
+    // Update last known volume
+    if (value > 0) {
+        lastSoundVolume = value;
+    }
+    
+    console.log(`Sound effects volume set to ${value}%`);
 }
 
 /**
@@ -137,18 +211,26 @@ function toggleMusicMute() {
     const musicVolumeValue = document.getElementById('music-volume-value');
     const musicMuteBtn = document.getElementById('music-mute-btn');
     
-    if (!musicVolumeSlider || !musicVolumeValue || !musicMuteBtn) return;
+    if (!musicVolumeSlider || !musicVolumeValue || !musicMuteBtn) {
+        console.warn('Music volume controls not found for mute toggle');
+        return;
+    }
     
     if (isMusicMuted) {
         // Unmute - restore previous volume
         isMusicMuted = false;
         musicMuteBtn.classList.remove('muted');
+        musicMuteBtn.setAttribute('aria-pressed', 'false');
         
         const volume = lastMusicVolume / 100;
         musicVolumeSlider.value = lastMusicVolume;
+        musicVolumeSlider.setAttribute('aria-valuenow', lastMusicVolume);
+        musicVolumeSlider.setAttribute('aria-valuetext', `${lastMusicVolume} percent`);
         musicVolumeValue.textContent = `${lastMusicVolume}%`;
         
-        audioManager.setMusicVolume(volume);
+        if (audioManager) {
+            audioManager.setMusicVolume(volume);
+        }
         localStorage.setItem('musicVolume', volume.toString());
         localStorage.setItem('musicMuted', 'false');
         
@@ -157,6 +239,7 @@ function toggleMusicMute() {
         // Mute - save current volume and set to 0
         isMusicMuted = true;
         musicMuteBtn.classList.add('muted');
+        musicMuteBtn.setAttribute('aria-pressed', 'true');
         
         const currentVolume = parseInt(musicVolumeSlider.value);
         if (currentVolume > 0) {
@@ -164,9 +247,13 @@ function toggleMusicMute() {
         }
         
         musicVolumeSlider.value = 0;
+        musicVolumeSlider.setAttribute('aria-valuenow', '0');
+        musicVolumeSlider.setAttribute('aria-valuetext', '0 percent');
         musicVolumeValue.textContent = '0%';
         
-        audioManager.setMusicVolume(0);
+        if (audioManager) {
+            audioManager.setMusicVolume(0);
+        }
         localStorage.setItem('musicVolume', '0');
         localStorage.setItem('musicMuted', 'true');
         
@@ -182,18 +269,26 @@ function toggleSoundMute() {
     const soundVolumeValue = document.getElementById('sound-volume-value');
     const soundMuteBtn = document.getElementById('sound-mute-btn');
     
-    if (!soundVolumeSlider || !soundVolumeValue || !soundMuteBtn) return;
+    if (!soundVolumeSlider || !soundVolumeValue || !soundMuteBtn) {
+        console.warn('Sound volume controls not found for mute toggle');
+        return;
+    }
     
     if (isSoundMuted) {
         // Unmute - restore previous volume
         isSoundMuted = false;
         soundMuteBtn.classList.remove('muted');
+        soundMuteBtn.setAttribute('aria-pressed', 'false');
         
         const volume = lastSoundVolume / 100;
         soundVolumeSlider.value = lastSoundVolume;
+        soundVolumeSlider.setAttribute('aria-valuenow', lastSoundVolume);
+        soundVolumeSlider.setAttribute('aria-valuetext', `${lastSoundVolume} percent`);
         soundVolumeValue.textContent = `${lastSoundVolume}%`;
         
-        audioManager.setSoundVolume(volume);
+        if (audioManager) {
+            audioManager.setSoundVolume(volume);
+        }
         localStorage.setItem('soundVolume', volume.toString());
         localStorage.setItem('soundMuted', 'false');
         
@@ -202,6 +297,7 @@ function toggleSoundMute() {
         // Mute - save current volume and set to 0
         isSoundMuted = true;
         soundMuteBtn.classList.add('muted');
+        soundMuteBtn.setAttribute('aria-pressed', 'true');
         
         const currentVolume = parseInt(soundVolumeSlider.value);
         if (currentVolume > 0) {
@@ -209,9 +305,13 @@ function toggleSoundMute() {
         }
         
         soundVolumeSlider.value = 0;
+        soundVolumeSlider.setAttribute('aria-valuenow', '0');
+        soundVolumeSlider.setAttribute('aria-valuetext', '0 percent');
         soundVolumeValue.textContent = '0%';
         
-        audioManager.setSoundVolume(0);
+        if (audioManager) {
+            audioManager.setSoundVolume(0);
+        }
         localStorage.setItem('soundVolume', '0');
         localStorage.setItem('soundMuted', 'true');
         
@@ -220,41 +320,50 @@ function toggleSoundMute() {
 }
 
 /**
- * Load saved volume settings from localStorage
+ * Load saved volumes from localStorage
  */
 function loadSavedVolumes() {
+    // Load saved music volume
     const savedMusicVolume = localStorage.getItem('musicVolume');
-    const savedSoundVolume = localStorage.getItem('soundVolume');
-    
     if (savedMusicVolume !== null) {
         const volume = parseFloat(savedMusicVolume);
         const percent = Math.round(volume * 100);
         
-        document.getElementById('music-volume').value = percent;
-        document.getElementById('music-volume-value').textContent = `${percent}%`;
-        audioManager.setMusicVolume(volume);
+        const musicVolumeSlider = document.getElementById('music-volume');
+        const musicVolumeValue = document.getElementById('music-volume-value');
         
-        if (percent > 0) {
-            lastMusicVolume = percent;
+        if (musicVolumeSlider && musicVolumeValue) {
+            musicVolumeSlider.value = percent;
+            musicVolumeValue.textContent = `${percent}%`;
+            
+            if (audioManager && !isMusicMuted) {
+                audioManager.setMusicVolume(volume);
+            }
         }
     }
     
+    // Load saved sound volume
+    const savedSoundVolume = localStorage.getItem('soundVolume');
     if (savedSoundVolume !== null) {
         const volume = parseFloat(savedSoundVolume);
         const percent = Math.round(volume * 100);
         
-        document.getElementById('sound-volume').value = percent;
-        document.getElementById('sound-volume-value').textContent = `${percent}%`;
-        audioManager.setSoundVolume(volume);
+        const soundVolumeSlider = document.getElementById('sound-volume');
+        const soundVolumeValue = document.getElementById('sound-volume-value');
         
-        if (percent > 0) {
-            lastSoundVolume = percent;
+        if (soundVolumeSlider && soundVolumeValue) {
+            soundVolumeSlider.value = percent;
+            soundVolumeValue.textContent = `${percent}%`;
+            
+            if (audioManager && !isSoundMuted) {
+                audioManager.setSoundVolume(volume);
+            }
         }
     }
 }
 
 /**
- * Update volume controls display (useful when volumes are changed programmatically)
+ * Update volume display
  */
 export function updateVolumeDisplay() {
     if (!audioManager) return;
@@ -263,26 +372,21 @@ export function updateVolumeDisplay() {
     const musicPercent = Math.round(settings.musicVolume * 100);
     const soundPercent = Math.round(settings.soundVolume * 100);
     
-    const musicSlider = document.getElementById('music-volume');
-    const soundSlider = document.getElementById('sound-volume');
-    const musicValue = document.getElementById('music-volume-value');
-    const soundValue = document.getElementById('sound-volume-value');
+    const musicVolumeSlider = document.getElementById('music-volume');
+    const soundVolumeSlider = document.getElementById('sound-volume');
+    const musicVolumeValue = document.getElementById('music-volume-value');
+    const soundVolumeValue = document.getElementById('sound-volume-value');
     
-    if (musicSlider && musicValue) {
-        musicSlider.value = musicPercent;
-        musicValue.textContent = `${musicPercent}%`;
-        
-        if (musicPercent > 0) {
-            lastMusicVolume = musicPercent;
-        }
+    if (musicVolumeSlider && !isMusicMuted) {
+        musicVolumeSlider.value = musicPercent;
     }
-    
-    if (soundSlider && soundValue) {
-        soundSlider.value = soundPercent;
-        soundValue.textContent = `${soundPercent}%`;
-        
-        if (soundPercent > 0) {
-            lastSoundVolume = soundPercent;
-        }
+    if (soundVolumeSlider && !isSoundMuted) {
+        soundVolumeSlider.value = soundPercent;
+    }
+    if (musicVolumeValue) {
+        musicVolumeValue.textContent = `${musicPercent}%`;
+    }
+    if (soundVolumeValue) {
+        soundVolumeValue.textContent = `${soundPercent}%`;
     }
 } 

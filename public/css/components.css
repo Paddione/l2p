@@ -185,25 +185,27 @@
     }
 }
 
-/* Screen Management with better responsive handling */
+/* Screen Management with proper fixed menu bar support */
 .screen {
     display: none;
     position: fixed;
-    top: 0;
+    top: var(--top-bar-height);
+    bottom: var(--bottom-bar-height);
     left: 0;
+    right: 0;
     width: 100vw;
-    /* Fixed: Use available height to prevent content overflow behind menu bars */
-    height: var(--available-height);
-    max-height: var(--available-height);
-    /* Fix: Proper padding for fixed menu bars */
-    padding: 0;
-    padding-top: var(--top-bar-height);
-    padding-bottom: var(--bottom-bar-height);
+    height: calc(100vh - var(--top-bar-height) - var(--bottom-bar-height));
+    box-sizing: border-box;
     background: var(--background);
-    color: var(--text-primary);
     overflow-y: auto;
     overflow-x: hidden;
+    color: var(--text-primary);
+    /* Add content padding so content doesn't touch edges */
+    padding: var(--spacing-4);
     -webkit-overflow-scrolling: touch;
+    /* Prevent menu bars from ever being scrolled away */
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
     box-sizing: border-box;
     /* Fix: Ensure screen content scrolls behind fixed menu bars */
     z-index: 1;
@@ -219,8 +221,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Fixed: Use available height */
-    min-height: var(--available-height);
+    /* Use full screen height - padding is handled by screen */
+    min-height: 100%;
     gap: clamp(1.5rem, 4vw, 2rem);
 }
 
@@ -245,17 +247,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Fixed: Use available height */
-    min-height: var(--available-height);
+    /* Use full screen height - padding is handled by screen */
+    min-height: 100%;
     max-width: min(90vw, 500px);
     margin: 0 auto;
     padding: clamp(1.5rem, 4vh, 3rem);
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
-    /* Fix: Add internal padding for fixed menu bars */
-    padding-top: calc(var(--top-bar-height) + clamp(1.5rem, 4vh, 3rem));
-    padding-bottom: calc(var(--bottom-bar-height) + clamp(1.5rem, 4vh, 3rem));
 }
 
 .auth-form {
@@ -389,8 +388,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Fixed: Use available height */
-    min-height: var(--available-height);
+    /* Use full screen height - padding is handled by screen */
+    min-height: 100%;
     max-width: min(90vw, 600px);
     margin: 0 auto;
     padding: clamp(2rem, 5vh, 3rem);
@@ -399,9 +398,6 @@
     overflow-y: auto;
     overflow-x: hidden;
     box-sizing: border-box;
-    /* Fix: Add internal padding for fixed menu bars */
-    padding-top: calc(var(--top-bar-height) + clamp(2rem, 5vh, 3rem));
-    padding-bottom: calc(var(--bottom-bar-height) + clamp(2rem, 5vh, 3rem));
 }
 
 .menu-buttons {
@@ -1417,18 +1413,43 @@
 
 .toast.success {
     background-color: var(--success);
+    color: white;
 }
 
 .toast.error {
     background-color: var(--error);
+    color: white;
 }
 
 .toast.warning {
     background-color: var(--warning);
+    color: white;
 }
 
 .toast.info {
     background-color: var(--primary);
+    color: white;
+}
+
+/* Enhanced toast content structure for error recovery */
+.toast-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast-message {
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.toast-recovery {
+    font-size: 0.9em;
+    opacity: 0.9;
+    font-weight: 400;
+    line-height: 1.3;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Player join/leave animations */
@@ -2940,60 +2961,8 @@
     color: var(--text-secondary);
 }
 
-/* Answer buttons and game components */
-.answer-btn {
-    padding: clamp(1rem, 3vw, 1.25rem);
-    background: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: clamp(0.75rem, 2vw, 1rem);
-    font-size: clamp(0.875rem, 2.5vw, 1rem);
-    font-weight: 500;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.3s ease;
-    text-align: center;
-    word-wrap: break-word;
-    line-height: 1.4;
-    min-height: clamp(3rem, 8vw, 3.5rem);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.answer-btn:hover:not(:disabled) {
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-elevated);
-}
-
-.answer-btn.selected {
-    background: var(--primary);
-    color: var(--button-primary-text);
-    border-color: var(--primary);
-    transform: scale(1.02);
-}
-
-.answer-btn.correct {
-    background: var(--success) !important;
-    color: var(--button-primary-text) !important;
-    border-color: var(--success) !important;
-}
-
-.answer-btn.incorrect {
-    background: var(--error) !important;
-    color: var(--button-primary-text) !important;
-    border-color: var(--error) !important;
-}
-
-.answer-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.answer-btn.answered {
-    opacity: 0.8;
-    pointer-events: none;
-}
+/* Answer buttons - REMOVED: Duplicate definition conflicts with game.css */
+/* All answer button styles are now centralized in game.css */
 
 .answers-grid {
     display: grid;

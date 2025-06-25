@@ -39,6 +39,9 @@ services:
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
       DEVELOPMENT_MODE: ${DEVELOPMENT_MODE:-false}
       DEBUG_MODE: ${DEBUG_MODE:-false}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@learn2play.com}
+      BASE_URL: ${BASE_URL:-http://10.0.0.44}
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,11 +103,38 @@ services:
       - "traefik.http.routers.api-local.middlewares=api-rate-limit@file" # Rate Limiting auch lokal
       - "traefik.http.routers.api-local.priority=200" # Gleiche Prio wie HTTPS Prod API
 
+      # WebSocket/Socket.IO Router Configuration (Production HTTPS)
+      - "traefik.http.routers.websocket-secure.rule=Host(`${PRODUCTION_DOMAIN}`) && PathPrefix(`/socket.io/`)"
+      - "traefik.http.routers.websocket-secure.entrypoints=websecure"
+      - "traefik.http.routers.websocket-secure.service=api-backend"
+      - "traefik.http.routers.websocket-secure.tls=true"
+      - "traefik.http.routers.websocket-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.websocket-secure.middlewares=websocket-headers@file"
+      - "traefik.http.routers.websocket-secure.priority=300"
+
+      # WebSocket/Socket.IO Router Configuration (Development HTTPS)
+      - "traefik.http.routers.websocket-dev-secure.rule=Host(`${DEV_DOMAIN}`) && PathPrefix(`/socket.io/`)"
+      - "traefik.http.routers.websocket-dev-secure.entrypoints=websecure"
+      - "traefik.http.routers.websocket-dev-secure.service=api-backend"
+      - "traefik.http.routers.websocket-dev-secure.tls=true"
+      - "traefik.http.routers.websocket-dev-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.websocket-dev-secure.middlewares=websocket-headers@file"
+      - "traefik.http.routers.websocket-dev-secure.priority=300"
+
+      # WebSocket/Socket.IO Router Configuration (Local HTTP)
+      - "traefik.http.routers.websocket-local.rule=Host(`${LOCAL_IP}`) && PathPrefix(`/socket.io/`)"
+      - "traefik.http.routers.websocket-local.entrypoints=web"
+      - "traefik.http.routers.websocket-local.service=api-backend"
+      - "traefik.http.routers.websocket-local.middlewares=websocket-headers@file"
+      - "traefik.http.routers.websocket-local.priority=300"
+
       # Service Definition für das Backend
       - "traefik.http.services.api-backend.loadbalancer.server.port=${BACKEND_PORT:-3000}" 
       - "traefik.http.services.api-backend.loadbalancer.healthcheck.path=/api/health" 
       - "traefik.http.services.api-backend.loadbalancer.healthcheck.interval=${HEALTH_CHECK_INTERVAL:-30s}"
       - "traefik.http.services.api-backend.loadbalancer.healthcheck.timeout=${HEALTH_CHECK_TIMEOUT:-10s}"
+      - "traefik.http.services.api-backend.loadbalancer.sticky.cookie=true"
+      - "traefik.http.services.api-backend.loadbalancer.sticky.cookie.name=l2p-session"
 
   l2p-app:
     build:

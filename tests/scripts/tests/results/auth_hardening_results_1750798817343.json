@@ -1,0 +1,45 @@
+{
+  "timestamp": "2025-06-24T21:00:17.343Z",
+  "summary": {
+    "totalTests": 5,
+    "passedTests": 2,
+    "failedTests": 3,
+    "successRate": 40
+  },
+  "tests": [
+    {
+      "name": "Password Complexity Requirements",
+      "status": "FAILED",
+      "duration": 35,
+      "error": "Valid password was rejected: {\"success\":false,\"error\":{\"code\":\"RESOURCE_CONFLICT\",\"message\":\"Resource already exists\",\"recovery\":\"Please use a different identifier\"},\"timestamp\":\"2025-06-24T21:00:16.780Z\",\"requestId\":\"mcb0esy4b1ufwx28mr\",\"debug\":{\"details\":{\"field\":\"email\",\"value\":\"test@example.com\"},\"stack\":\"AppError: Resource already exists\\n    at /app/backend/routes/auth.js:36:19\\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\",\"originalError\":null}}"
+    },
+    {
+      "name": "Rate Limiting and Account Lockout",
+      "status": "PASSED",
+      "duration": 545,
+      "error": null
+    },
+    {
+      "name": "Email Verification Functionality",
+      "status": "FAILED",
+      "duration": 4,
+      "error": "Failed to register user with email: {\"success\":false,\"error\":{\"code\":\"RESOURCE_CONFLICT\",\"message\":\"Resource already exists\",\"recovery\":\"Please use a different identifier\"},\"timestamp\":\"2025-06-24T21:00:17.330Z\",\"requestId\":\"mcb0etde76shjo81gp2\",\"debug\":{\"details\":{\"field\":\"email\",\"value\":\"test.email@example.com\"},\"stack\":\"AppError: Resource already exists\\n    at /app/backend/routes/auth.js:36:19\\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\",\"originalError\":null}}"
+    },
+    {
+      "name": "Password Reset Functionality",
+      "status": "PASSED",
+      "duration": 8,
+      "error": null
+    },
+    {
+      "name": "Rate Limit Statistics Endpoint",
+      "status": "FAILED",
+      "duration": 3,
+      "error": "Failed to login for rate limit stats test"
+    }
+  ],
+  "configuration": {
+    "apiBase": "http://10.0.0.44/api",
+    "timeout": 30000
+  }
+}

@@ -147,7 +147,6 @@ learn2play/
 │   │   ├── 📁 audio/              # Sound files (33 files)
 │   │   └── 📁 images/             # Graphics (SVG files)
 │   ├── index.html                 # Main application
-│   ├── simplified.html            # Simplified interface
 │   ├── testing.html               # Testing dashboard
 │   ├── analysis.html              # UI analysis
 │   ├── clear-cache.html           # Cache management
@@ -331,3 +330,47 @@ Internet → Traefik (SSL) → Docker Services → PostgreSQL
 - **Database Scaling**: PostgreSQL read replicas
 - **Load Balancing**: Traefik automatic load balancing
 - **CDN Integration**: Static asset delivery optimization 
+
+## Real-Time Communication
+
+### WebSocket/Socket.IO Configuration
+
+The application uses Socket.IO for real-time multiplayer features with proper Traefik integration:
+
+#### Traefik WebSocket Routing
+- **WebSocket-specific routers** with higher priority (300) for `/socket.io/` paths
+- **Sticky sessions** enabled for proper Socket.IO functionality 
+- **Custom headers middleware** for WebSocket upgrade support
+- **CORS configuration** optimized for real-time connections
+
+#### Configuration Details
+```yaml
+# WebSocket Router (Production HTTPS)
+- "traefik.http.routers.websocket-secure.rule=Host(`${PRODUCTION_DOMAIN}`) && PathPrefix(`/socket.io/`)"
+- "traefik.http.routers.websocket-secure.middlewares=websocket-headers@file"
+- "traefik.http.routers.websocket-secure.priority=300"
+
+# Sticky Sessions for Socket.IO
+- "traefik.http.services.api-backend.loadbalancer.sticky.cookie=true"
+- "traefik.http.services.api-backend.loadbalancer.sticky.cookie.name=l2p-session"
+```
+
+#### WebSocket Middleware
+```yaml
+websocket-headers:
+  headers:
+    customRequestHeaders:
+      Connection: "upgrade"
+      Upgrade: "websocket"
+    customResponseHeaders:
+      Access-Control-Allow-Origin: "*"
+      Access-Control-Allow-Methods: "GET, POST, OPTIONS"
+      Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+      Access-Control-Allow-Credentials: "true"
+```
+
+#### Real-Time Features
+- **Lobby management** - Real-time player join/leave notifications
+- **Game synchronization** - Live score updates and game state changes
+- **Authentication** - JWT-based WebSocket authentication
+- **Connection monitoring** - Ping-pong heartbeat and reconnection handling 

@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 // Import database connection and initialization
-const { initializePool, testConnection } = require('./database/connection');
+const { initializePool, testConnection, getPoolMetrics } = require('./database/connection');
 const { initializeDatabase } = require('./database/init');
 
 // Import routes
@@ -15,6 +15,14 @@ const authRoutes = require('./routes/auth');
 const hallOfFameRoutes = require('./routes/hallOfFame');
 const lobbyRoutes = require('./routes/lobby');
 const questionSetsRoutes = require('./routes/questionSets');
+const monitoringRoutes = require('./routes/monitoring');
+
+// Import error handling middleware
+const { errorHandler, notFoundHandler, AppError } = require('./middleware/errorHandler');
+const { checkSQLInjection } = require('./middleware/sqlInjectionProtection');
+
+// Import WebSocket service
+const websocketService = require('./services/websocketService');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -108,7 +116,30 @@ function configureApp() {
     app.use(cors(corsOptions));
     app.options('*', cors(corsOptions));
 
-    app.use(express.json({ limit: '10mb' }));
+    // JSON parsing with error handling
+    app.use(express.json({ 
+        limit: '10mb',
+        verify: (req, res, buf, encoding) => {
+            req.rawBody = buf;
+        }
+    }));
+    
+    // Handle JSON parsing errors
+    app.use((error, req, res, next) => {
+        if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+            return res.status(400).json({
+                success: false,
+                error: {
+                    code: 'INVALID_JSON',
+                    message: 'Invalid JSON format',
+                    recovery: 'Please check your JSON syntax and try again'
+                },
+                timestamp: new Date().toISOString()
+            });
+        }
+        next(error);
+    });
+    
     app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
     // Request logging middleware (only in non-test environment)
@@ -130,6 +161,9 @@ function configureApp() {
         skip: (req) => process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
     });
     app.use('/api/', limiter);
+
+    // SQL injection protection
+    app.use('/api/', checkSQLInjection);
 
     const authLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, // 15 minutes
@@ -154,6 +188,9 @@ function configureApp() {
                 }
             }
 
+            // Get pool metrics for health monitoring
+            const poolMetrics = dbConnectedStatus ? getPoolMetrics() : null;
+            
             const healthPayload = {
                 status: dbConnectedStatus ? 'OK' : 'DEGRADED',
                 timestamp: new Date().toISOString(),
@@ -161,7 +198,18 @@ function configureApp() {
                 environment: process.env.NODE_ENV || 'development',
                 database: dbConnectedStatus ? 'connected' : 'disconnected',
                 uptime: Math.floor(process.uptime()),
-                port: port
+                port: port,
+                poolMetrics: poolMetrics ? {
+                    totalConnections: poolMetrics.totalConnections,
+                    activeConnections: poolMetrics.activeConnections,
+                    idleConnections: poolMetrics.idleConnections,
+                    waitingRequests: poolMetrics.waitingRequests,
+                    totalQueries: poolMetrics.totalQueries,
+                    failedQueries: poolMetrics.failedQueries,
+                    averageQueryTime: poolMetrics.averageQueryTime,
+                    healthCheckFailures: poolMetrics.healthCheckFailures,
+                    reconnectionAttempts: poolMetrics.reconnectionAttempts
+                } : null
             };
 
             if (dbConnectedStatus) {
@@ -207,9 +255,12 @@ function configureApp() {
         }
     });
 
-    // Apply database readiness check to all API routes except health and ready
+    // Monitoring routes (no database readiness check for system monitoring)
+    app.use('/api/monitoring', monitoringRoutes);
+
+    // Apply database readiness check to all API routes except health, ready, and monitoring
     app.use('/api', (req, res, next) => {
-        if (req.path === '/health' || req.path === '/ready') {
+        if (req.path === '/health' || req.path === '/ready' || req.path.startsWith('/monitoring')) {
             return next();
         }
         checkDatabaseReady(req, res, next);
@@ -264,6 +315,12 @@ function configureApp() {
                     'POST /question-sets': 'Create a new question set',
                     'PUT /question-sets/:id': 'Update a question set',
                     'DELETE /question-sets/:id': 'Delete a question set'
+                },
+                monitoring: {
+                    'GET /monitoring/db-metrics': 'Get database connection pool metrics',
+                    'GET /monitoring/status': 'Get comprehensive system status',
+                    'GET /health': 'Get health check with pool metrics',
+                    'GET /ready': 'Get readiness status'
                 }
             },
             status: 'running',
@@ -271,36 +328,11 @@ function configureApp() {
         });
     });
 
-    // Handle 404 for unknown API endpoints
-    app.use('/api/*path', (req, res) => {
-        res.status(404).json({ 
-            error: 'API endpoint not found',
-            code: 'ENDPOINT_NOT_FOUND',
-            path: req.path,
-            method: req.method,
-            message: `The endpoint ${req.method} ${req.path} does not exist. Check /api for available endpoints.`
-        });
-    });
+    // 404 handler for undefined API routes
+    app.use('/api/*', notFoundHandler);
 
-    // Global error handler
-    app.use((err, req, res, next) => {
-        console.error('Unhandled error:', {
-            error: err.message,
-            stack: err.stack,
-            path: req.path,
-            method: req.method,
-            body: req.body,
-            query: req.query,
-            headers: req.headers
-        });
-        
-        const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message;
-        res.status(err.status || 500).json({ 
-            error: message,
-            code: 'INTERNAL_ERROR',
-            ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
-        });
-    });
+    // Global error handler (must be last middleware)
+    app.use(errorHandler);
 
     return app;
 }
@@ -330,6 +362,10 @@ async function startServer() {
             console.log(`📖 API docs: http://localhost:${port}/api`);
             console.log('✅ Server startup complete, application layer is up.');
         });
+
+        // Initialize WebSocket service
+        websocketService.initialize(server);
+        console.log('🔌 WebSocket service integrated with server');
 
         server.timeout = 30000;
 

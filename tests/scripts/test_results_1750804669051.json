@@ -1,0 +1,31 @@
+{
+  "executionMode": "sequential",
+  "totalDuration": 1760,
+  "startTime": "2025-06-24T22:37:47.291Z",
+  "endTime": "2025-06-24T22:37:49.051Z",
+  "testResults": [
+    {
+      "file": "test_dashboard.cjs",
+      "exitCode": 0,
+      "duration": 1601,
+      "startTime": "2025-06-24T22:37:47.448Z",
+      "stdout": "\u001b[36m[2025-06-24T22:37:47.673Z] INFO: === Testing Dashboard Validation Started ===\u001b[0m\n\u001b[36m[2025-06-24T22:37:47.674Z] INFO: === Testing Dashboard Accessibility ===\u001b[0m\n\u001b[32m[2025-06-24T22:37:47.692Z] SUCCESS: ✓ Testing dashboard is accessible\u001b[0m\n\u001b[36m[2025-06-24T22:37:47.692Z] INFO: === Testing API Endpoints ===\u001b[0m\n\u001b[32m[2025-06-24T22:37:47.704Z] SUCCESS: ✓ Question Sets API working\u001b[0m\n\u001b[32m[2025-06-24T22:37:47.709Z] SUCCESS: ✓ Hall of Fame API working\u001b[0m\n\u001b[32m[2025-06-24T22:37:47.712Z] SUCCESS: ✓ Main App API working\u001b[0m\n\u001b[36m[2025-06-24T22:37:47.713Z] INFO: === Testing Dashboard Functionality ===\u001b[0m\n\u001b[36m[2025-06-24T22:37:48.846Z] INFO: Page title: Learn2Play - Testing Dashboard\u001b[0m\n\u001b[32m[2025-06-24T22:37:48.863Z] SUCCESS: ✓ System test button found\u001b[0m\n\u001b[32m[2025-06-24T22:37:48.875Z] SUCCESS: ✓ Found 5 test result containers\u001b[0m\n\u001b[32m[2025-06-24T22:37:48.885Z] SUCCESS: ✓ Found 7 test log containers\u001b[0m\n\u001b[32m[2025-06-24T22:37:48.888Z] SUCCESS: ✓ Run all tests button found\u001b[0m\n\u001b[36m[2025-06-24T22:37:48.954Z] INFO: Test summary: 📊 Test Results Summary Total Tests: 3 Passed: 3 Failed: 0 Pass Rate: 100.0%\u001b[0m\n\u001b[32m[2025-06-24T22:37:48.954Z] SUCCESS: ✓ Tests executed successfully\u001b[0m\n\u001b[36m[2025-06-24T22:37:49.042Z] INFO: === Test Results Summary ===\u001b[0m\n\u001b[36m[2025-06-24T22:37:49.042Z] INFO: Dashboard Accessible: ✓\u001b[0m\n\u001b[36m[2025-06-24T22:37:49.042Z] INFO: API Endpoints Working: ✓\u001b[0m\n\u001b[36m[2025-06-24T22:37:49.042Z] INFO: Dashboard Functional: ✓\u001b[0m\n\u001b[32m[2025-06-24T22:37:49.042Z] SUCCESS: 🎉 All tests passed! Testing dashboard is fully functional.\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_dashboard.cjs",
+        "totalTests": 22,
+        "passedTests": 22,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "successful": 1,
+    "failed": 0
+  }
+}

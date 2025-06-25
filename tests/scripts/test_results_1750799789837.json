@@ -1,0 +1,148 @@
+{
+  "executionMode": "sequential",
+  "totalDuration": 102725,
+  "startTime": "2025-06-24T21:14:47.112Z",
+  "endTime": "2025-06-24T21:16:29.837Z",
+  "testResults": [
+    {
+      "file": "test_all_lobby_features.cjs",
+      "exitCode": 0,
+      "duration": 79619,
+      "startTime": "2025-06-24T21:14:47.270Z",
+      "stdout": "\u001b[36m[2025-06-24T21:14:47.363Z] INFO: 🚀 Starting Comprehensive Lobby Functionality Test Suite\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.364Z] INFO: ============================================================\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.364Z] INFO: === Testing API Health and Readiness ===\u001b[0m\n\u001b[32m[2025-06-24T21:14:47.384Z] SUCCESS: ✓ Health endpoint working: {\"status\":\"OK\",\"timestamp\":\"2025-06-24T21:14:47.378Z\",\"version\":\"1.0.0\",\"environment\":\"development\",\"database\":\"connected\",\"uptime\":2110,\"port\":\"3000\",\"poolMetrics\":{\"totalConnections\":1,\"activeConnections\":0,\"idleConnections\":1,\"waitingRequests\":0,\"totalQueries\":4305,\"failedQueries\":0,\"averageQueryTime\":1,\"healthCheckFailures\":0,\"reconnectionAttempts\":0}}\u001b[0m\n\u001b[32m[2025-06-24T21:14:47.387Z] SUCCESS: ✓ Readiness endpoint working\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.387Z] INFO: === Testing User Registration ===\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.388Z] INFO: Registering user: host_player\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.392Z] ERROR: ✗ Failed to register user host_player: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.392Z] INFO: Registering user: player_1\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.395Z] ERROR: ✗ Failed to register user player_1: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.395Z] INFO: Registering user: player_2\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.398Z] ERROR: ✗ Failed to register user player_2: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.398Z] INFO: Registering user: player_3\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.402Z] ERROR: ✗ Failed to register user player_3: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.402Z] INFO: === Testing Authentication Edge Cases ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.405Z] ERROR: ✗ Invalid login not handled properly\u001b[0m\n\u001b[32m[2025-06-24T21:14:47.408Z] SUCCESS: ✓ Invalid registration data handled correctly\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.408Z] INFO: === Testing Question Set Creation ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.413Z] ERROR: ✗ Failed to create question set: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.413Z] INFO: === Testing Question Set Management ===\u001b[0m\n\u001b[32m[2025-06-24T21:14:47.423Z] SUCCESS: ✓ Retrieved 119 question sets\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.426Z] ERROR: ✗ Invalid question set validation failed\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.426Z] INFO: === Testing Lobby Creation ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.429Z] ERROR: ✗ Failed to create lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.429Z] INFO: === Testing Lobby Listing ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.432Z] ERROR: ✗ Failed to list lobbies: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.432Z] INFO: === Testing Lobby Retrieval ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.434Z] ERROR: ✗ Failed to retrieve lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.434Z] INFO: === Testing Player Joining ===\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.434Z] INFO: Player player_1 joining lobby null\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.437Z] ERROR: ✗ Failed to join lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:47.937Z] INFO: Player player_2 joining lobby null\u001b[0m\n\u001b[31m[2025-06-24T21:14:47.940Z] ERROR: ✗ Failed to join lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.441Z] INFO: Player player_3 joining lobby null\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.444Z] ERROR: ✗ Failed to join lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.945Z] INFO: === Testing Player Ready Status ===\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.945Z] INFO: Setting player_1 as ready\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.949Z] ERROR: ✗ Failed to set ready status: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.949Z] INFO: Setting player_2 as ready\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.951Z] ERROR: ✗ Failed to set ready status: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.951Z] INFO: Setting player_3 as ready\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.954Z] ERROR: ✗ Failed to set ready status: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.954Z] INFO: === Testing Question Set Management ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.957Z] ERROR: ✗ Failed to set question set: undefined\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.959Z] ERROR: ✗ Failed to set question count: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.960Z] INFO: === Testing Game Start ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.962Z] ERROR: ✗ Failed to start game: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.962Z] INFO: === Testing Game State Retrieval ===\u001b[0m\n\u001b[31m[2025-06-24T21:14:48.965Z] ERROR: ✗ Failed to retrieve game state: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:14:48.965Z] INFO: === Testing Scoring System ===\u001b[0m\n\u001b[36m[2025-06-24T21:14:53.967Z] INFO: Player host_player submitting answer after 5s: high score (fast answer)\u001b[0m\n\u001b[31m[2025-06-24T21:14:53.971Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:15:08.981Z] INFO: Player player_1 submitting answer after 15s: medium score\u001b[0m\n\u001b[31m[2025-06-24T21:15:08.986Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:15:54.018Z] INFO: Player player_2 submitting answer after 45s: low score (slow answer)\u001b[0m\n\u001b[31m[2025-06-24T21:15:54.021Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.024Z] INFO: Player player_3 submitting answer after 10s: zero score (wrong answer)\u001b[0m\n\u001b[31m[2025-06-24T21:16:04.028Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.028Z] INFO: === Testing Answer Submission ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.028Z] INFO: Player host_player submitting answer: 0\u001b[0m\n\u001b[31m[2025-06-24T21:16:04.031Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.231Z] INFO: Player player_1 submitting answer: 1\u001b[0m\n\u001b[31m[2025-06-24T21:16:04.234Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.435Z] INFO: Player player_2 submitting answer: 0\u001b[0m\n\u001b[31m[2025-06-24T21:16:04.438Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.639Z] INFO: Player player_3 submitting answer: 1\u001b[0m\n\u001b[31m[2025-06-24T21:16:04.642Z] ERROR: ✗ Failed to submit answer: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:04.843Z] INFO: === Testing Question Progression ===\u001b[0m\n\u001b[33m[2025-06-24T21:16:06.848Z] WARNING: Question progression result: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.848Z] INFO: === Testing Hall of Fame System ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:06.852Z] SUCCESS: ✓ Retrieved hall of fame entries: 10 entries\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.855Z] ERROR: ✗ Failed to add hall of fame entry: undefined\u001b[0m\n\u001b[32m[2025-06-24T21:16:06.859Z] SUCCESS: ✓ Retrieved catalog leaderboard: 10 entries\u001b[0m\n\u001b[32m[2025-06-24T21:16:06.862Z] SUCCESS: ✓ Retrieved hall of fame statistics\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.862Z] INFO: === Testing Lobby Update ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.865Z] ERROR: ✗ Failed to update lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.865Z] INFO: === Testing Player Leaving ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.865Z] INFO: Player player_3 leaving lobby\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.868Z] ERROR: ✗ Failed to leave lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.868Z] INFO: === Testing Lobby Deletion ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.870Z] ERROR: ✗ Failed to delete lobby: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.871Z] INFO: === Testing Debug Endpoint ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.873Z] INFO: === Testing Cleanup Endpoint ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.876Z] ERROR: ✗ Cleanup failed: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.876Z] INFO: === Testing Error Handling ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.878Z] ERROR: ✗ Invalid lobby code not handled properly\u001b[0m\n\u001b[31m[2025-06-24T21:16:06.880Z] ERROR: ✗ Joining invalid lobby not handled properly\u001b[0m\n\u001b[32m[2025-06-24T21:16:06.883Z] SUCCESS: ✓ Unauthorized access handled correctly\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.883Z] INFO: ============================================================\u001b[0m\n\u001b[32m[2025-06-24T21:16:06.883Z] SUCCESS: 🎉 All lobby functionality tests completed!\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_all_lobby_features.cjs",
+        "totalTests": 87,
+        "passedTests": 17,
+        "failedTests": 70,
+        "errors": [
+          "\u001b[31m[2025-06-24T21:14:47.392Z] ERROR: ✗ Failed to register user host_player: undefined\u001b[0m",
+          "\u001b[31m[2025-06-24T21:14:47.395Z] ERROR: ✗ Failed to register user player_1: undefined\u001b[0m",
+          "\u001b[31m[2025-06-24T21:14:47.398Z] ERROR: ✗ Failed to register user player_2: undefined\u001b[0m",
+          "\u001b[31m[2025-06-24T21:14:47.402Z] ERROR: ✗ Failed to register user player_3: undefined\u001b[0m",
+          "\u001b[31m[2025-06-24T21:14:47.405Z] ERROR: ✗ Invalid login not handled properly\u001b[0m"
+        ],
+        "warnings": [
+          "\u001b[33m[2025-06-24T21:16:06.848Z] WARNING: Question progression result: undefined\u001b[0m"
+        ],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_question_sets.cjs",
+      "exitCode": 0,
+      "duration": 117,
+      "startTime": "2025-06-24T21:16:06.889Z",
+      "stdout": "\u001b[36m[2025-06-24T21:16:06.980Z] INFO: 🚀 Starting Comprehensive Question Sets Test Suite\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.981Z] INFO: ============================================================\u001b[0m\n\u001b[36m[2025-06-24T21:16:06.982Z] INFO: === Setting Up Test User ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:07.001Z] ERROR: ✗ Failed to setup test user\u001b[0m\n\u001b[31m[2025-06-24T21:16:07.001Z] ERROR: ✗ Test user setup failed\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_question_sets.cjs",
+        "totalTests": 4,
+        "passedTests": 0,
+        "failedTests": 4,
+        "errors": [
+          "\u001b[31m[2025-06-24T21:16:07.001Z] ERROR: ✗ Failed to setup test user\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:07.001Z] ERROR: ✗ Test user setup failed\u001b[0m"
+        ],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_frontend_ui.cjs",
+      "exitCode": 0,
+      "duration": 20923,
+      "startTime": "2025-06-24T21:16:07.006Z",
+      "stdout": "\u001b[36m[2025-06-24T21:16:07.230Z] INFO: 🚀 Starting Frontend UI and UX Test Suite\u001b[0m\n\u001b[36m[2025-06-24T21:16:07.231Z] INFO: ============================================================\u001b[0m\n\u001b[36m[2025-06-24T21:16:07.231Z] INFO: === Testing Page Loading ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:07.534Z] INFO: Loading main page...\u001b[0m\n\u001b[32m[2025-06-24T21:16:08.362Z] SUCCESS: ✓ Main page loaded: Learn2Play\u001b[0m\n\u001b[32m[2025-06-24T21:16:08.363Z] SUCCESS: ✓ Main content element found using: .container\u001b[0m\n\u001b[32m[2025-06-24T21:16:08.365Z] SUCCESS: ✓ CSS loaded, body background: rgba(0, 0, 0, 0)\u001b[0m\n\u001b[36m[2025-06-24T21:16:08.442Z] INFO: === Testing Responsive Design ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:09.562Z] INFO: Testing Mobile (iPhone SE) (375x667)...\u001b[0m\n\u001b[36m[2025-06-24T21:16:10.608Z] INFO: Testing Tablet (iPad) (768x1024)...\u001b[0m\n\u001b[36m[2025-06-24T21:16:11.639Z] INFO: Testing Desktop (1080p) (1920x1080)...\u001b[0m\n\u001b[36m[2025-06-24T21:16:12.729Z] INFO: === Testing Theme System ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:13.873Z] INFO: Initial theme: light\u001b[0m\n\u001b[31m[2025-06-24T21:16:14.388Z] ERROR: ✗ Theme did not switch\u001b[0m\n\u001b[32m[2025-06-24T21:16:15.005Z] SUCCESS: ✓ Theme persisted after reload: light\u001b[0m\n\u001b[36m[2025-06-24T21:16:15.074Z] INFO: === Testing Language Switching ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:16.217Z] INFO: Initial language: en\u001b[0m\n\u001b[36m[2025-06-24T21:16:16.738Z] INFO: Sample text after language switch: \"Learn2Play\"\u001b[0m\n\u001b[36m[2025-06-24T21:16:16.811Z] INFO: === Testing Audio System ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:17.945Z] SUCCESS: ✓ Volume controls found\u001b[0m\n\u001b[31m[2025-06-24T21:16:17.949Z] ERROR: ✗ Volume sliders not found\u001b[0m\n\u001b[36m[2025-06-24T21:16:17.953Z] INFO: Found 0 audio elements\u001b[0m\n\u001b[36m[2025-06-24T21:16:18.032Z] INFO: === Testing Game UI Interactions ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:19.169Z] SUCCESS: ✓ Create game button found\u001b[0m\n\u001b[31m[2025-06-24T21:16:19.177Z] ERROR: ✗ Game UI interactions test failed: Node is either not clickable or not an Element\u001b[0m\n\u001b[36m[2025-06-24T21:16:19.256Z] INFO: === Testing Animations and Transitions ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:20.399Z] INFO: Found 0 elements with animation classes\u001b[0m\n\u001b[36m[2025-06-24T21:16:20.433Z] INFO: Testing hover effects on 39 interactive elements\u001b[0m\n\u001b[32m[2025-06-24T21:16:20.953Z] SUCCESS: ✓ Hover effects tested\u001b[0m\n\u001b[36m[2025-06-24T21:16:21.029Z] INFO: === Testing Accessibility ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:22.153Z] INFO: Testing keyboard navigation...\u001b[0m\n\u001b[32m[2025-06-24T21:16:22.359Z] SUCCESS: ✓ Keyboard navigation working: focused on BUTTON\u001b[0m\n\u001b[32m[2025-06-24T21:16:22.389Z] SUCCESS: ✓ Found 22 elements with ARIA labels\u001b[0m\n\u001b[36m[2025-06-24T21:16:22.390Z] INFO: Color contrast - Text: rgb(17, 24, 39), Background: rgba(0, 0, 0, 0)\u001b[0m\n\u001b[36m[2025-06-24T21:16:22.459Z] INFO: === Testing Performance ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:23.583Z] INFO: Page load time: 837ms\u001b[0m\n\u001b[32m[2025-06-24T21:16:23.583Z] SUCCESS: ✓ Page loaded within acceptable time (<3s)\u001b[0m\n\u001b[36m[2025-06-24T21:16:23.588Z] INFO: JavaScript execution test: 3.30ms\u001b[0m\n\u001b[36m[2025-06-24T21:16:23.589Z] INFO: Memory usage: 1.83MB\u001b[0m\n\u001b[36m[2025-06-24T21:16:23.676Z] INFO: === Testing Frontend Error Handling ===\u001b[0m\n\u001b[33m[2025-06-24T21:16:26.808Z] WARNING: ⚠ Found 1 console errors:\u001b[0m\n\u001b[33m[2025-06-24T21:16:26.808Z] WARNING:   - Failed to load resource: the server responded with a status of 404 (Not Found)\u001b[0m\n\u001b[32m[2025-06-24T21:16:27.813Z] SUCCESS: ✓ Offline mode tested\u001b[0m\n\u001b[36m[2025-06-24T21:16:27.886Z] INFO: ============================================================\u001b[0m\n\u001b[32m[2025-06-24T21:16:27.886Z] SUCCESS: 🎉 All frontend tests completed!\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_frontend_ui.cjs",
+        "totalTests": 29,
+        "passedTests": 23,
+        "failedTests": 6,
+        "errors": [
+          "\u001b[31m[2025-06-24T21:16:14.388Z] ERROR: ✗ Theme did not switch\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:17.949Z] ERROR: ✗ Volume sliders not found\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:19.177Z] ERROR: ✗ Game UI interactions test failed: Node is either not clickable or not an Element\u001b[0m"
+        ],
+        "warnings": [
+          "\u001b[33m[2025-06-24T21:16:26.808Z] WARNING: ⚠ Found 1 console errors:\u001b[0m",
+          "\u001b[33m[2025-06-24T21:16:26.808Z] WARNING:   - Failed to load resource: the server responded with a status of 404 (Not Found)\u001b[0m"
+        ],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_scoring_system.cjs",
+      "exitCode": 0,
+      "duration": 117,
+      "startTime": "2025-06-24T21:16:27.930Z",
+      "stdout": "\u001b[36m[2025-06-24T21:16:28.021Z] INFO: 🚀 Starting Advanced Scoring System Test Suite\u001b[0m\n\u001b[36m[2025-06-24T21:16:28.022Z] INFO: ============================================================\u001b[0m\n\u001b[36m[2025-06-24T21:16:28.023Z] INFO: === Setting Up Test Environment ===\u001b[0m\n\u001b[31m[2025-06-24T21:16:28.042Z] ERROR: ✗ Failed to register test user: undefined\u001b[0m\n\u001b[31m[2025-06-24T21:16:28.042Z] ERROR: ✗ Test environment setup failed\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_scoring_system.cjs",
+        "totalTests": 4,
+        "passedTests": 0,
+        "failedTests": 4,
+        "errors": [
+          "\u001b[31m[2025-06-24T21:16:28.042Z] ERROR: ✗ Failed to register test user: undefined\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:28.042Z] ERROR: ✗ Test environment setup failed\u001b[0m"
+        ],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "test_dashboard.cjs",
+      "exitCode": 0,
+      "duration": 1566,
+      "startTime": "2025-06-24T21:16:28.047Z",
+      "stdout": "\u001b[36m[2025-06-24T21:16:28.269Z] INFO: === Testing Dashboard Validation Started ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:28.270Z] INFO: === Testing Dashboard Accessibility ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:28.288Z] SUCCESS: ✓ Testing dashboard is accessible\u001b[0m\n\u001b[36m[2025-06-24T21:16:28.288Z] INFO: === Testing API Endpoints ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:28.299Z] SUCCESS: ✓ Question Sets API working\u001b[0m\n\u001b[32m[2025-06-24T21:16:28.303Z] SUCCESS: ✓ Hall of Fame API working\u001b[0m\n\u001b[32m[2025-06-24T21:16:28.306Z] SUCCESS: ✓ Main App API working\u001b[0m\n\u001b[36m[2025-06-24T21:16:28.307Z] INFO: === Testing Dashboard Functionality ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.438Z] INFO: Page title: Learn2Play - Testing Dashboard\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.455Z] SUCCESS: ✓ System test button found\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.465Z] SUCCESS: ✓ Found 5 test result containers\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.474Z] SUCCESS: ✓ Found 7 test log containers\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.478Z] SUCCESS: ✓ Run all tests button found\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.533Z] INFO: Test summary: 📊 Test Results Summary Total Tests: 2 Passed: 2 Failed: 0 Pass Rate: 100.0%\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.533Z] SUCCESS: ✓ Tests executed successfully\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.607Z] INFO: === Test Results Summary ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.607Z] INFO: Dashboard Accessible: ✓\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.607Z] INFO: API Endpoints Working: ✓\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.607Z] INFO: Dashboard Functional: ✓\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.607Z] SUCCESS: 🎉 All tests passed! Testing dashboard is fully functional.\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "test_dashboard.cjs",
+        "totalTests": 22,
+        "passedTests": 22,
+        "failedTests": 0,
+        "errors": [],
+        "warnings": [],
+        "coverage": {}
+      }
+    },
+    {
+      "file": "debug_api.cjs",
+      "exitCode": 0,
+      "duration": 219,
+      "startTime": "2025-06-24T21:16:29.613Z",
+      "stdout": "\u001b[36m[2025-06-24T21:16:29.705Z] INFO: 🚀 Starting Debug API Test Suite\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.706Z] INFO: ============================================================\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.706Z] INFO: === Testing System Health ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.726Z] SUCCESS: ✓ Health endpoint working\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.726Z] INFO: Response: {\n  \"status\": \"OK\",\n  \"timestamp\": \"2025-06-24T21:16:29.720Z\",\n  \"version\": \"1.0.0\",\n  \"environment\": \"development\",\n  \"database\": \"connected\",\n  \"uptime\": 2212,\n  \"port\": \"3000\",\n  \"poolMetrics\": {\n    \"totalConnections\": 1,\n    \"activeConnections\": 0,\n    \"idleConnections\": 1,\n    \"waitingRequests\": 0,\n    \"totalQueries\": 4515,\n    \"failedQueries\": 0,\n    \"averageQueryTime\": 1,\n    \"healthCheckFailures\": 0,\n    \"reconnectionAttempts\": 0\n  }\n}\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.726Z] INFO: Response time: 20\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.730Z] SUCCESS: ✓ Readiness endpoint working\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.730Z] INFO: Database status: ready\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.730Z] INFO: === Testing Database Connectivity ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.734Z] SUCCESS: ✓ Database connectivity confirmed via health endpoint\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.734Z] INFO: Database status: connected\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.737Z] SUCCESS: ✓ Database connectivity confirmed via readiness endpoint\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.737Z] INFO: Database details: \"ready\"\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.737Z] INFO: === Testing All API Endpoints ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.737Z] INFO: Testing GET /health...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.741Z] SUCCESS: ✓ GET /health - OK (200)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.741Z] INFO: Testing GET /ready...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.744Z] SUCCESS: ✓ GET /ready - OK (200)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.744Z] INFO: Testing POST /auth/register...\u001b[0m\n\u001b[31m[2025-06-24T21:16:29.747Z] ERROR: ✗ POST /auth/register - Unexpected response (400)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.747Z] INFO: Testing POST /auth/login...\u001b[0m\n\u001b[31m[2025-06-24T21:16:29.750Z] ERROR: ✗ POST /auth/login - Unexpected response (400)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.750Z] INFO: Testing POST /auth/refresh...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.754Z] SUCCESS: ✓ POST /auth/refresh - Expected response (400)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.755Z] INFO: Testing GET /question-sets...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.765Z] SUCCESS: ✓ GET /question-sets - OK (200)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.765Z] INFO: Testing POST /question-sets...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.768Z] SUCCESS: ✓ POST /question-sets - Expected response (401)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.768Z] INFO: Testing GET /lobbies/list...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.770Z] SUCCESS: ✓ GET /lobbies/list - Expected response (401)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.770Z] INFO: Testing POST /lobbies/create...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.772Z] SUCCESS: ✓ POST /lobbies/create - Expected response (401)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.773Z] INFO: Testing POST /lobbies/cleanup...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.776Z] SUCCESS: ✓ POST /lobbies/cleanup - Expected response (401)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.776Z] INFO: Testing GET /hall-of-fame...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.779Z] SUCCESS: ✓ GET /hall-of-fame - OK (200)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.779Z] INFO: Testing POST /hall-of-fame...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.782Z] SUCCESS: ✓ POST /hall-of-fame - Expected response (401)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.782Z] INFO: Testing GET /hall-of-fame/stats...\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.785Z] SUCCESS: ✓ GET /hall-of-fame/stats - OK (200)\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.785Z] INFO: API Endpoints Summary: 11/13 working correctly\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.785Z] INFO: === Testing Performance Metrics ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.788Z] SUCCESS: ✓ Health Check: 3ms\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.797Z] SUCCESS: ✓ Question Sets List: 9ms\u001b[0m\n\u001b[31m[2025-06-24T21:16:29.800Z] ERROR: ✗ Lobby List: 3ms (failed)\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.803Z] SUCCESS: ✓ Hall of Fame: 3ms\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.803Z] INFO: === Testing Error Handling ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.805Z] SUCCESS: ✓ Invalid endpoint: Correctly returned 404\u001b[0m\n\u001b[31m[2025-06-24T21:16:29.809Z] ERROR: ✗ Malformed JSON: Expected 400, got 500\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.812Z] SUCCESS: ✓ Missing required fields: Correctly returned 400\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.814Z] SUCCESS: ✓ Invalid authentication: Correctly returned 401\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.814Z] INFO: === Testing User Authentication Flow ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.814Z] INFO: Testing user registration...\u001b[0m\n\u001b[31m[2025-06-24T21:16:29.817Z] ERROR: ✗ Registration failed\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.817Z] INFO: Status: 400\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.817Z] INFO: Error: undefined\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.817Z] INFO: === Testing Frontend Connectivity ===\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.819Z] SUCCESS: ✓ Main page accessible\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.819Z] INFO: Content length: 46863 bytes\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.822Z] SUCCESS: ✓ Asset /css/main.css accessible\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.824Z] SUCCESS: ✓ Asset /js/app.js accessible\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.826Z] SUCCESS: ✓ Asset /assets/images/knowledge-map.svg accessible\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.827Z] INFO: === Generating System Report ===\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.827Z] INFO: System Report:\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.827Z] INFO: {\n  \"timestamp\": \"2025-06-24T21:16:29.827Z\",\n  \"system\": {\n    \"nodeVersion\": \"v22.15.0\",\n    \"platform\": \"linux\",\n    \"architecture\": \"x64\",\n    \"memory\": {\n      \"used\": \"10 MB\",\n      \"total\": \"18 MB\"\n    }\n  },\n  \"api\": {\n    \"baseUrl\": \"http://10.0.0.44/api\",\n    \"responsive\": true\n  },\n  \"frontend\": {\n    \"baseUrl\": \"http://10.0.0.44\",\n    \"accessible\": true\n  }\n}\u001b[0m\n\u001b[36m[2025-06-24T21:16:29.827Z] INFO: ============================================================\u001b[0m\n\u001b[32m[2025-06-24T21:16:29.827Z] SUCCESS: 🎉 Debug API test suite completed!\u001b[0m\n",
+      "stderr": "",
+      "success": true,
+      "analysis": {
+        "file": "debug_api.cjs",
+        "totalTests": 61,
+        "passedTests": 51,
+        "failedTests": 10,
+        "errors": [
+          "\u001b[31m[2025-06-24T21:16:29.747Z] ERROR: ✗ POST /auth/register - Unexpected response (400)\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:29.750Z] ERROR: ✗ POST /auth/login - Unexpected response (400)\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:29.800Z] ERROR: ✗ Lobby List: 3ms (failed)\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:29.809Z] ERROR: ✗ Malformed JSON: Expected 400, got 500\u001b[0m",
+          "\u001b[31m[2025-06-24T21:16:29.817Z] ERROR: ✗ Registration failed\u001b[0m"
+        ],
+        "warnings": [],
+        "coverage": {}
+      }
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "successful": 6,
+    "failed": 0
+  }
+}

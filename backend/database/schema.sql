@@ -75,3 +75,16 @@ END $$;
 UPDATE hall_of_fame 
 SET created_at = CURRENT_TIMESTAMP 
 WHERE created_at IS NULL;
+
+-- Add answer_time column to lobby_players table for accurate scoring
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'lobby_players' AND column_name = 'answer_time'
+    ) THEN
+        ALTER TABLE lobby_players ADD COLUMN answer_time TIMESTAMP;
+        CREATE INDEX IF NOT EXISTS idx_lobby_players_answer_time 
+        ON lobby_players(lobby_code, answer_time);
+    END IF;
+END $$;

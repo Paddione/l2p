@@ -10,7 +10,7 @@ import { requestAnimationFrame60 } from '../utils/helpers.js';
 
 /**
  * Shows a toast notification
- * @param {string} message - Message to display
+ * @param {string|Error} message - Message to display or Error object
  * @param {string} type - Type of toast ('success', 'error', 'warning', 'info')
  * @param {number} [duration=3000] - Duration in milliseconds
  */
@@ -23,14 +23,40 @@ export function showToast(message, type = 'info', duration = 3000) {
         document.body.appendChild(toastContainer);
     }
 
+    // Handle error objects with recovery information
+    let displayMessage = message;
+    let recovery = null;
+    
+    if (message instanceof Error) {
+        displayMessage = message.message;
+        recovery = message.recovery;
+        
+        // For errors, default to error type if not specified
+        if (type === 'info') {
+            type = 'error';
+        }
+    }
+
     // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     
     // Add icon based on type
     const icon = getIconForType(type);
-    const translatedMessage = translateRaw(message);
-    toast.innerHTML = `${icon}<span>${translatedMessage}</span>`;
+    const translatedMessage = translateRaw(displayMessage);
+    
+    // Build toast content with recovery suggestion if available
+    let toastContent = `${icon}<div class="toast-content">`;
+    toastContent += `<div class="toast-message">${translatedMessage}</div>`;
+    
+    if (recovery) {
+        const translatedRecovery = translateRaw(recovery);
+        toastContent += `<div class="toast-recovery">${translatedRecovery}</div>`;
+        duration = Math.max(duration, 5000); // Show longer for recovery messages
+    }
+    
+    toastContent += '</div>';
+    toast.innerHTML = toastContent;
 
     // Add to container
     toastContainer.appendChild(toast);

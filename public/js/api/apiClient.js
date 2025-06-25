@@ -169,6 +169,21 @@ class ApiClient {
                     console.error(`Failed to parse error response as JSON: ${e.name}: ${e.message}. Response text: "${responseText}"`);
                 }
 
+                // Handle standardized error response format
+                let errorMessage = 'An error occurred';
+                let errorCode = 'UNKNOWN_ERROR';
+                let recovery = 'Please try again';
+
+                if (errorJson && errorJson.error) {
+                    errorMessage = errorJson.error.message || errorMessage;
+                    errorCode = errorJson.error.code || errorCode;
+                    recovery = errorJson.error.recovery || recovery;
+                } else if (errorJson && errorJson.message) {
+                    // Fallback for legacy error format
+                    errorMessage = errorJson.message;
+                    errorCode = errorJson.code || errorCode;
+                }
+
                 // Handle 401 authentication errors specifically
                 if (response.status === 401) {
                     console.warn('Authentication failed - clearing token and redirecting to login');
@@ -188,49 +203,36 @@ class ApiClient {
                         console.error('Failed to redirect to login:', redirectError);
                     }
                     
-                    const error = new Error('Your session has expired. Please log in again.');
+                    const error = new Error(errorMessage);
                     error.status = 401;
+                    error.code = errorCode;
+                    error.recovery = recovery;
                     error.data = errorJson || { rawResponse: responseText };
                     throw error;
                 }
 
                 // Enhanced error messages for common issues
                 if (response.status === 502) {
-                    const error = new Error('The server is temporarily unavailable. We tried multiple times but could not connect. Please try again in a few minutes.');
+                    errorMessage = 'The server is temporarily unavailable. We tried multiple times but could not connect. Please try again in a few minutes.';
+                    const error = new Error(errorMessage);
                     error.status = 502;
                     error.data = { rawResponse: responseText };
                     throw error;
                 }
 
-                // Handle specific HTTP status codes
-                if (response.status === 404) {
-                    const error = new Error('API endpoint not found. Please check if the backend is running.');
-                    error.status = 404;
-                    error.data = { rawResponse: responseText };
-                    throw error;
-                }
-
-                if (response.status === 429) {
-                    const error = new Error('Too Many Requests. Please slow down and try again.');
-                    error.status = 429;
-                    error.data = { rawResponse: responseText };
-                    throw error;
-                }
-
-                if (response.status === 501) {
-                    const error = new Error('API method not implemented. Please check backend implementation.');
-                    error.status = 501;
-                    error.data = { rawResponse: responseText };
-                    throw error;
-                }
-
-                const error = new Error(
-                    errorJson?.message || 
-                    errorJson?.error || 
-                    (responseText && responseText.length < 200 ? responseText : `Request failed with status ${response.status} ${response.statusText}`)
-                );
+                // Create standardized error object
+                const error = new Error(errorMessage);
                 error.status = response.status;
+                error.code = errorCode;
+                error.recovery = recovery;
                 error.data = errorJson || { rawResponse: responseText };
+                error.requestId = errorJson?.requestId;
+                
+                // Add debug information if available
+                if (errorJson?.debug && process.env.NODE_ENV === 'development') {
+                    error.debug = errorJson.debug;
+                }
+                
                 throw error;
             }
 
@@ -252,39 +254,40 @@ class ApiClient {
             return responseData;
 
         } catch (error) {
-            console.error(`API request to ${method} ${endpoint} failed after ${MAX_RETRIES} retries:`, error.message, error.status ? `Status: ${error.status}` : '', error.data ? error.data : '');
+            console.error(`API request to ${method} ${endpoint} failed:`, {
+                message: error.message,
+                status: error.status,
+                code: error.code,
+                recovery: error.recovery,
+                requestId: error.requestId
+            });
 
-            // Enhanced error messages
-            let userMessage = 'An unexpected error occurred. Please try again.';
+            // Use recovery information if available, otherwise provide fallback messages
+            let userMessage = error.message || 'An unexpected error occurred.';
+            let recovery = error.recovery || 'Please try again.';
             
+            // Handle network-level errors
             if (error.name === 'AbortError' || (error.message && error.message.toLowerCase().includes('timed out'))) {
-                userMessage = `The request timed out after ${MAX_RETRIES} attempts. Please check your connection and try again.`;
-            } else if (error.status === 502) {
-                userMessage = `The server is temporarily unavailable (Bad Gateway). We tried ${MAX_RETRIES} times but could not connect. Please try again in a few minutes.`;
-            } else if (error.status === 404) {
-                userMessage = 'API endpoint not found. Please ensure the backend server is running and accessible.';
-            } else if (error.status === 501) {
-                userMessage = 'This feature is not yet implemented on the server.';
-            } else if (error.status === 401) {
-                userMessage = error.message || 'Your session has expired. Please log in again.';
-            } else if (error.status === 403) {
-                userMessage = error.data?.message || 'You do not have permission to perform this action.';
-            } else if (error.status === 429) {
-                userMessage = 'Too many requests. Please wait a moment and try again.';
-            } else if (error.status && error.status >= 400 && error.status < 500) {
-                userMessage = error.data?.message || error.data?.error || `An error occurred: ${error.message}`;
-            } else if (error.message) {
-                if (error.message.includes('Failed to fetch')) {
-                    userMessage = 'Cannot connect to the server. Please check your network connection and ensure the backend is running.';
-                } else {
-                    userMessage = error.message;
-                }
+                userMessage = `The request timed out after ${MAX_RETRIES} attempts.`;
+                recovery = 'Please check your connection and try again.';
+            } else if (error.message && error.message.includes('Failed to fetch')) {
+                userMessage = 'Cannot connect to the server.';
+                recovery = 'Please check your network connection and ensure the backend is running.';
             }
             
+            // Create enhanced error with recovery information
             const enhancedError = new Error(userMessage);
             enhancedError.originalError = error;
             enhancedError.status = error.status;
+            enhancedError.code = error.code;
+            enhancedError.recovery = recovery;
             enhancedError.data = error.data;
+            enhancedError.requestId = error.requestId;
+            
+            if (error.debug) {
+                enhancedError.debug = error.debug;
+            }
+            
             throw enhancedError;
         }
     }

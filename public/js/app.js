@@ -21,6 +21,7 @@ import { questionSetsApi } from '/js/api/questionSetsApi.js';
 import { developmentMode } from '/js/utils/developmentMode.js';
 import { showNotification } from './ui/notifications.js';
 import { t } from './utils/translations.js';
+import websocketManager from '/js/websocket/websocketManager.js';
 
 // Application state
 let appState = {
@@ -390,6 +391,10 @@ async function handleInitialAuth() {
                     // Update storage with current user
                     appState.modules.storage.setCurrentUser(appState.currentUser);
                     
+                    // Initialize WebSocket connection
+                    console.log('handleInitialAuth: Initializing WebSocket connection...');
+                    await initializeWebSocket(token, appState.currentUser.username);
+                    
                     // Check for saved game/lobby state
                     console.log('handleInitialAuth: Checking for saved state...');
                     await handleStateRecovery();
@@ -447,6 +452,83 @@ async function handleInitialAuth() {
             }
         }
     }
+}
+
+/**
+ * Initialize WebSocket connection
+ * @param {string} token - JWT token
+ * @param {string} username - Username
+ */
+async function initializeWebSocket(token, username) {
+    try {
+        console.log('initializeWebSocket: Connecting to WebSocket...');
+        await websocketManager.connect(token, username);
+        
+        // Store WebSocket manager in app state
+        appState.modules.websocket = websocketManager;
+        
+        // Setup WebSocket event handlers
+        setupWebSocketHandlers();
+        
+        console.log('initializeWebSocket: WebSocket initialization complete');
+    } catch (error) {
+        console.warn('initializeWebSocket: WebSocket initialization failed:', error.message);
+        // Don't throw error - app should work without WebSocket (fallback to polling)
+        showNotification('Real-time updates unavailable - using fallback mode', 'warning');
+    }
+}
+
+/**
+ * Setup WebSocket event handlers
+ */
+function setupWebSocketHandlers() {
+    const ws = appState.modules.websocket;
+    if (!ws) return;
+
+    // Connection events
+    ws.on('connected', () => {
+        console.log('WebSocket connected');
+        showNotification('Real-time updates enabled', 'success');
+    });
+
+    ws.on('disconnected', (reason) => {
+        console.log('WebSocket disconnected:', reason);
+        showNotification('Real-time updates disconnected', 'warning');
+    });
+
+    ws.on('reconnected', () => {
+        console.log('WebSocket reconnected');
+        showNotification('Real-time updates restored', 'success');
+    });
+
+    // Lobby events
+    ws.on('lobby_updated', (lobbyData) => {
+        console.log('Lobby updated via WebSocket:', lobbyData.code);
+        // Update lobby UI if we're currently in a lobby
+        if (appState.modules.playerManager && appState.modules.playerManager.getCurrentLobby()?.code === lobbyData.code) {
+            appState.modules.playerManager.handleWebSocketLobbyUpdate(lobbyData);
+        }
+    });
+
+    // Game events
+    ws.on('game_updated', (gameData) => {
+        console.log('Game updated via WebSocket:', gameData.code);
+        // Update game UI if we're currently in a game
+        if (appState.modules.gameController && appState.modules.gameController.getCurrentGame()?.lobbyCode === gameData.code) {
+            appState.modules.gameController.handleWebSocketGameUpdate(gameData);
+        }
+    });
+
+    // Notification events
+    ws.on('notification', (notification) => {
+        showNotification(notification.message, notification.type || 'info');
+    });
+
+    // Error events
+    ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        showNotification('Real-time connection error', 'error');
+    });
 }
 
 /**

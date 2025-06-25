@@ -7,6 +7,8 @@ class User {
         this.id = data.id;
         this.username = data.username;
         this.character = data.character;
+        this.email = data.email;
+        this.emailVerified = data.email_verified || false;
         this.totalGamesPlayed = data.total_games_played || 0;
         this.bestScore = data.best_score || 0;
         this.createdAt = data.created_at;
@@ -267,6 +269,134 @@ class User {
     }
 
     /**
+     * Create email verification token
+     * @param {number} userId - User ID
+     * @param {string} email - Email address
+     * @returns {Promise<string>} Verification token
+     */
+    static async createEmailVerificationToken(userId, email) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+        await query(
+            `UPDATE users 
+             SET email = $1, email_verification_token = $2, email_verification_expires = $3, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $4`,
+            [email.toLowerCase(), token, expires, userId]
+        );
+
+        return token;
+    }
+
+    /**
+     * Verify email with token
+     * @param {string} token - Verification token
+     * @returns {Promise<User|null>} User instance if token is valid, null otherwise
+     */
+    static async verifyEmailToken(token) {
+        const result = await query(
+            `UPDATE users 
+             SET email_verified = TRUE, email_verification_token = NULL, email_verification_expires = NULL, updated_at = CURRENT_TIMESTAMP
+             WHERE email_verification_token = $1 AND email_verification_expires > CURRENT_TIMESTAMP
+             RETURNING id, username, character, email, email_verified, total_games_played, best_score, created_at, updated_at`,
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return null;
+        }
+
+        return new User(result.rows[0]);
+    }
+
+    /**
+     * Create password reset token
+     * @param {string} email - Email address
+     * @returns {Promise<{user: User, token: string}|null>} User and token if email exists, null otherwise
+     */
+    static async createPasswordResetToken(email) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+        const result = await query(
+            `UPDATE users 
+             SET password_reset_token = $1, password_reset_expires = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE email = $3 AND email_verified = TRUE
+             RETURNING id, username, character, email, email_verified, total_games_played, best_score, created_at, updated_at`,
+            [token, expires, email.toLowerCase()]
+        );
+
+        if (result.rows.length === 0) {
+            return null;
+        }
+
+        return {
+            user: new User(result.rows[0]),
+            token
+        };
+    }
+
+    /**
+     * Reset password with token
+     * @param {string} token - Reset token
+     * @param {string} newPassword - New plain text password
+     * @returns {Promise<User|null>} User instance if token is valid, null otherwise
+     */
+    static async resetPasswordWithToken(token, newPassword) {
+        const salt = crypto.randomBytes(16).toString('hex');
+        const hash = crypto.pbkdf2Sync(newPassword, salt, 1000, 64, 'sha512').toString('hex');
+        const passwordHash = `${salt}:${hash}`;
+
+        const result = await query(
+            `UPDATE users 
+             SET password_hash = $1, password_reset_token = NULL, password_reset_expires = NULL, updated_at = CURRENT_TIMESTAMP
+             WHERE password_reset_token = $2 AND password_reset_expires > CURRENT_TIMESTAMP
+             RETURNING id, username, character, email, email_verified, total_games_played, best_score, created_at, updated_at`,
+            [passwordHash, token]
+        );
+
+        if (result.rows.length === 0) {
+            return null;
+        }
+
+        return new User(result.rows[0]);
+    }
+
+    /**
+     * Check if email exists
+     * @param {string} email - Email address to check
+     * @returns {Promise<boolean>} True if email exists
+     */
+    static async emailExists(email) {
+        const result = await query(
+            'SELECT 1 FROM users WHERE email = $1',
+            [email.toLowerCase()]
+        );
+
+        return result.rows.length > 0;
+    }
+
+    /**
+     * Find user by email
+     * @param {string} email - Email address
+     * @returns {Promise<User|null>} User instance or null if not found
+     */
+    static async findByEmail(email) {
+        const result = await query(
+            `SELECT id, username, character, email, email_verified, total_games_played, best_score, created_at, updated_at 
+             FROM users 
+             WHERE email = $1`,
+            [email.toLowerCase()]
+        );
+
+        if (result.rows.length === 0) {
+            return null;
+        }
+
+        return new User(result.rows[0]);
+    }
+
+    /**
      * Convert user instance to JSON (excludes sensitive data)
      * @returns {Object} User data for API response
      */
@@ -275,6 +405,8 @@ class User {
             id: this.id,
             username: this.username,
             character: this.character,
+            email: this.email,
+            emailVerified: this.emailVerified,
             totalGamesPlayed: this.totalGamesPlayed,
             bestScore: this.bestScore,
             createdAt: this.createdAt,

@@ -166,15 +166,17 @@ async function testThemeSystem() {
         });
         
         if (themeToggleResult.found) {
-            const themeToggle = await page.$(themeToggleResult.selector);
             // Get initial theme
             const initialTheme = await page.evaluate(() => {
                 return document.documentElement.getAttribute('data-theme') || 'light';
             });
             log(`Initial theme: ${initialTheme}`);
             
-            // Toggle theme
-            await themeToggle.click();
+            // Click the opposite theme button to ensure a change
+            const targetTheme = initialTheme === 'light' ? 'dark' : 'light';
+            const targetButton = targetTheme === 'dark' ? '#theme-dark' : '#theme-light';
+            
+            await page.click(targetButton);
             await sleep(500); // Allow for theme transition
             
             const newTheme = await page.evaluate(() => {
@@ -279,20 +281,20 @@ async function testAudioSystem() {
             
             // Test volume sliders
             const musicSlider = await page.$('#music-volume');
-            const sfxSlider = await page.$('#sfx-volume');
+            const soundSlider = await page.$('#sound-volume');
             
-            if (musicSlider && sfxSlider) {
-                log('✓ Music and SFX sliders found', 'SUCCESS');
+            if (musicSlider && soundSlider) {
+                log('✓ Music and sound sliders found', 'SUCCESS');
                 
                 // Test changing volume
                 await page.evaluate(() => {
                     const musicSlider = document.getElementById('music-volume');
-                    const sfxSlider = document.getElementById('sfx-volume');
+                    const soundSlider = document.getElementById('sound-volume');
                     if (musicSlider) musicSlider.value = 50;
-                    if (sfxSlider) sfxSlider.value = 75;
+                    if (soundSlider) soundSlider.value = 75;
                     // Trigger change events
                     if (musicSlider) musicSlider.dispatchEvent(new Event('input'));
-                    if (sfxSlider) sfxSlider.dispatchEvent(new Event('input'));
+                    if (soundSlider) soundSlider.dispatchEvent(new Event('input'));
                 });
                 
                 log('✓ Volume controls tested', 'SUCCESS');

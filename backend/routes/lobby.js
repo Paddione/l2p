@@ -1,12 +1,16 @@
 // backend/routes/lobby.js - Fixed version with missing endpoints
 const express = require('express');
 const router = express.Router();
-const { query } = require('../database/connection');
+const { query, getPoolMetrics } = require('../database/connection');
 const { authenticateToken } = require('../middleware/auth');
+const { validateLobbyCreation, validateJoinLobby, validateGameAction, validateQuery, sanitizeBody, sanitizeQuery } = require('../middleware/validation');
 const QuestionSet = require('../models/QuestionSet');
+const websocketService = require('../services/websocketService');
 
-// Apply authentication middleware to all lobby routes
+// Apply authentication and sanitization middleware to all lobby routes
 router.use(authenticateToken);
+router.use(sanitizeBody);
+router.use(sanitizeQuery);
 
 // Generate a random 4-character code
 function generateLobbyCode() {
@@ -156,12 +160,31 @@ async function getLobbyData(code) {
 function calculateScore(isCorrect, timeElapsed, multiplier = 1, baseScore = 60) {
     if (!isCorrect) return 0;
     
-    // New scoring logic: Start with 60 points, lose 1 point per second elapsed
-    // So if 15 seconds elapsed, you get 60 - 15 = 45 points
+    // Ensure we have valid inputs
+    if (typeof timeElapsed !== 'number' || timeElapsed < 0) {
+        console.warn('Invalid timeElapsed for score calculation:', timeElapsed);
+        return 0;
+    }
+    
+    if (typeof multiplier !== 'number' || multiplier < 1) {
+        console.warn('Invalid multiplier for score calculation:', multiplier);
+        multiplier = 1;
+    }
+    
+    if (typeof baseScore !== 'number' || baseScore <= 0) {
+        baseScore = 60;
+    }
+    
+    // Calculate time remaining from elapsed time
     const timeRemaining = Math.max(0, baseScore - timeElapsed);
     
-    // Multiply by personal multiplier
-    return Math.round(timeRemaining * multiplier);
+    // Score calculation logic: award points based on time remaining
+    const timeBasedPoints = Math.max(0, Math.round(timeRemaining));
+    const finalScore = Math.round(timeBasedPoints * multiplier);
+    
+    console.log(`Backend score calculation: isCorrect=${isCorrect}, timeElapsed=${timeElapsed}s, multiplier=${multiplier}x, baseScore=${baseScore}, timeRemaining=${timeRemaining}s, finalScore=${finalScore}`);
+    
+    return finalScore;
 }
 
 // Helper function to validate answer against question
@@ -204,11 +227,19 @@ async function processQuestionScores(lobbyCode) {
         if (questionResult.rows.length === 0) return;
         
         const questionRow = questionResult.rows[0];
-        const question = questionRow.question_data;
+        let question;
+        try {
+            question = typeof questionRow.question_data === 'string' 
+                ? JSON.parse(questionRow.question_data) 
+                : questionRow.question_data;
+        } catch (parseError) {
+            console.error('Error parsing question data in processQuestionScores:', parseError);
+            question = questionRow.question_data;
+        }
         
         // Get all player answers for this question
         const playersResult = await query(
-            'SELECT username, current_answer, answered, multiplier FROM lobby_players WHERE lobby_code = $1',
+            'SELECT username, current_answer, answered, multiplier, answer_time FROM lobby_players WHERE lobby_code = $1',
             [lobbyCode]
         );
         
@@ -222,9 +253,20 @@ async function processQuestionScores(lobbyCode) {
                 const currentMultiplier = player.multiplier || 1;
 
                 if (isCorrect) {
-                    // Calculate time elapsed in seconds
-                    const timeElapsed = Math.floor((Date.now() - questionStartTime.getTime()) / 1000);
+                    // Calculate time elapsed using actual answer submission time or fallback to current time
+                    let timeElapsed;
+                    if (player.answer_time) {
+                        const answerTime = new Date(player.answer_time);
+                        timeElapsed = Math.floor((answerTime.getTime() - questionStartTime.getTime()) / 1000);
+                        console.log(`Score calculation debug: questionStartTime=${questionStartTime.toISOString()}, answerTime=${answerTime.toISOString()}, timeElapsed=${timeElapsed}s`);
+                    } else {
+                        // Fallback to current time if answer_time is not available
+                        timeElapsed = Math.floor((Date.now() - questionStartTime.getTime()) / 1000);
+                        console.log(`Score calculation fallback: questionStartTime=${questionStartTime.toISOString()}, currentTime=${new Date().toISOString()}, timeElapsed=${timeElapsed}s`);
+                    }
+                    
                     const points = calculateScore(true, timeElapsed, currentMultiplier);
+                    console.log(`Final score calculation: timeElapsed=${timeElapsed}s, multiplier=${currentMultiplier}x, points=${points}`);
 
                     // Increase multiplier (max 5)
                     const newMultiplier = Math.min(5, currentMultiplier + 1);
@@ -448,6 +490,10 @@ router.post('/create', async (req, res) => {
             await query('COMMIT');
 
             const lobby = await getLobbyData(code);
+            
+            // Broadcast lobby creation (for lobby list updates)
+            websocketService.broadcastLobbyUpdate(code, lobby);
+            
             res.json(lobby);
 
         } catch (error) {
@@ -676,6 +722,10 @@ router.post('/:code/join', async (req, res) => {
 
         // Get updated lobby data
         const lobby = await getLobbyData(req.params.code);
+        
+        // Broadcast lobby update to all users in the lobby
+        websocketService.broadcastLobbyUpdate(req.params.code, lobby);
+        
         res.json(lobby);
 
     } catch (error) {
@@ -765,6 +815,10 @@ router.post('/:code/leave', async (req, res) => {
 
         // Get updated lobby data
         const lobby = await getLobbyData(code);
+        
+        // Broadcast lobby update to remaining users in the lobby
+        websocketService.broadcastLobbyUpdate(code, lobby);
+        
         res.json(lobby);
 
     } catch (error) {
@@ -812,6 +866,10 @@ router.post('/:code/ready', async (req, res) => {
 
         // Get updated lobby data
         const lobby = await getLobbyData(req.params.code);
+        
+        // Broadcast lobby update to all users in the lobby
+        websocketService.broadcastLobbyUpdate(req.params.code, lobby);
+        
         res.json(lobby);
 
     } catch (error) {
@@ -1138,6 +1196,10 @@ router.post('/:code/start', async (req, res) => {
 
             // Get updated lobby data
             const updatedLobby = await getLobbyData(code);
+            
+            // Broadcast game start to all users in the lobby
+            websocketService.broadcastGameUpdate(code, updatedLobby);
+            
             res.json(updatedLobby);
 
         } catch (error) {
@@ -1165,6 +1227,14 @@ router.post('/:code/answer', async (req, res) => {
             return res.status(400).json({ 
                 error: 'Answer is required',
                 code: 'MISSING_ANSWER'
+            });
+        }
+
+        // Validate answer format and value
+        if (typeof answer !== 'number' && typeof answer !== 'boolean') {
+            return res.status(400).json({ 
+                error: 'Answer must be a number or boolean',
+                code: 'INVALID_ANSWER_TYPE'
             });
         }
 
@@ -1224,11 +1294,39 @@ router.post('/:code/answer', async (req, res) => {
                 });
             }
 
-            // Submit the answer
-            await query(
-                'UPDATE lobby_players SET current_answer = $1, answered = TRUE WHERE lobby_code = $2 AND username = $3',
-                [JSON.stringify(answer), code, username]
+            // Get question start time for scoring
+            const questionStartResult = await query(
+                'SELECT question_start_time FROM lobbies WHERE code = $1',
+                [code]
             );
+            const questionStartTime = new Date(questionStartResult.rows[0].question_start_time);
+            const answerSubmissionTime = new Date();
+            
+            // Check if answer is submitted within time limit (60 seconds)
+            const timeElapsed = Math.floor((answerSubmissionTime.getTime() - questionStartTime.getTime()) / 1000);
+            if (timeElapsed > 60) {
+                await query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: 'Answer submitted too late - time limit exceeded',
+                    code: 'TIME_LIMIT_EXCEEDED',
+                    timeElapsed: timeElapsed
+                });
+            }
+            
+            // Submit the answer with timestamp - handle cases where answer_time column doesn't exist yet
+            try {
+                await query(
+                    'UPDATE lobby_players SET current_answer = $1, answered = TRUE, answer_time = $2 WHERE lobby_code = $3 AND username = $4',
+                    [JSON.stringify(answer), answerSubmissionTime, code, username]
+                );
+            } catch (columnError) {
+                // Fallback if answer_time column doesn't exist yet
+                console.warn('answer_time column not found, using fallback approach:', columnError.message);
+                await query(
+                    'UPDATE lobby_players SET current_answer = $1, answered = TRUE WHERE lobby_code = $2 AND username = $3',
+                    [JSON.stringify(answer), code, username]
+                );
+            }
 
             // Get current question to validate answer for immediate feedback
             const questionResult = await query(
@@ -1241,9 +1339,82 @@ router.post('/:code/answer', async (req, res) => {
             
             if (questionResult.rows.length > 0) {
                 const questionRow = questionResult.rows[0];
-                const question = questionRow.question_data;
+                let question;
+                try {
+                    question = typeof questionRow.question_data === 'string' 
+                        ? JSON.parse(questionRow.question_data) 
+                        : questionRow.question_data;
+                } catch (parseError) {
+                    console.error('Error parsing question data:', parseError);
+                    question = questionRow.question_data;
+                }
+                
+                if (!question || !question.type) {
+                    await query('ROLLBACK');
+                    return res.status(500).json({ 
+                        error: 'Question data is corrupted or missing',
+                        code: 'QUESTION_DATA_ERROR'
+                    });
+                }
+                
+                // Enhanced answer validation based on question type
+                if (question.type === 'multiple_choice') {
+                    // Ensure we have valid options array
+                    if (!question.options || !Array.isArray(question.options) || question.options.length === 0) {
+                        await query('ROLLBACK');
+                        return res.status(500).json({ 
+                            error: 'Question options are missing or invalid',
+                            code: 'QUESTION_OPTIONS_ERROR'
+                        });
+                    }
+                    
+                    const maxAnswer = question.options.length - 1;
+                    
+                    // Strict validation for multiple choice answers
+                    if (typeof answer !== 'number' || !Number.isInteger(answer) || answer < 0 || answer > maxAnswer) {
+                        await query('ROLLBACK');
+                        return res.status(400).json({ 
+                            error: `Answer must be an integer between 0 and ${maxAnswer} for multiple choice questions (got: ${answer})`,
+                            code: 'INVALID_ANSWER_RANGE',
+                            validRange: { min: 0, max: maxAnswer },
+                            receivedAnswer: answer,
+                            receivedType: typeof answer
+                        });
+                    }
+                } else if (question.type === 'true_false') {
+                    // Strict validation for true/false answers
+                    const isValidBoolean = typeof answer === 'boolean';
+                    const isValidNumber = (answer === 0 || answer === 1) && Number.isInteger(answer);
+                    
+                    if (!isValidBoolean && !isValidNumber) {
+                        await query('ROLLBACK');
+                        return res.status(400).json({ 
+                            error: `Answer must be true/false (boolean) or 0/1 (integer) for true/false questions (got: ${answer})`,
+                            code: 'INVALID_ANSWER_TYPE',
+                            receivedAnswer: answer,
+                            receivedType: typeof answer
+                        });
+                    }
+                } else {
+                    // For any other question types, ensure answer is reasonable
+                    if (typeof answer !== 'number' && typeof answer !== 'boolean') {
+                        await query('ROLLBACK');
+                        return res.status(400).json({ 
+                            error: `Answer must be a number or boolean for ${question.type} questions`,
+                            code: 'INVALID_ANSWER_TYPE'
+                        });
+                    }
+                }
+                
                 isCorrect = validateAnswer(question, answer);
-                correctAnswer = question.correct;
+                correctAnswer = question ? question.correct : null;
+            } else {
+                // No question found - this should not happen in a properly functioning game
+                await query('ROLLBACK');
+                return res.status(500).json({ 
+                    error: 'Current question not found',
+                    code: 'QUESTION_NOT_FOUND'
+                });
             }
 
             // Check if all players have answered
@@ -1256,6 +1427,12 @@ router.post('/:code/answer', async (req, res) => {
             const allAnswered = parseInt(answered) === parseInt(total);
 
             await query('COMMIT');
+
+            // Get updated lobby data for broadcasting
+            const updatedLobby = await getLobbyData(code);
+            
+            // Broadcast game state update to all users in the game
+            websocketService.broadcastGameUpdate(code, updatedLobby);
 
             // Return result with sync info and immediate feedback
             res.json({
@@ -1519,8 +1696,6 @@ router.post('/:code/return-to-lobby', async (req, res) => {
         });
     }
 });
-
-
 
 // Allow other players to return to lobby after host has returned
 router.post('/:code/rejoin-lobby', async (req, res) => {
