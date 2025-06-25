@@ -18,7 +18,17 @@
     "setup": "./scripts/setup-env.sh",
     "dev-mode:enable": "./scripts/enable-dev-mode.sh",
     "dev-mode:disable": "./scripts/disable-dev-mode.sh",
-    "test": "node tests/scripts/test_runner.cjs"
+    "test": "node tests/scripts/test_runner.cjs",
+    "react:dev": "docker-compose --profile dev up l2p-app-dev",
+    "react:dev-local": "cd react-frontend && npm run dev",
+    "react:build": "cd react-frontend && npm run build",
+    "react:preview": "cd react-frontend && npm run preview",
+    "react:test": "cd react-frontend && npm run test",
+    "react:setup": "npm run react:create && npm run react:install",
+    "react:create": "npm create vite@latest react-frontend -- --template react-ts",
+    "react:install": "cd react-frontend && npm install",
+    "dev": "docker-compose --profile dev up -d",
+    "prod": "docker-compose up -d"
   },
   "repository": {
     "type": "git",
@@ -55,5 +65,8 @@
   "devDependencies": {
     "node-fetch": "^2.7.0",
     "socket.io-client": "^4.8.1"
-  }
+  },
+  "workspaces": [
+    "react-frontend"
+  ]
 }

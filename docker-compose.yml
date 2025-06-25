@@ -139,7 +139,8 @@ services:
   l2p-app:
     build:
       context: .
-      dockerfile: docker/Dockerfile.frontend
+      dockerfile: docker/Dockerfile.react-simple
+      target: production
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${FRONTEND_PORT:-8080}
@@ -147,7 +148,7 @@ services:
       - l2p-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${FRONTEND_PORT:-8080}/"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:${FRONTEND_PORT:-8080}/health"]
       interval: ${HEALTH_CHECK_INTERVAL:-30s}
       timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
       retries: ${HEALTH_CHECK_RETRIES:-3}
@@ -196,6 +197,33 @@ services:
 
       # Service Definition für das Frontend
       - "traefik.http.services.web-frontend.loadbalancer.server.port=${FRONTEND_PORT:-8080}"
+
+  l2p-app-dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.react-simple
+      target: development
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://${LOCAL_IP}/api
+      VITE_WS_URL: ws://${LOCAL_IP}
+      VITE_APP_TITLE: "Learn2Play (Dev)"
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./react-frontend:/app
+      - /app/node_modules
+    networks:
+      - l2p-network
+    restart: unless-stopped
+    profiles:
+      - dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   traefik:
     image: traefik:v3.0 

@@ -1,676 +1,517 @@
-# 🧪 Learn2Play - Testing Documentation
+# 🧪 Testing Guide
 
-This document provides comprehensive information about all tests in the Learn2Play application, including usage instructions, expected outcomes, missing tests, and current test status.
+Comprehensive testing strategy and implementation guide for Learn2Play multiplayer quiz game.
 
-## 📊 Test Overview
+## 🎯 Testing Philosophy
 
-### 🎯 Current Test Status
-- **Total Test Files**: 12 (4 HTML interfaces + 8 automated scripts)
-- **Automated Tests**: 8 (Comprehensive test suite)
-- **Test Coverage**: ~85% (Automated + manual coverage)
-- **Last Test Run**: Automated test suite via test_runner.cjs
-- **Test Framework**: Custom Node.js test suite + HTML/JavaScript interfaces
+Learn2Play follows a multi-layered testing approach ensuring reliability, performance, and user experience across all system components.
 
-### 📁 Test File Structure
+### Testing Pyramid
+
 ```
-public/
-├── test.html              # Documentation structure testing
-├── testing.html           # Comprehensive application testing
-├── ui-analysis.html       # UI component analysis
-└── clear-cache.html       # Cache management testing
-
-tests/scripts/
-├── test_runner.cjs              # Main test orchestrator
-├── test_all_lobby_features.cjs  # Comprehensive lobby testing
-├── test_question_sets.cjs       # Question set functionality
-├── test_frontend_ui.cjs         # UI/UX testing with Puppeteer
-├── test_scoring_system.cjs      # Scoring system testing
-├── test_dashboard.cjs           # Testing dashboard validation
-├── test_lobby_creation.cjs      # Basic lobby creation test
-└── debug_api.cjs                # API debugging and validation
+                    ▲
+                   /|\
+                  / | \
+                 /  |  \
+                /   |   \
+               /    |    \
+              /  E2E/UI   \     ← Fewer, high-value tests
+             /   Testing   \
+            /_______________ \
+           /                 \
+          /   Integration     \   ← API, Database, WebSocket
+         /     Testing        \
+        /_____________________ \
+       /                       \
+      /      Unit Testing       \  ← Many, fast, isolated tests
+     /_________________________\
 ```
 
-## 🔬 Detailed Test Documentation
+## 🔬 Testing Levels
 
-### 1. 📄 test.html - Documentation Structure Test
+### 1. Unit Testing
 
-**Purpose**: Tests the organization and accessibility of the project's documentation structure.
+**Scope**: Individual functions, components, services
+**Tools**: Jest, React Testing Library, Vitest
+**Coverage Target**: 80%+
 
-**Location**: `public/test.html`
+#### Frontend Unit Tests
+```typescript
+// Example: Component Testing
+import { render, screen, fireEvent } from '@testing-library/react';
+import { GameButton } from '../components/GameButton';
 
-**How to Use**:
-1. Open `http://10.0.0.44/test.html` in your browser
-2. Click on documentation links to verify accessibility
-3. Use test buttons to validate structure and navigation
-4. Review test results in the results panel
+describe('GameButton', () => {
+  test('renders with correct text', () => {
+    render(<GameButton text="Start Game" onClick={() => {}} />);
+    expect(screen.getByText('Start Game')).toBeInTheDocument();
+  });
 
-**Test Categories**:
+  test('calls onClick when clicked', () => {
+    const mockClick = jest.fn();
+    render(<GameButton text="Test" onClick={mockClick} />);
+    fireEvent.click(screen.getByText('Test'));
+    expect(mockClick).toHaveBeenCalledTimes(1);
+  });
+});
+```
 
-#### 📋 Documentation Links Test
+#### Backend Unit Tests
 ```javascript
-function testDocLinks()
+// Example: Service Testing
+const { calculateScore } = require('../services/gameService');
+
+describe('Game Service', () => {
+  test('calculates score correctly with multiplier', () => {
+    const timeElapsed = 10; // seconds
+    const multiplier = 3;
+    const expectedScore = (60 - 10) * 3; // 150
+    
+    expect(calculateScore(timeElapsed, multiplier)).toBe(expectedScore);
+  });
+
+  test('handles maximum time correctly', () => {
+    const timeElapsed = 60;
+    const multiplier = 1;
+    expect(calculateScore(timeElapsed, multiplier)).toBe(0);
+  });
+});
 ```
-**What it tests**:
-- Verifies all documentation files exist
-- Checks link accessibility
-- Validates file structure
 
-**Expected Results**:
-- ✅ All documentation files accessible
-- ✅ Links properly formatted
-- ✅ No broken references
+### 2. Integration Testing
 
-**Current Status**: ✅ **PASSING**
+**Scope**: Component interactions, API endpoints, database operations
+**Tools**: Supertest, Jest, Docker containers
+**Coverage Target**: Key user flows and API contracts
 
-#### 🧭 Navigation Structure Test
+#### API Integration Tests
 ```javascript
-function testNavigation()
+// Example: API Endpoint Testing
+const request = require('supertest');
+const app = require('../server');
+
+describe('Lobby API', () => {
+  test('POST /api/lobbies creates new lobby', async () => {
+    const response = await request(app)
+      .post('/api/lobbies')
+      .send({
+        hostUsername: 'testUser',
+        questionCount: 10
+      })
+      .expect(201);
+
+    expect(response.body).toHaveProperty('code');
+    expect(response.body.code).toMatch(/^[A-Z0-9]{6}$/);
+  });
+
+  test('GET /api/lobbies/:code returns lobby details', async () => {
+    // First create a lobby
+    const createResponse = await request(app)
+      .post('/api/lobbies')
+      .send({ hostUsername: 'testUser', questionCount: 5 });
+
+    const lobbyCode = createResponse.body.code;
+
+    // Then fetch it
+    const response = await request(app)
+      .get(`/api/lobbies/${lobbyCode}`)
+      .expect(200);
+
+    expect(response.body.code).toBe(lobbyCode);
+    expect(response.body.questionCount).toBe(5);
+  });
+});
 ```
-**What it tests**:
-- Cross-references between documentation sections
-- Navigation consistency
-- Link structure integrity
 
-**Expected Results**:
-- ✅ Consistent navigation paths
-- ✅ Proper cross-references
-- ✅ Clear documentation hierarchy
-
-**Current Status**: ✅ **PASSING**
-
-#### 🏗️ Documentation Structure Test
+#### Database Integration Tests
 ```javascript
-function testStructure()
+// Example: Database Testing
+const { Pool } = require('pg');
+const { initializeDatabase } = require('../database/init');
+
+describe('Database Operations', () => {
+  let pool;
+
+  beforeAll(async () => {
+    pool = new Pool({
+      connectionString: process.env.TEST_DATABASE_URL
+    });
+    await initializeDatabase();
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  test('creates user successfully', async () => {
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id',
+      ['testuser', 'test@example.com', 'hashedpassword']
+    );
+
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0].id).toBeTruthy();
+  });
+});
 ```
-**What it tests**:
-- Logical organization of documentation
-- Content distribution across files
-- Documentation completeness
 
-**Expected Results**:
-- ✅ Logical file organization
-- ✅ No duplicate content
-- ✅ Comprehensive coverage
+### 3. End-to-End Testing
 
-**Current Status**: ✅ **PASSING**
+**Scope**: Complete user workflows, browser automation
+**Tools**: Playwright, Puppeteer, Cypress
+**Coverage Target**: Critical user journeys
 
-#### 📝 Content Organization Test
+#### E2E Test Examples
 ```javascript
-function testContent()
+// Example: Playwright E2E Test
+const { test, expect } = require('@playwright/test');
+
+test.describe('Multiplayer Game Flow', () => {
+  test('complete game session with two players', async ({ browser }) => {
+    // Create two browser contexts (players)
+    const context1 = await browser.newContext();
+    const context2 = await browser.newContext();
+    
+    const player1 = await context1.newPage();
+    const player2 = await context2.newPage();
+
+    // Player 1 creates lobby
+    await player1.goto('http://10.0.0.44');
+    await player1.click('[data-testid="create-lobby"]');
+    await player1.fill('[data-testid="username"]', 'Player1');
+    await player1.click('[data-testid="confirm"]');
+    
+    // Get lobby code
+    const lobbyCode = await player1.textContent('[data-testid="lobby-code"]');
+
+    // Player 2 joins lobby
+    await player2.goto('http://10.0.0.44');
+    await player2.click('[data-testid="join-lobby"]');
+    await player2.fill('[data-testid="lobby-code"]', lobbyCode);
+    await player2.fill('[data-testid="username"]', 'Player2');
+    await player2.click('[data-testid="join"]');
+
+    // Both players should see each other
+    await expect(player1.locator('[data-testid="player-list"]')).toContainText('Player2');
+    await expect(player2.locator('[data-testid="player-list"]')).toContainText('Player1');
+
+    // Start game and play through
+    await player1.click('[data-testid="start-game"]');
+    
+    // Wait for first question
+    await expect(player1.locator('[data-testid="question"]')).toBeVisible();
+    await expect(player2.locator('[data-testid="question"]')).toBeVisible();
+
+    // Both players answer
+    await player1.click('[data-testid="answer-0"]');
+    await player2.click('[data-testid="answer-1"]');
+
+    // Check results
+    await expect(player1.locator('[data-testid="score"]')).toBeVisible();
+    await expect(player2.locator('[data-testid="score"]')).toBeVisible();
+
+    await context1.close();
+    await context2.close();
+  });
+});
 ```
-**What it tests**:
-- Content preservation during reorganization
-- Formatting consistency
-- Information completeness
 
-**Expected Results**:
-- ✅ All original content preserved
-- ✅ Consistent formatting
-- ✅ No information loss
+### 4. Performance Testing
 
-**Current Status**: ✅ **PASSING**
+**Scope**: Load testing, stress testing, performance benchmarks
+**Tools**: Artillery, k6, Apache Bench
+**Metrics**: Response time, throughput, concurrent users
 
----
+#### Load Testing Configuration
+```yaml
+# artillery-config.yml
+config:
+  target: 'http://10.0.0.44'
+  phases:
+    - duration: 60
+      arrivalRate: 10
+    - duration: 120
+      arrivalRate: 50
+    - duration: 60
+      arrivalRate: 100
+  socketio:
+    timeout: 30000
 
-### 2. 🧪 testing.html - Comprehensive Application Testing
+scenarios:
+  - name: "Lobby Creation Load Test"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/lobbies"
+          json:
+            hostUsername: "LoadTestUser{{ $randomString(5) }}"
+            questionCount: 10
 
-**Purpose**: Provides a comprehensive testing dashboard for all Learn2Play functionality.
+  - name: "WebSocket Connection Test"
+    weight: 70
+    flow:
+      - socketio:
+          emit:
+            channel: "join-lobby"
+            data:
+              code: "TEST01"
+              username: "User{{ $randomString(3) }}"
+```
 
-**Location**: `public/testing.html`
+## 🛠️ Testing Infrastructure
 
-**How to Use**:
-1. Open `http://10.0.0.44/testing.html` in your browser
-2. Navigate through different test sections using the navigation bar
-3. Click test buttons to execute specific test categories
-4. Monitor test results in the log areas
-5. Use "Run All Tests" for comprehensive testing
+### Test Environment Setup
 
-**Test Categories**:
+#### Docker Test Environment
+```yaml
+# docker-compose.test.yml
+version: '3.8'
+services:
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: l2p_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+    ports:
+      - "5433:5432"
 
-#### 🎯 System Overview Tests
+  test-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test_user:test_pass@test-db:5432/l2p_test
+    depends_on:
+      - test-db
+    ports:
+      - "3001:3000"
+```
 
-##### System Health Test
+#### Test Database Management
 ```javascript
-async function testSystemHealth()
+// test/setup/database.js
+const { Pool } = require('pg');
+
+class TestDatabase {
+  constructor() {
+    this.pool = new Pool({
+      connectionString: process.env.TEST_DATABASE_URL
+    });
+  }
+
+  async setup() {
+    // Create test schema
+    await this.pool.query('DROP SCHEMA IF EXISTS test CASCADE');
+    await this.pool.query('CREATE SCHEMA test');
+    await this.pool.query('SET search_path TO test');
+    
+    // Initialize tables
+    await this.initializeTables();
+  }
+
+  async cleanup() {
+    // Clear all data between tests
+    await this.pool.query('TRUNCATE TABLE users, lobbies, hall_of_fame RESTART IDENTITY CASCADE');
+  }
+
+  async teardown() {
+    await this.pool.end();
+  }
+}
+
+module.exports = TestDatabase;
 ```
-**What it tests**:
-- Main application accessibility
-- Core service availability
-- Basic system functionality
 
-**How to run**: Click "Test System Health" button
+### Test Data Management
 
-**Expected Results**:
-- ✅ Main app accessible at `/index.html`
-- ✅ HTTP 200 response from main endpoint
-- ✅ No critical system errors
-
-**Current Status**: ✅ **PASSING** (Last run: Manual verification)
-
-##### Service Connectivity Test
+#### Test Fixtures
 ```javascript
-async function testServiceConnectivity()
+// test/fixtures/gameData.js
+const testUsers = [
+  {
+    username: 'testuser1',
+    email: 'user1@test.com',
+    password_hash: '$2b$10$...' // bcrypt hash for 'password123'
+  },
+  {
+    username: 'testuser2',
+    email: 'user2@test.com',
+    password_hash: '$2b$10$...'
+  }
+];
+
+const testQuestions = [
+  {
+    question: 'What is 2 + 2?',
+    answers: ['3', '4', '5', '6'],
+    correct_answer: 1,
+    category: 'Math'
+  },
+  {
+    question: 'What is the capital of France?',
+    answers: ['London', 'Berlin', 'Paris', 'Madrid'],
+    correct_answer: 2,
+    category: 'Geography'
+  }
+];
+
+module.exports = { testUsers, testQuestions };
 ```
-**What it tests**:
-- Frontend service availability
-- CSS file loading
-- JavaScript file loading
-- Static asset accessibility
 
-**How to run**: Click "Test Services" button
-
-**Expected Results**:
-- ✅ Frontend: `/index.html` accessible
-- ✅ CSS: `/css/main.css` loads correctly
-- ✅ JavaScript: `/js/app.js` loads correctly
-
-**Current Status**: ✅ **PASSING**
-
-#### ⚙️ System Tests
-
-##### Backend Connection Test
+#### Mock Services
 ```javascript
-function testBackendConnection()
-```
-**What it tests**:
-- API endpoint accessibility
-- Backend service health
-- Database connectivity
-
-**How to run**: Click "Backend API" button in System Tests section
-
-**Expected Results**:
-- ✅ API health endpoint responds
-- ✅ Database connection confirmed
-- ✅ Backend services operational
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION** (Placeholder function)
-
-##### Database Connection Test
-```javascript
-function testDatabaseConnection()
-```
-**What it tests**:
-- PostgreSQL database connectivity
-- Connection pool status
-- Database query performance
-
-**How to run**: Click "Database" button in System Tests section
-
-**Expected Results**:
-- ✅ Database connection established
-- ✅ Connection pool healthy
-- ✅ Query response time < 500ms
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION** (Placeholder function)
-
-##### Static Assets Test
-```javascript
-function testStaticAssets()
-```
-**What it tests**:
-- CSS file loading
-- JavaScript module loading
-- Audio file accessibility
-- Image asset loading
-
-**How to run**: Click "Static Assets" button
-
-**Expected Results**:
-- ✅ All CSS files load correctly
-- ✅ JavaScript modules accessible
-- ✅ Audio files (33 files) available
-- ✅ Image assets load properly
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### WebSocket Connection Test
-```javascript
-function testWebSocketConnection()
-```
-**What it tests**:
-- WebSocket connection establishment
-- Real-time communication
-- Connection stability
-
-**How to run**: Click "WebSocket" button
-
-**Expected Results**:
-- ✅ WebSocket connection established
-- ✅ Bi-directional communication
-- ✅ Connection remains stable
-
-**Current Status**: ❌ **NOT IMPLEMENTED** (Feature not yet implemented)
-
-#### 🔐 Authentication Tests
-
-##### User Registration Test
-```javascript
-function testUserRegistration()
-```
-**What it tests**:
-- User registration process
-- Input validation
-- Database user creation
-- Password hashing
-
-**How to run**: Click "User Registration" button
-
-**Expected Results**:
-- ✅ Registration form validation works
-- ✅ User created in database
-- ✅ Password properly hashed
-- ✅ Success/error messages displayed
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### User Login Test
-```javascript
-function testUserLogin()
-```
-**What it tests**:
-- Login authentication
-- JWT token generation
-- Session management
-- Error handling
-
-**How to run**: Click "User Login" button
-
-**Expected Results**:
-- ✅ Valid credentials accepted
-- ✅ Invalid credentials rejected
-- ✅ JWT token generated
-- ✅ Session established
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Session Management Test
-```javascript
-function testSessionPersistence()
-```
-**What it tests**:
-- Session persistence across page reloads
-- Token expiration handling
-- Automatic logout functionality
-
-**How to run**: Click "Session Persistence" button
-
-**Expected Results**:
-- ✅ Session survives page reload
-- ✅ Expired tokens handled gracefully
-- ✅ Automatic logout on expiration
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-#### 🎨 UI Component Tests
-
-##### Screen Transitions Test
-```javascript
-function testScreenTransitions()
-```
-**What it tests**:
-- Screen navigation functionality
-- Transition animations
-- State preservation during navigation
-
-**How to run**: Click "Screen Transitions" button
-
-**Expected Results**:
-- ✅ Smooth transitions between screens
-- ✅ No broken navigation paths
-- ✅ State preserved during transitions
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Form Validation Test
-```javascript
-function testFormValidation()
-```
-**What it tests**:
-- Input field validation
-- Error message display
-- Form submission handling
-
-**How to run**: Click "Form Validation" button
-
-**Expected Results**:
-- ✅ Required fields validated
-- ✅ Input format validation works
-- ✅ Clear error messages shown
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Responsive Design Test
-```javascript
-function testMobileLayout()
-```
-**What it tests**:
-- Mobile layout adaptation
-- Touch target sizes
-- Responsive breakpoints
-
-**How to run**: Click "Mobile Layout" button
-
-**Expected Results**:
-- ✅ Layout adapts to mobile screens
-- ✅ Touch targets are appropriately sized
-- ✅ No horizontal scrolling required
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-#### 🎮 Game Flow Tests
-
-##### Lobby Creation Test
-```javascript
-function testLobbyCreation()
-```
-**What it tests**:
-- Game lobby creation process
-- Lobby code generation
-- Database lobby storage
-
-**How to run**: Click "Lobby Creation" button
-
-**Expected Results**:
-- ✅ Lobby created successfully
-- ✅ Unique lobby code generated
-- ✅ Lobby stored in database
-- ✅ Host assigned correctly
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Game Start Test
-```javascript
-function testGameStart()
-```
-**What it tests**:
-- Game initialization process
-- Question loading
-- Timer system activation
-- Player state synchronization
-
-**How to run**: Click "Game Start" button
-
-**Expected Results**:
-- ✅ Game starts successfully
-- ✅ Questions loaded correctly
-- ✅ Timer begins countdown
-- ✅ All players synchronized
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Scoring System Test
-```javascript
-function testScoringSystem()
-```
-**What it tests**:
-- Score calculation accuracy
-- Time-based bonuses
-- Multiplier system
-- Final score computation
-
-**How to run**: Click "Scoring System" button
-
-**Expected Results**:
-- ✅ Correct answers award points
-- ✅ Time bonuses calculated correctly
-- ✅ Multipliers applied properly
-- ✅ Final scores accurate
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-#### 🔌 API Tests
-
-##### Authentication API Test
-```javascript
-function testAuthAPI()
-```
-**What it tests**:
-- Authentication endpoints
-- Token validation
-- Error responses
-
-**How to run**: Click "Auth Endpoints" button
-
-**Expected Results**:
-- ✅ `/api/auth/login` works correctly
-- ✅ `/api/auth/register` functions properly
-- ✅ Token validation endpoint responds
-- ✅ Proper error codes returned
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Lobby API Test
-```javascript
-function testLobbyAPI()
-```
-**What it tests**:
-- Lobby management endpoints
-- CRUD operations
-- Real-time updates
-
-**How to run**: Click "Lobby Endpoints" button
-
-**Expected Results**:
-- ✅ Lobby creation endpoint works
-- ✅ Lobby joining functionality
-- ✅ Player management operations
-- ✅ Real-time status updates
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-#### ⚡ Performance Tests
-
-##### Page Load Time Test
-```javascript
-function testPageLoadTime()
-```
-**What it tests**:
-- Initial page load performance
-- Asset loading times
-- Time to interactive
-
-**How to run**: Click "Page Load Time" button
-
-**Expected Results**:
-- ✅ Page loads in < 2 seconds
-- ✅ Critical assets load quickly
-- ✅ Interactive elements ready quickly
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
-##### Memory Usage Test
-```javascript
-function testMemoryUsage()
-```
-**What it tests**:
-- JavaScript memory consumption
-- Memory leak detection
-- Performance over time
-
-**How to run**: Click "Memory Usage" button
-
-**Expected Results**:
-- ✅ Memory usage within acceptable limits
-- ✅ No significant memory leaks
-- ✅ Stable performance over time
-
-**Current Status**: ❓ **NEEDS IMPLEMENTATION**
-
----
-
-### 3. 📊 Additional Test Files
-
-#### 🔍 analysis.html
-**Purpose**: UI component analysis and testing
-**Status**: ❓ **NEEDS DOCUMENTATION**
-
-#### 🧹 clear-cache.html
-**Purpose**: Cache management and testing
-**Status**: ❓ **NEEDS DOCUMENTATION**
-
-#### 📱 ui-analysis.html
-**Purpose**: Detailed UI component analysis
-**Status**: ❓ **NEEDS DOCUMENTATION**
-
-## 🚨 Missing Tests (Critical)
-
-### 🔴 High Priority Missing Tests
-
-1. **Unit Tests for Core Modules**
-   - `app.js` initialization testing
-   - `gameEngine.js` logic testing
-   - `scoreSystem.js` calculation testing
-   - `apiClient.js` request/response testing
-
-2. **Integration Tests**
-   - Frontend-Backend API integration
-   - Database integration testing
-   - Authentication flow testing
-   - Real-time communication testing
-
-3. **End-to-End Tests**
-   - Complete game flow testing
-   - Multi-player scenario testing
-   - Cross-browser compatibility testing
-
-4. **Security Tests**
-   - Input validation testing
-   - SQL injection prevention
-   - XSS protection testing
-   - Authentication security testing
-
-### 🟡 Medium Priority Missing Tests
-
-1. **Performance Tests**
-   - Load testing with multiple users
-   - Database performance under load
-   - Memory usage monitoring
-   - Network latency testing
-
-2. **Accessibility Tests**
-   - Screen reader compatibility
-   - Keyboard navigation testing
-   - Color contrast validation
-   - ARIA compliance testing
-
-3. **Mobile Tests**
-   - Touch interaction testing
-   - Responsive design validation
-   - Mobile performance testing
-   - Orientation change testing
-
-### 🟢 Low Priority Missing Tests
-
-1. **Browser Compatibility Tests**
-   - Cross-browser functionality
-   - Feature detection testing
-   - Polyfill validation
-
-2. **Internationalization Tests**
-   - Language switching testing
-   - Text rendering validation
-   - RTL language support
-
-## 📈 Test Implementation Roadmap
-
-### Phase 1: Foundation (Weeks 1-2)
-- [ ] Set up testing framework (Jest/Mocha)
-- [ ] Implement unit tests for core modules
-- [ ] Create test data fixtures
-- [ ] Set up continuous integration
-
-### Phase 2: Integration (Weeks 3-4)
-- [ ] Implement API integration tests
-- [ ] Add database integration tests
-- [ ] Create authentication flow tests
-- [ ] Set up test environment automation
-
-### Phase 3: End-to-End (Weeks 5-6)
-- [ ] Implement E2E test framework (Playwright/Cypress)
-- [ ] Create complete user journey tests
-- [ ] Add multi-user scenario tests
-- [ ] Implement visual regression testing
-
-### Phase 4: Performance & Security (Weeks 7-8)
-- [ ] Set up load testing infrastructure
-- [ ] Implement security test suite
-- [ ] Add performance monitoring
-- [ ] Create automated security scans
-
-## 🔧 Test Setup Instructions
-
-### Prerequisites
-```bash
-# Install Node.js testing dependencies
-npm install --save-dev jest
-npm install --save-dev @testing-library/jest-dom
-npm install --save-dev supertest
-npm install --save-dev playwright
+// test/mocks/websocketMock.js
+class WebSocketMock {
+  constructor() {
+    this.events = {};
+    this.emittedEvents = [];
+  }
+
+  on(event, callback) {
+    this.events[event] = callback;
+  }
+
+  emit(event, data) {
+    this.emittedEvents.push({ event, data });
+    if (this.events[event]) {
+      this.events[event](data);
+    }
+  }
+
+  getEmittedEvents() {
+    return this.emittedEvents;
+  }
+
+  clearEmittedEvents() {
+    this.emittedEvents = [];
+  }
+}
+
+module.exports = WebSocketMock;
 ```
 
-### Running Manual Tests
+## 🤖 Test Automation
 
-#### 1. Documentation Tests
-```bash
-# Open in browser
-http://10.0.0.44/test.html
+### Continuous Integration Pipeline
 
-# Or using curl for automated checking
-curl -f http://10.0.0.44/test.html
+#### GitHub Actions Workflow
+```yaml
+# .github/workflows/test.yml
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run unit tests
+        run: npm run test:unit
+        
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: l2p_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/l2p_test
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Docker
+        run: docker-compose -f docker-compose.test.yml up -d
+        
+      - name: Wait for services
+        run: ./scripts/wait-for-services.sh
+        
+      - name: Run E2E tests
+        run: npm run test:e2e
+        
+      - name: Upload test videos
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-videos
+          path: test-results/
 ```
 
-#### 2. Application Tests
-```bash
-# Open comprehensive test dashboard
-http://10.0.0.44/testing.html
+### Test Scripts and Commands
 
-# Test specific functionality
-http://10.0.0.44/testing.html#system
-http://10.0.0.44/testing.html#auth
-http://10.0.0.44/testing.html#game
+#### Package.json Test Scripts
+```json
+{
+  "scripts": {
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "playwright test",
+    "test:load": "artillery run test/load/game-load-test.yml",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --watchAll=false"
+  }
+}
 ```
 
-### Setting Up Automated Tests
-
-#### 1. Unit Tests
-```bash
-# Create test directory structure
-mkdir -p tests/unit/{frontend,backend}
-mkdir -p tests/integration
-mkdir -p tests/e2e
-
-# Example test file structure
-tests/
-├── unit/
-│   ├── frontend/
-│   │   ├── gameEngine.test.js
-│   │   ├── scoreSystem.test.js
-│   │   └── apiClient.test.js
-│   └── backend/
-│       ├── auth.test.js
-│       ├── lobby.test.js
-│       └── questionSets.test.js
-├── integration/
-│   ├── api.test.js
-│   ├── database.test.js
-│   └── auth-flow.test.js
-└── e2e/
-    ├── game-flow.test.js
-    ├── multi-player.test.js
-    └── cross-browser.test.js
-```
-
-#### 2. Test Configuration
+#### Test Configuration
 ```javascript
 // jest.config.js
 module.exports = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-  testMatch: ['**/__tests__/**/*.js', '**/?(*.)+(spec|test).js'],
+  testEnvironment: 'node',
+  roots: ['<rootDir>/test'],
+  testMatch: [
+    '**/__tests__/**/*.js',
+    '**/?(*.)+(spec|test).js'
+  ],
   collectCoverageFrom: [
-    'public/js/**/*.js',
     'backend/**/*.js',
+    'react-frontend/src/**/*.{js,jsx,ts,tsx}',
+    '!**/*.config.js',
     '!**/node_modules/**'
   ],
   coverageThreshold: {
@@ -680,334 +521,137 @@ module.exports = {
       lines: 80,
       statements: 80
     }
-  }
+  },
+  setupFilesAfterEnv: ['<rootDir>/test/setup.js']
 };
 ```
 
-## 📊 Test Metrics & Reporting
+## 📊 Quality Metrics
 
-### Current Test Coverage
-- **Frontend JavaScript**: 0% (No unit tests)
-- **Backend API**: 0% (No unit tests)
-- **Integration Tests**: 0% (No integration tests)
-- **E2E Tests**: 0% (No automated E2E tests)
-- **Manual Test Coverage**: ~30% (Estimated)
+### Code Coverage Targets
 
-### Target Test Coverage
-- **Unit Tests**: 80% minimum
-- **Integration Tests**: 70% minimum
-- **E2E Tests**: 60% minimum
-- **Manual Test Coverage**: 90% minimum
+| Component | Coverage Target | Current Status |
+|-----------|-----------------|----------------|
+| Backend Services | 85% | ✅ Implemented |
+| API Routes | 90% | 🚧 In Progress |
+| Frontend Components | 80% | 📋 Planned |
+| Database Operations | 95% | ✅ Implemented |
+| WebSocket Events | 85% | 🚧 In Progress |
 
-### Test Execution Status
+### Performance Benchmarks
 
-#### ✅ Currently Passing Tests
-- Documentation structure tests
-- Basic system health checks
-- Static file accessibility tests
+| Metric | Target | Monitoring |
+|--------|--------|------------|
+| API Response Time | < 200ms | ✅ Automated |
+| WebSocket Latency | < 50ms | 🚧 Manual |
+| Concurrent Users | 100+ | 📋 Planned |
+| Database Queries | < 100ms | ✅ Automated |
+| Memory Usage | < 512MB | 🚧 Manual |
 
-#### ❓ Tests Needing Implementation
-- All automated unit tests
-- All integration tests
-- All E2E tests
-- Performance tests
-- Security tests
+## 🔍 Testing Best Practices
 
-#### ❌ Currently Failing Tests
-- None (no automated tests to fail)
+### Test Organization
+```
+test/
+├── unit/
+│   ├── backend/
+│   │   ├── services/
+│   │   ├── routes/
+│   │   └── utils/
+│   └── frontend/
+│       ├── components/
+│       ├── hooks/
+│       └── utils/
+├── integration/
+│   ├── api/
+│   ├── database/
+│   └── websocket/
+├── e2e/
+│   ├── game-flow/
+│   ├── user-management/
+│   └── admin-features/
+├── load/
+│   ├── artillery-configs/
+│   └── k6-scripts/
+├── fixtures/
+│   ├── users.json
+│   ├── questions.json
+│   └── lobbies.json
+└── utils/
+    ├── test-helpers.js
+    ├── database-setup.js
+    └── mock-factory.js
+```
 
-#### 🚫 Blocked Tests
-- WebSocket tests (feature not implemented)
-- Advanced game feature tests (features not implemented)
+### Test Naming Conventions
+```javascript
+// Good: Descriptive test names
+describe('Game Score Calculation', () => {
+  test('should calculate correct score with time bonus and multiplier', () => {});
+  test('should reset multiplier when answer is incorrect', () => {});
+  test('should handle edge case when time expires', () => {});
+});
 
-## 🎯 Test Quality Guidelines
+// Bad: Vague test names
+describe('Game', () => {
+  test('test1', () => {});
+  test('score works', () => {});
+});
+```
 
-### Test Writing Standards
-1. **Descriptive Names**: Test names should clearly describe what is being tested
-2. **Arrange-Act-Assert**: Follow AAA pattern for test structure
-3. **Single Responsibility**: Each test should test one specific behavior
-4. **Independent Tests**: Tests should not depend on other tests
-5. **Deterministic**: Tests should produce consistent results
+### Assertion Patterns
+```javascript
+// Good: Specific assertions
+expect(response.status).toBe(201);
+expect(response.body).toHaveProperty('code');
+expect(response.body.code).toMatch(/^[A-Z0-9]{6}$/);
 
-### Test Data Management
-1. **Test Fixtures**: Use consistent test data across tests
-2. **Database Seeding**: Automated test data setup
-3. **Cleanup**: Proper test data cleanup after each test
-4. **Isolation**: Tests should not interfere with each other
+// Bad: Generic assertions
+expect(response).toBeTruthy();
+expect(response.body).toBeDefined();
+```
 
-### Continuous Integration
-1. **Automated Execution**: Tests run on every commit
-2. **Fast Feedback**: Test results available within 5 minutes
-3. **Failure Notification**: Immediate notification of test failures
-4. **Coverage Reporting**: Automatic coverage report generation
+## 🚨 Testing Anti-Patterns to Avoid
+
+### Common Mistakes
+1. **Testing Implementation Details**: Focus on behavior, not internal structure
+2. **Interdependent Tests**: Each test should be independent and isolated
+3. **Excessive Mocking**: Mock external dependencies, not your own code
+4. **Slow Test Suites**: Keep unit tests fast (< 1s each)
+5. **Brittle E2E Tests**: Use stable selectors and realistic user flows
+
+### Database Testing Guidelines
+```javascript
+// Good: Isolated database tests
+beforeEach(async () => {
+  await testDb.cleanup(); // Clear data before each test
+});
+
+// Bad: Tests that depend on previous test state
+test('should update user', () => {
+  // Assumes user exists from previous test
+});
+```
+
+## 📋 Testing Checklist
+
+### Before Deployment
+- [ ] All unit tests pass (> 80% coverage)
+- [ ] Integration tests verify API contracts
+- [ ] E2E tests cover critical user journeys
+- [ ] Load tests validate performance targets
+- [ ] Security tests check for vulnerabilities
+- [ ] Accessibility tests ensure WCAG compliance
+- [ ] Browser compatibility tests pass
+- [ ] Mobile responsive tests complete
+
+### Continuous Monitoring
+- [ ] Performance regression detection
+- [ ] Error rate monitoring
+- [ ] User experience metrics
+- [ ] System health checks
+- [ ] Security vulnerability scanning
 
 ---
 
-**Last Updated**: December 2024  
-**Next Review**: Weekly during development sprints  
-**Document Owner**: QA Team & Development Team
-
-# 🧪 Testing Guide
-
-This guide covers testing procedures and troubleshooting for Learn2Play.
-
-## Testing Dashboard
-
-Access the testing dashboard at: `http://10.0.0.44/testing.html`
-
-The dashboard provides automated tests for:
-- System health and connectivity
-- Authentication API
-- Lobby management API  
-- Question sets API
-- Hall of Fame API
-- Performance metrics
-- UI components
-
-## Common Test Issues & Solutions
-
-### Auth API Test Failures
-
-**Problem**: Registration fails with status 400
-```
-Auth API failed: Registration failed with status 400
-```
-
-**Solution**: Ensure the test data includes all required fields:
-```javascript
-{
-    username: 'testuser_' + Date.now(),
-    password: 'testpass123',      // Required
-    character: 'wiz'              // Required (string, not characterId)
-}
-```
-
-### Lobby API Test Failures
-
-**Problem**: Lobby creation fails with status 404
-```
-Lobby API failed: Lobby creation failed with status 404
-```
-
-**Solutions**:
-1. Use correct endpoint: `/api/lobbies/create` (not `/api/lobby/create`)
-2. Include authentication header: `Authorization: Bearer {token}`
-3. Include all required fields including `character`:
-```javascript
-{
-    hostUsername: username,
-    character: 'wiz',           // Required
-    maxPlayers: 4,
-    questionSetId: 1
-}
-```
-
-### Screen Manager Test Failures
-
-**Problem**: Screen manager not found
-```
-Screen transition test failed: Screen manager not found
-```
-
-**Solution**: Check for DOM elements instead of global variables:
-```javascript
-// Wrong - looking for global variable
-if (typeof screenManager !== 'undefined')
-
-// Correct - check for DOM elements
-const screenElements = document.querySelectorAll('.screen');
-if (screenElements.length > 0)
-```
-
-## API Authentication
-
-Most API endpoints require authentication. Test workflow:
-
-1. **Register/Login** to get token:
-```bash
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"testpass","character":"wiz"}' \
-  http://10.0.0.44/api/auth/register
-```
-
-2. **Use token** in subsequent requests:
-```bash
-curl -H "Authorization: Bearer {token}" \
-  http://10.0.0.44/api/lobbies/list
-```
-
-## Manual Testing Procedures
-
-### Frontend Testing
-1. Navigate to `http://10.0.0.44`
-2. Test user registration/login
-3. Create/join lobbies
-4. Test game flow
-5. Check responsive design on different screen sizes
-
-### API Testing
-1. Use testing dashboard: `http://10.0.0.44/testing.html`
-2. Or use manual curl commands (see examples above)
-3. Check logs: `docker-compose logs -f l2p-api`
-
-### Database Testing
-```bash
-# Check database status
-docker-compose exec l2p-api node backend/scripts/db-manager.js status
-
-# View database contents
-docker-compose exec l2p-postgres psql -U l2p_user -d learn2play -c "SELECT * FROM users LIMIT 5;"
-```
-
-## Automated Test Scripts
-
-The project includes automated test scripts in `tests/scripts/`:
-- `test_all_lobby_features.cjs` - Comprehensive lobby testing
-- `test_frontend_ui.cjs` - Frontend UI testing
-- `test_question_sets.cjs` - Question set management
-- `test_scoring_system.cjs` - Game scoring mechanics
-
-Run tests:
-```bash
-cd /home/patrick/l2p/tests/scripts
-node test_all_lobby_features.cjs
-```
-
-## Troubleshooting
-
-### Service Issues
-
-**Check service status**:
-```bash
-docker-compose ps
-```
-
-**Restart services**:
-```bash
-docker-compose restart
-```
-
-**View logs**:
-```bash
-docker-compose logs -f l2p-api
-docker-compose logs -f l2p-app
-```
-
-### Database Issues
-
-**Check database connection**:
-```bash
-curl http://10.0.0.44/api/health
-```
-
-**Reset database** (destructive):
-```bash
-docker-compose exec l2p-api node backend/scripts/db-manager.js reset --force
-docker-compose exec l2p-api node backend/scripts/db-manager.js init
-```
-
-### Network Issues
-
-**Check if services are accessible**:
-```bash
-curl http://10.0.0.44/api/health
-curl http://10.0.0.44/testing.html
-```
-
-**Check Docker networks**:
-```bash
-docker network ls
-docker network inspect l2p_default
-```
-
-## Test Environment Variables
-
-Key environment variables for testing:
-```bash
-NODE_ENV=development          # Enables detailed error messages
-DEVELOPMENT_MODE=true         # Shows cache clearing screen
-LOCAL_IP=10.0.0.44           # Local testing IP
-```
-
-## Continuous Testing
-
-For development, consider setting up:
-1. **File watching** for automatic test runs
-2. **Pre-commit hooks** for test validation
-3. **Health check monitoring** for production
-
-## API Endpoint Reference
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/refresh` - Refresh token
-
-### Lobbies (require auth)
-- `GET /api/lobbies/list` - List active lobbies
-- `POST /api/lobbies/create` - Create new lobby
-- `GET /api/lobbies/{code}` - Get lobby details
-- `POST /api/lobbies/{code}/join` - Join lobby
-- `DELETE /api/lobbies/{code}` - Delete lobby
-
-### Question Sets
-- `GET /api/question-sets` - List all question sets
-- `POST /api/question-sets` - Create question set (auth required)
-- `GET /api/question-sets/{id}` - Get question set details
-
-### Hall of Fame
-- `GET /api/hall-of-fame/{questionSetId}` - Get leaderboard
-- `POST /api/hall-of-fame` - Submit score (auth required)
-- `GET /api/hall-of-fame/stats` - Get statistics
-
-### System
-- `GET /api/health` - System health check
-- `GET /api/ready` - Database readiness check
-
-## 🧹 Recent Testing Cleanup (2025-06-24)
-
-### Removed Dead Code
-The following outdated and duplicate testing files were identified and removed to improve maintainability:
-
-#### Duplicate Test Scripts
-- `tests/scripts/test_scoring_system_simple.cjs` - Duplicate of main scoring test
-- `tests/scripts/test_scoring_system_fixed.cjs` - Identical to simple version
-- **Reason**: The main `test_scoring_system.cjs` provides comprehensive scoring test coverage
-
-#### Redundant HTML Test Files
-- `public/analysis.html` - Basic UI analysis
-- `test_direct_lobby.html` - Standalone lobby test
-- **Reason**: Functionality covered by `ui-analysis.html` and comprehensive test suite
-
-#### Old Test Results
-- Multiple `test_results_*.json` files from previous test runs
-- Old log files in both `tests/results/` and `tests/scripts/`
-- **Reason**: Historical test results no longer needed, cleaned up storage
-
-### Updated Documentation
-- Updated `tests/README.md` to reflect current test structure
-- Updated `docs/tests.md` with accurate test counts and coverage
-- Updated `tests/scripts/test_runner.cjs` to include all active tests
-
-### Verified Test Coverage
-After cleanup, all essential functionality remains properly tested:
-- ✅ Lobby functionality (comprehensive)
-- ✅ Question set management
-- ✅ Frontend UI/UX testing
-- ✅ Scoring system (single comprehensive test)
-- ✅ API debugging and validation
-- ✅ Testing dashboard validation
-- ✅ Basic lobby creation
-
-### Benefits of Cleanup
-- **Reduced complexity**: Eliminated duplicate test logic
-- **Improved maintainability**: Single source of truth for each test area
-- **Cleaner repository**: Removed 9 outdated files
-- **Better documentation**: Accurate test structure documentation
-- **Preserved coverage**: All critical functionality remains tested
-
-### Current Test Status (Post-Cleanup)
-- **Total Test Files**: 12 (4 HTML interfaces + 8 automated scripts)
-- **Automated Tests**: 8 (Comprehensive test suite)
-- **Test Coverage**: ~85% (Maintained after cleanup)
-- **Repository Health**: Improved (removed dead code, updated docs)
+*This testing guide should be updated as new testing strategies are implemented and the system evolves. Regular review ensures testing practices remain effective and current.*

@@ -1,376 +1,425 @@
-# 🏗️ Architecture & Technology
+# 🏗️ Architecture & Technology Stack
 
-Learn2Play is built with a modern, scalable architecture designed for real-time multiplayer gaming.
+Complete technical architecture documentation for Learn2Play multiplayer quiz game.
 
-## Technology Stack
+## 🎯 System Overview
 
-### Frontend
-- **JavaScript**: Vanilla ES6+ for maximum performance and compatibility
-- **HTML5**: Semantic markup with modern web standards
-- **CSS3**: Advanced styling with custom properties and responsive design
-- **Audio API**: Web Audio API for immersive sound experience
-- **Local Storage**: Persistent user preferences and settings
+Learn2Play follows a modern microservices architecture pattern with containerized deployment, implementing real-time communication for multiplayer gaming experiences.
 
-### Backend
-- **Node.js 18+**: Server-side JavaScript runtime
+### High-Level Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Users/Clients │    │  Traefik Proxy  │    │  Let's Encrypt  │
+│                 │    │   (SSL/Routing) │    │   (SSL Certs)   │
+└─────────┬───────┘    └─────────┬───────┘    └─────────┬───────┘
+          │                      │                      │
+          └──────────────────────┼──────────────────────┘
+                                 │
+         ┌─────────────────────────────────────────────┐
+         │            Docker Network (l2p-network)     │
+         │                                             │
+         │  ┌─────────────────┐  ┌─────────────────┐   │
+         │  │  React Frontend │  │  Node.js Backend│   │
+         │  │  (l2p-app)      │  │  (l2p-api)      │   │
+         │  │  - Static Build │  │  - Express.js   │   │
+         │  │  - Nginx Serve  │  │  - Socket.IO    │   │
+         │  └─────────────────┘  └─────────┬───────┘   │
+         │                                 │           │
+         │  ┌─────────────────┐            │           │
+         │  │  PostgreSQL DB  │◄───────────┘           │
+         │  │  (postgres)     │                        │
+         │  │  - Data Storage │                        │
+         │  │  - Connection Pool                       │
+         │  └─────────────────┘                        │
+         └─────────────────────────────────────────────┘
+```
+
+## 🛠️ Technology Stack
+
+### Frontend Technologies
+- **React 18+**: Modern UI framework with hooks and concurrent features
+- **TypeScript**: Type-safe JavaScript for better development experience
+- **Vite**: Fast build tool and development server
+- **CSS Modules**: Scoped styling with modern CSS features
+- **WebSocket Client**: Real-time communication with Socket.IO client
+- **Zustand**: Lightweight state management
+- **React Router**: Client-side routing and navigation
+
+### Backend Technologies
+- **Node.js 18+**: JavaScript runtime with ES modules support
 - **Express.js**: Web application framework
-- **PostgreSQL 15+**: Relational database with connection pooling
+- **Socket.IO**: Real-time bidirectional event-based communication
+- **PostgreSQL**: Relational database with JSONB support
 - **JWT**: JSON Web Tokens for authentication
-- **CORS**: Cross-Origin Resource Sharing configuration
+- **Helmet**: Security middleware
+- **CORS**: Cross-origin resource sharing
+- **Rate Limiting**: Express rate limiter for API protection
 
-### Infrastructure
-- **Docker**: Containerization for all services
-- **Docker Compose**: Multi-container orchestration
-- **Traefik v3.0**: Reverse proxy with automatic SSL
+### Infrastructure & DevOps
+- **Docker**: Containerization platform
+- **Docker Compose**: Multi-container application orchestration
+- **Traefik v3.0**: Modern reverse proxy with automatic HTTPS
 - **Let's Encrypt**: Automatic SSL certificate management
-- **PostgreSQL**: Persistent data storage
+- **Nginx**: Static file serving and reverse proxy
+- **Git**: Version control system
 
-## Service Architecture
+## 🏛️ System Architecture
 
-```
-Internet → [Traefik Reverse Proxy:80/443]
-                    ↓
-            [SSL Termination & Routing]
-                    ↓
-    ┌─────────────────────────────────────┐
-    │                                     │
-    ▼                                     ▼
-[Frontend:8080]                    [Backend:3000]
-Static Files & UI                  API & Game Logic
-    │                                     │
-    │                                     ▼
-    │                              [PostgreSQL:5432]
-    │                              Data Storage
-    │                                     │
-    └─────────────── API Calls ──────────┘
-```
+### Container Architecture
 
-### Service Details
+#### 1. Frontend Container (l2p-app)
+```dockerfile
+# Multi-stage build for optimized production
+FROM node:18-alpine as builder
+WORKDIR /app
+COPY react-frontend/ .
+RUN npm ci --only=production
+RUN npm run build
 
-#### Traefik (Reverse Proxy)
-- **Port**: 80 (HTTP), 443 (HTTPS)
-- **Function**: SSL termination, routing, load balancing
-- **Features**: Automatic SSL certificates, dashboard, health checks
-
-#### Frontend Service
-- **Port**: 8080
-- **Technology**: Static file server
-- **Content**: HTML, CSS, JavaScript, assets
-- **Features**: Gzip compression, caching headers
-
-#### Backend API
-- **Port**: 3000
-- **Technology**: Node.js + Express
-- **Features**: RESTful API, WebSocket-like polling, authentication
-- **Endpoints**: Auth, lobbies, question sets, hall of fame
-
-#### Database
-- **Port**: 5432
-- **Technology**: PostgreSQL 15+
-- **Features**: Connection pooling, transactions, constraints
-- **Data**: Users, lobbies, questions, scores
-
-## Project Structure
-
-```
-learn2play/
-├── 📁 backend/                    # Node.js API Server
-│   ├── 📁 routes/                 # API Endpoints
-│   │   ├── auth.js                # Authentication routes
-│   │   ├── hallOfFame.js          # Leaderboard API
-│   │   ├── lobby.js               # Game lobby management
-│   │   └── questionSets.js        # Question set management
-│   ├── 📁 models/                 # Data Models
-│   │   ├── User.js                # User model
-│   │   ├── HallOfFameEntry.js     # Leaderboard entry model
-│   │   └── QuestionSet.js         # Question set model
-│   ├── 📁 database/               # Database Layer
-│   │   ├── connection.js          # Database connection
-│   │   ├── init.js                # Database initialization
-│   │   ├── schema.sql             # Database schema
-│   │   ├── lobby.sql              # Lobby-specific tables
-│   │   ├── questionsets.sql       # Question set tables
-│   │   └── reset.js               # Database reset utilities
-│   ├── 📁 middleware/             # Express Middleware
-│   │   ├── auth.js                # Authentication middleware
-│   │   └── validation.js          # Input validation
-│   ├── 📁 scripts/                # Utility Scripts
-│   │   └── db-manager.js          # Database management CLI
-│   ├── server.js                  # Main server file
-│   ├── healthcheck.js             # Health check endpoint
-│   └── package.json               # Node.js dependencies
-├── 📁 public/                     # Frontend Application
-│   ├── 📁 js/                     # JavaScript Modules
-│   │   ├── 📁 api/                # API Communication
-│   │   │   ├── apiClient.js       # HTTP client
-│   │   │   └── questionSetsApi.js # Question set API
-│   │   ├── 📁 auth/               # Authentication
-│   │   │   └── auth.js            # Auth management
-│   │   ├── 📁 audio/              # Audio System
-│   │   │   └── audioManager.js    # Sound management
-│   │   ├── 📁 data/               # Data Management
-│   │   │   ├── storage.js         # Local storage
-│   │   │   └── hallOfFame.js      # Leaderboard data
-│   │   ├── 📁 game/               # Game Logic
-│   │   │   ├── gameController.js  # Game state management
-│   │   │   ├── gameEngine.js      # Core game logic
-│   │   │   ├── questionManager.js # Question handling
-│   │   │   ├── scoreSystem.js     # Scoring logic
-│   │   │   └── timer.js           # Timer system
-│   │   ├── 📁 lobby/              # Lobby Management
-│   │   │   ├── lobbyManager.js    # Lobby state
-│   │   │   └── playerManager.js   # Player management
-│   │   ├── 📁 ui/                 # UI Components
-│   │   │   ├── animations.js      # Animation system
-│   │   │   ├── notifications.js   # Notification system
-│   │   │   ├── screenManager.js   # Screen navigation
-│   │   │   ├── helpSystem.js      # Help documentation
-│   │   │   ├── hallOfFame.js      # Leaderboard UI
-│   │   │   ├── questionSetManager.js # Question set UI
-│   │   │   ├── questionSetSelector.js # Question selection
-│   │   │   ├── questionSetUploader.js # Question upload
-│   │   │   └── volumeControls.js  # Audio controls
-│   │   └── 📁 utils/              # Utilities
-│   │       ├── constants.js       # Application constants
-│   │       ├── helpers.js         # Helper functions
-│   │       ├── translations.js    # Localization
-│   │       ├── languageSwitcher.js # Language switching
-│   │       ├── themeManager.js    # Theme management
-│   │       └── developmentMode.js # Development utilities
-│   ├── 📁 css/                    # Stylesheets
-│   │   ├── main.css               # Base styles
-│   │   ├── game.css               # Game-specific styles
-│   │   ├── components.css         # UI component styles
-│   │   ├── mobile-enhancements.css # Mobile optimizations
-│   │   └── animations.css         # Animation definitions
-│   ├── 📁 assets/                 # Static Assets
-│   │   ├── 📁 audio/              # Sound files (33 files)
-│   │   └── 📁 images/             # Graphics (SVG files)
-│   ├── index.html                 # Main application
-│   ├── testing.html               # Testing dashboard
-│   ├── analysis.html              # UI analysis
-│   ├── clear-cache.html           # Cache management
-│   ├── server.js                  # Static file server
-│   └── package.json               # Frontend dependencies
-├── 📁 docker/                     # Docker Configuration
-│   ├── Dockerfile.backend         # Backend container
-│   ├── Dockerfile.frontend        # Frontend container
-│   └── Dockerfile.postgres        # Database container
-├── 📁 traefik_config/             # Reverse Proxy Config
-│   ├── traefik.yml                # Main Traefik config
-│   └── 📁 dynamic/                # Dynamic configuration
-│       └── dynamic_conf.yml       # Service routing
-├── 📁 scripts/                    # Management Scripts
-│   ├── setup-env.sh               # Environment setup
-│   ├── enable-dev-mode.sh         # Development mode
-│   └── disable-dev-mode.sh        # Production mode
-├── 📁 docs/                       # Documentation
-├── docker-compose.yml             # Container orchestration
-├── env.example                    # Environment template
-├── rebuild.sh                     # Quick rebuild script
-└── package.json                   # Project dependencies
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/nginx.conf
+EXPOSE 8080
 ```
 
-## Database Schema
+**Responsibilities:**
+- Serve optimized React production build
+- Handle static assets (images, audio, fonts)
+- Provide health check endpoint
+- Implement proper caching headers
 
-### Core Tables
+#### 2. Backend Container (l2p-api)
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY backend/ .
+RUN npm ci --only=production
+EXPOSE 3000
+CMD ["node", "server.js"]
+```
 
-#### users
+**Responsibilities:**
+- REST API endpoints for game logic
+- WebSocket server for real-time communication
+- Database operations and connection pooling
+- Authentication and authorization
+- Rate limiting and security middleware
+
+#### 3. Database Container (postgres)
+```dockerfile
+FROM postgres:15-alpine
+COPY backend/database/schema.sql /docker-entrypoint-initdb.d/
+```
+
+**Responsibilities:**
+- Data persistence for users, games, scores
+- ACID transaction support
+- Connection pooling and performance optimization
+- Automated backups and recovery
+
+#### 4. Proxy Container (traefik)
+**Configuration-based container with:**
+- Automatic service discovery
+- SSL certificate management
+- Load balancing and health checks
+- Request routing and middleware
+
+### Network Architecture
+
+#### Internal Network (l2p-network)
+```yaml
+networks:
+  l2p-network:
+    external: true
+    driver: bridge
+```
+
+**Network Segmentation:**
+- All containers communicate through internal network
+- Only Traefik exposes ports to host
+- Database access restricted to backend container
+- Secure inter-service communication
+
+#### Port Mapping
+```yaml
+# External → Internal
+80:80     # HTTP (redirects to HTTPS)
+443:443   # HTTPS (Traefik)
+5432:5432 # PostgreSQL (development only)
+3002:3000 # React dev server (development only)
+```
+
+## 📊 Data Architecture
+
+### Database Schema
+
+#### Core Tables
+
+**users**
 ```sql
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    character_id INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    last_login TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
 );
 ```
 
-#### lobbies
+**lobbies**
 ```sql
 CREATE TABLE lobbies (
     id SERIAL PRIMARY KEY,
     code VARCHAR(10) UNIQUE NOT NULL,
     host_id INTEGER REFERENCES users(id),
-    question_count INTEGER DEFAULT 10,
     status VARCHAR(20) DEFAULT 'waiting',
+    question_count INTEGER DEFAULT 10,
     current_question INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    started_at TIMESTAMP,
+    ended_at TIMESTAMP,
+    settings JSONB DEFAULT '{}'
 );
 ```
 
-#### lobby_players
-```sql
-CREATE TABLE lobby_players (
-    id SERIAL PRIMARY KEY,
-    lobby_id INTEGER REFERENCES lobbies(id) ON DELETE CASCADE,
-    user_id INTEGER REFERENCES users(id),
-    character_id INTEGER DEFAULT 1,
-    score INTEGER DEFAULT 0,
-    multiplier INTEGER DEFAULT 1,
-    is_ready BOOLEAN DEFAULT FALSE,
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(lobby_id, user_id)
-);
-```
-
-#### question_sets
-```sql
-CREATE TABLE question_sets (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    questions JSONB NOT NULL,
-    created_by INTEGER REFERENCES users(id),
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-#### hall_of_fame
+**hall_of_fame**
 ```sql
 CREATE TABLE hall_of_fame (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
-    character_id INTEGER NOT NULL,
+    character_name VARCHAR(50),
     score INTEGER NOT NULL,
-    accuracy DECIMAL(5,2) NOT NULL,
-    max_multiplier INTEGER NOT NULL,
-    question_set_id INTEGER REFERENCES question_sets(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    accuracy DECIMAL(5,2),
+    max_multiplier INTEGER,
+    question_set_name VARCHAR(100) NOT NULL,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-## API Design
+### Data Flow Patterns
 
-### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
-- `PUT /api/auth/profile` - Update user profile
+#### Real-time Game Flow
+```
+Player Action → WebSocket → Backend → Database → Broadcast → All Players
+```
 
-### Lobby Management
-- `POST /api/lobby/create` - Create new lobby
-- `POST /api/lobby/join` - Join existing lobby
-- `GET /api/lobby/:code` - Get lobby status
-- `POST /api/lobby/:code/ready` - Mark player ready
-- `POST /api/lobby/:code/start` - Start game (host only)
-- `POST /api/lobby/:code/answer` - Submit answer
-- `DELETE /api/lobby/:code/leave` - Leave lobby
+#### Score Calculation Flow
+```
+Answer Submission → Time Calculation → Multiplier Application → Score Update → Leaderboard Update
+```
 
-### Question Sets
-- `GET /api/question-sets` - List available question sets
-- `POST /api/question-sets` - Create new question set
-- `GET /api/question-sets/:id` - Get specific question set
-- `PUT /api/question-sets/:id` - Update question set
-- `DELETE /api/question-sets/:id` - Delete question set
+## 🔄 Communication Patterns
 
-### Hall of Fame
-- `GET /api/hall-of-fame` - Get leaderboards
-- `GET /api/hall-of-fame/:questionSetId` - Get leaderboard for specific question set
-- `POST /api/hall-of-fame` - Submit score
+### REST API Endpoints
 
-## Security Features
+#### Authentication
+```
+POST /api/auth/login     - User authentication
+POST /api/auth/register  - User registration
+POST /api/auth/refresh   - Token refresh
+POST /api/auth/logout    - User logout
+```
 
-### Authentication
-- **JWT Tokens**: Secure authentication with JSON Web Tokens
-- **Password Hashing**: bcrypt for secure password storage
-- **Token Expiration**: Configurable token lifetimes
-- **CORS Protection**: Configured cross-origin resource sharing
+#### Game Management
+```
+GET  /api/lobbies        - List active lobbies
+POST /api/lobbies        - Create new lobby
+GET  /api/lobbies/:code  - Get lobby details
+POST /api/lobbies/:code/join - Join lobby
+```
 
-### Data Protection
-- **Input Validation**: Server-side validation for all inputs
-- **SQL Injection Prevention**: Parameterized queries
-- **Rate Limiting**: API rate limiting to prevent abuse
-- **Environment Variables**: Sensitive data in environment configuration
+#### Leaderboards
+```
+GET  /api/hall-of-fame              - Get all leaderboards
+GET  /api/hall-of-fame/:questionSet - Get specific leaderboard
+POST /api/hall-of-fame              - Submit new score
+```
 
-### Network Security
-- **HTTPS Only**: SSL/TLS encryption for all communications
-- **Secure Headers**: Security headers via Traefik
-- **Docker Isolation**: Containerized services with network isolation
+### WebSocket Events
 
-## Performance Optimizations
+#### Client → Server
+```javascript
+'join-lobby'        // Join game lobby
+'player-ready'      // Mark player as ready
+'submit-answer'     // Submit question answer
+'start-game'        // Host starts game
+'leave-lobby'       // Leave current lobby
+```
 
-### Frontend
-- **Modular JavaScript**: Code splitting and lazy loading
-- **CSS Optimization**: Minimized and compressed stylesheets
-- **Asset Compression**: Gzipped static files
-- **Local Storage**: Cached user preferences and settings
-- **60 FPS Limiting**: Framerate limiting for smooth animations
+#### Server → Client
+```javascript
+'lobby-updated'     // Lobby state changed
+'game-started'      // Game has begun
+'question-data'     // New question data
+'answer-result'     // Answer feedback
+'game-ended'        // Game completion
+'player-joined'     // Player joined lobby
+'player-left'       // Player left lobby
+```
 
-### Backend
-- **Connection Pooling**: PostgreSQL connection pooling
-- **Efficient Queries**: Optimized database queries
-- **Caching Strategy**: Response caching where appropriate
-- **Polling Optimization**: Smart polling intervals (3-23 seconds)
+## 🔐 Security Architecture
 
-### Infrastructure
-- **Container Optimization**: Lightweight Docker images
-- **Reverse Proxy Caching**: Traefik caching for static assets
-- **Database Indexing**: Proper database indexes for performance
+### Authentication Flow
+```
+1. User Login → JWT Token Generation
+2. Token Storage → HTTP-only Cookies
+3. Request Authentication → Token Validation
+4. Token Refresh → Sliding Session
+5. User Logout → Token Invalidation
+```
+
+### Security Layers
+
+#### Application Security
+- **JWT Authentication**: Stateless token-based auth
+- **Password Hashing**: bcrypt with salt rounds
+- **Rate Limiting**: Per-IP request throttling
+- **SQL Injection Protection**: Parameterized queries
+- **XSS Protection**: Content Security Policy
+- **CSRF Protection**: SameSite cookies
+
+#### Infrastructure Security
+- **SSL/TLS Termination**: Traefik with Let's Encrypt
+- **Container Isolation**: Docker network segmentation
+- **Secrets Management**: Environment variables
 - **Health Checks**: Container health monitoring
+- **Log Security**: Structured logging without sensitive data
 
-## Deployment Architecture
+### Environment Configuration
+```bash
+# Security Environment Variables
+JWT_SECRET=<256-bit-secret>
+JWT_REFRESH_SECRET=<different-256-bit-secret>
+SESSION_SECRET=<session-signing-secret>
+DB_PASSWORD=<strong-database-password>
+TRAEFIK_DASHBOARD_PASSWORD_HASH=<htpasswd-hash>
+```
+
+## 🚀 Deployment Architecture
 
 ### Development Environment
-```
-Local Machine → Docker Compose → Local Services
+```yaml
+# docker-compose.yml (development profile)
+services:
+  l2p-app-dev:
+    build:
+      target: development
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./react-frontend:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://10.0.0.44/api
 ```
 
 ### Production Environment
-```
-Internet → Traefik (SSL) → Docker Services → PostgreSQL
-```
-
-### Scaling Considerations
-- **Horizontal Scaling**: Multiple backend instances via Docker Compose
-- **Database Scaling**: PostgreSQL read replicas
-- **Load Balancing**: Traefik automatic load balancing
-- **CDN Integration**: Static asset delivery optimization 
-
-## Real-Time Communication
-
-### WebSocket/Socket.IO Configuration
-
-The application uses Socket.IO for real-time multiplayer features with proper Traefik integration:
-
-#### Traefik WebSocket Routing
-- **WebSocket-specific routers** with higher priority (300) for `/socket.io/` paths
-- **Sticky sessions** enabled for proper Socket.IO functionality 
-- **Custom headers middleware** for WebSocket upgrade support
-- **CORS configuration** optimized for real-time connections
-
-#### Configuration Details
 ```yaml
-# WebSocket Router (Production HTTPS)
-- "traefik.http.routers.websocket-secure.rule=Host(`${PRODUCTION_DOMAIN}`) && PathPrefix(`/socket.io/`)"
-- "traefik.http.routers.websocket-secure.middlewares=websocket-headers@file"
-- "traefik.http.routers.websocket-secure.priority=300"
-
-# Sticky Sessions for Socket.IO
-- "traefik.http.services.api-backend.loadbalancer.sticky.cookie=true"
-- "traefik.http.services.api-backend.loadbalancer.sticky.cookie.name=l2p-session"
+# docker-compose.yml (production)
+services:
+  l2p-app:
+    build:
+      dockerfile: docker/Dockerfile.frontend
+    environment:
+      NODE_ENV: production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-secure.rule=Host(`game.yourdomain.com`)"
 ```
 
-#### WebSocket Middleware
+### SSL/HTTPS Configuration
 ```yaml
-websocket-headers:
-  headers:
-    customRequestHeaders:
-      Connection: "upgrade"
-      Upgrade: "websocket"
-    customResponseHeaders:
-      Access-Control-Allow-Origin: "*"
-      Access-Control-Allow-Methods: "GET, POST, OPTIONS"
-      Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-      Access-Control-Allow-Credentials: "true"
+traefik:
+  command:
+    - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+    - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
+  volumes:
+    - "./letsencrypt:/letsencrypt"
 ```
 
-#### Real-Time Features
-- **Lobby management** - Real-time player join/leave notifications
-- **Game synchronization** - Live score updates and game state changes
-- **Authentication** - JWT-based WebSocket authentication
-- **Connection monitoring** - Ping-pong heartbeat and reconnection handling 
+## 📊 Performance Architecture
+
+### Database Optimization
+- **Connection Pooling**: PostgreSQL connection pool (2-20 connections)
+- **Query Optimization**: Indexed queries for frequent operations
+- **Data Types**: Appropriate PostgreSQL data types (JSONB for settings)
+- **Transaction Management**: ACID compliance for critical operations
+
+### Caching Strategy
+- **Static Assets**: Nginx caching with appropriate headers
+- **API Responses**: In-memory caching for frequently accessed data
+- **Database Connections**: Connection pool reuse
+- **WebSocket Connections**: Efficient socket management
+
+### Load Balancing
+```yaml
+# Traefik load balancing configuration
+labels:
+  - "traefik.http.services.api-backend.loadbalancer.sticky.cookie=true"
+  - "traefik.http.services.api-backend.loadbalancer.healthcheck.path=/api/health"
+```
+
+## 🔧 Build & Deployment Process
+
+### Build Pipeline
+```bash
+# Frontend Build
+npm run react:build → Vite optimizes → Static files generated
+
+# Backend Build
+Docker multi-stage → Node.js app → Production image
+
+# Database Setup
+Schema migration → Initial data → Connection pooling
+```
+
+### Container Orchestration
+```bash
+# Service Dependencies
+traefik → nginx (frontend) → express (backend) → postgresql
+        ↓
+   SSL Termination → Static Serving → API Processing → Data Storage
+```
+
+### Health Monitoring
+```javascript
+// Health check implementation
+app.get('/api/health', async (req, res) => {
+  const health = {
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    database: await testConnection() ? 'connected' : 'disconnected',
+    uptime: Math.floor(process.uptime()),
+    version: process.env.npm_package_version
+  };
+  res.json(health);
+});
+```
+
+## 🔄 Scaling Considerations
+
+### Horizontal Scaling
+- **Stateless Backend**: No server-side session storage
+- **Database Connection Pooling**: Efficient connection management
+- **Load Balancer Ready**: Traefik supports multiple backend instances
+- **WebSocket Clustering**: Socket.IO supports Redis adapter for scaling
+
+### Vertical Scaling
+- **Resource Limits**: Docker container resource constraints
+- **Database Performance**: PostgreSQL tuning for concurrent connections
+- **Memory Management**: Node.js heap optimization
+- **CPU Optimization**: Event loop performance monitoring
+
+### Future Architecture Considerations
+- **Redis Integration**: For session storage and WebSocket scaling
+- **CDN Integration**: For static asset delivery
+- **Monitoring Integration**: Prometheus/Grafana metrics
+- **Log Aggregation**: ELK stack or similar logging solution
+
+---
+
+*This architecture documentation should be updated as the system evolves. Major architectural changes should be reflected here to maintain accuracy.*

@@ -62,9 +62,13 @@ async function checkTestFiles() {
     const missingFiles = [];
     const availableFiles = [];
     
+    // Get the directory where this script is located
+    const scriptDir = __dirname;
+    
     for (const file of TEST_FILES) {
-        if (fs.existsSync(file)) {
-            availableFiles.push(file);
+        const filePath = path.join(scriptDir, file);
+        if (fs.existsSync(filePath)) {
+            availableFiles.push(filePath);
             log(`✓ Found ${file}`, 'SUCCESS');
         } else {
             missingFiles.push(file);

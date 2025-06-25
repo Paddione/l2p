@@ -1,0 +1,82 @@
+# Multi-stage Dockerfile for React Frontend - Simple Node.js approach
+
+# Stage 1: Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY react-frontend/package*.json ./
+
+# Install dependencies
+RUN npm install --silent
+
+# Copy source code
+COPY react-frontend/ ./
+
+# Build arguments for environment variables
+ARG VITE_API_BASE_URL=http://10.0.0.44/api
+ARG VITE_APP_TITLE="Learn2Play"
+ARG VITE_WS_URL=ws://10.0.0.44
+
+# Set environment variables for build
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APP_TITLE=$VITE_APP_TITLE
+ENV VITE_WS_URL=$VITE_WS_URL
+
+# Build the application
+RUN npm run build
+
+# Stage 2: Development stage
+FROM node:20-alpine AS development
+
+WORKDIR /app
+
+# Copy package files
+COPY react-frontend/package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm install --silent
+
+# Copy source code
+COPY react-frontend/ ./
+
+# Expose development port
+EXPOSE 3000
+
+# Health check for development
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+
+# Stage 3: Production stage
+FROM node:20-alpine AS production
+
+WORKDIR /app
+
+# Install only express for serving
+RUN npm init -y && npm install express --silent
+
+# Copy built React app and server
+COPY --from=builder /app/dist ./dist
+COPY react-frontend/server.js ./
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs && \
+    chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Start the server
+CMD ["node", "server.js"] 
