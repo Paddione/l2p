@@ -3017,3 +3017,753 @@
     background: var(--warning-light);
     color: var(--warning);
 }
+
+/* ========================================
+   STATISTICS DASHBOARD STYLES
+======================================== */
+
+.statistics-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(1rem, 3vw, 2rem);
+    background: var(--background);
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.statistics-container h2 {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: clamp(0.5rem, 2vw, 1rem);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.statistics-container > p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+}
+
+/* Loading and Error States */
+.loading-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(3rem, 8vw, 5rem);
+    text-align: center;
+}
+
+.loading-section .loading-spinner {
+    width: clamp(2.5rem, 6vw, 3.5rem);
+    height: clamp(2.5rem, 6vw, 3.5rem);
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+}
+
+.error-section {
+    text-align: center;
+    padding: clamp(2rem, 5vw, 3rem);
+}
+
+.error-section .error-message {
+    background: var(--error-light);
+    border: 1px solid var(--error);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    color: var(--error-text);
+}
+
+.error-section .error-message h3 {
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    color: var(--error);
+}
+
+/* Statistics Overview Cards */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+}
+
+.stat-card {
+    background: var(--surface);
+    border-radius: clamp(1rem, 3vw, 1.5rem);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-elevated);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--shadow);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+.stat-card .stat-icon {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: clamp(0.75rem, 2vw, 1rem);
+    display: block;
+}
+
+.stat-card .stat-info h3 {
+    color: var(--text-secondary);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-card .stat-value {
+    color: var(--text-primary);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Specific stat card colors */
+.stat-card.games-played::before {
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+}
+
+.stat-card.best-score::before {
+    background: linear-gradient(90deg, var(--medal-gold), #FFE55C);
+}
+
+.stat-card.hall-of-fame::before {
+    background: linear-gradient(90deg, var(--secondary), var(--primary));
+}
+
+.stat-card.accuracy::before {
+    background: linear-gradient(90deg, var(--success), var(--success-dark));
+}
+
+.stat-card.multiplier::before {
+    background: linear-gradient(90deg, var(--warning), var(--warning-dark));
+}
+
+.stat-card.catalogs::before {
+    background: linear-gradient(90deg, var(--info), var(--info-dark));
+}
+
+/* Performance Analysis Section */
+.performance-analysis {
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+}
+
+.performance-analysis h3 {
+    color: var(--text-primary);
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+    text-align: center;
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: clamp(1.5rem, 4vw, 2rem);
+}
+
+.performance-card {
+    background: var(--surface);
+    border-radius: clamp(1rem, 3vw, 1.5rem);
+    padding: clamp(1.5rem, 4vw, 2rem);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-elevated);
+}
+
+.performance-card h4 {
+    color: var(--text-primary);
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+    text-align: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--border);
+}
+
+/* Accuracy Circle Visualization */
+.accuracy-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.accuracy-circle {
+    position: relative;
+    width: clamp(120px, 25vw, 150px);
+    height: clamp(120px, 25vw, 150px);
+    border-radius: 50%;
+    background: conic-gradient(var(--success) 0deg, var(--border) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+}
+
+.accuracy-circle::before {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    background: var(--surface);
+}
+
+.accuracy-text {
+    position: relative;
+    z-index: 2;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.accuracy-stats {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1.5vw, 0.75rem);
+    width: 100%;
+}
+
+.accuracy-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: clamp(0.5rem, 1.5vw, 0.75rem);
+    background: var(--surface-elevated);
+    border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+/* Score and Multiplier Statistics */
+.score-stats,
+.multiplier-stats {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.75rem, 2vw, 1rem);
+}
+
+.score-stat,
+.multiplier-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: clamp(0.75rem, 2vw, 1rem);
+    background: var(--surface-elevated);
+    border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.score-stat .highlight,
+.multiplier-stat .highlight {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: clamp(1rem, 2.5vw, 1.25rem);
+}
+
+/* Multiplier Progress Bar */
+.multiplier-progress {
+    margin-top: clamp(1rem, 3vw, 1.5rem);
+}
+
+.multiplier-bar {
+    width: 100%;
+    height: clamp(8px, 2vw, 12px);
+    background: var(--border);
+    border-radius: clamp(4px, 1vw, 6px);
+    overflow: hidden;
+    position: relative;
+}
+
+.multiplier-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--warning), var(--warning-dark));
+    border-radius: clamp(4px, 1vw, 6px);
+    transition: width 1s ease;
+    width: 0%;
+}
+
+/* Achievements Section */
+.achievements-section {
+    margin-bottom: clamp(2rem, 5vw, 3rem);
+}
+
+.achievements-section h3 {
+    color: var(--text-primary);
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+    text-align: center;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.achievement-card {
+    background: var(--surface);
+    border-radius: clamp(0.75rem, 2vw, 1rem);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.achievement-card.unlocked {
+    border-color: var(--success);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.achievement-card.unlocked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--success);
+    border-radius: clamp(0.75rem, 2vw, 1rem) clamp(0.75rem, 2vw, 1rem) 0 0;
+}
+
+.achievement-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+}
+
+.achievement-icon {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: clamp(0.5rem, 1.5vw, 0.75rem);
+    display: block;
+}
+
+.achievement-card.locked .achievement-icon {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.achievement-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: clamp(0.25rem, 1vw, 0.5rem);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.achievement-description {
+    color: var(--text-secondary);
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+    line-height: 1.4;
+}
+
+/* No Data State */
+.no-data-section {
+    text-align: center;
+    padding: clamp(3rem, 8vw, 5rem);
+}
+
+.no-data-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.no-data-icon {
+    font-size: clamp(4rem, 10vw, 6rem);
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    opacity: 0.7;
+}
+
+.no-data-content h3 {
+    color: var(--text-primary);
+    margin-bottom: clamp(1rem, 3vw, 1.5rem);
+    font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+}
+
+.no-data-content p {
+    color: var(--text-secondary);
+    margin-bottom: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+    line-height: 1.6;
+}
+
+/* Statistics Actions */
+.statistics-actions {
+    display: flex;
+    justify-content: center;
+    gap: clamp(1rem, 3vw, 1.5rem);
+    margin-top: clamp(2rem, 5vw, 3rem);
+    flex-wrap: wrap;
+}
+
+.statistics-actions button {
+    padding: clamp(0.75rem, 2vw, 1rem) clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    border-radius: clamp(0.5rem, 1.5vw, 0.75rem);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    min-width: clamp(120px, 30vw, 160px);
+}
+
+/* Dark Theme Overrides for Statistics */
+[data-theme="dark"] .statistics-container {
+    background: var(--background);
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .stat-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .performance-card {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .accuracy-circle::before {
+    background: var(--surface);
+}
+
+[data-theme="dark"] .accuracy-stat,
+[data-theme="dark"] .score-stat,
+[data-theme="dark"] .multiplier-stat {
+    background: var(--surface-elevated);
+}
+
+[data-theme="dark"] .achievement-card {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .error-section .error-message {
+    background: var(--error-light);
+    border-color: var(--error);
+    color: var(--error-text);
+}
+
+/* Responsive Design for Statistics */
+@media (max-width: 768px) {
+    .stats-overview {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: clamp(0.75rem, 2vw, 1rem);
+    }
+    
+    .performance-grid {
+        grid-template-columns: 1fr;
+        gap: clamp(1rem, 3vw, 1.5rem);
+    }
+    
+    .achievements-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .statistics-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .statistics-actions button {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .accuracy-visual {
+        flex-direction: column;
+    }
+    
+    .accuracy-circle {
+        width: clamp(100px, 30vw, 120px);
+        height: clamp(100px, 30vw, 120px);
+    }
+    
+    .performance-card {
+        padding: clamp(1rem, 3vw, 1.5rem);
+    }
+}
+
+/* Upload Progress Indicator Styles */
+.upload-progress-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 40px;
+    text-align: right;
+}
+
+.upload-status {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin: 0;
+}
+
+/* Enhanced File Input Styling */
+.file-input-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.file-input-label {
+    display: block;
+    padding: 15px 20px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-input-label:hover {
+    border-color: var(--primary);
+    background: var(--card-bg);
+}
+
+.file-input-label.valid {
+    border-color: var(--success);
+    background: var(--success);
+    color: white;
+}
+
+.file-input-label.invalid {
+    border-color: var(--error);
+    background: rgba(var(--error-rgb), 0.1);
+    color: var(--error);
+}
+
+.file-input-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Validation Feedback Styles */
+.validation-feedback {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.validation-feedback.error {
+    background: rgba(var(--error-rgb), 0.1);
+    border: 1px solid rgba(var(--error-rgb), 0.3);
+    color: var(--error);
+}
+
+.validation-feedback.warning {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #d39e00;
+}
+
+.validation-feedback.success {
+    background: rgba(var(--success-rgb), 0.1);
+    border: 1px solid rgba(var(--success-rgb), 0.3);
+    color: var(--success);
+}
+
+.validation-list {
+    margin: 5px 0 0 0;
+    padding-left: 15px;
+}
+
+.validation-list li {
+    margin-bottom: 3px;
+}
+
+/* File Upload Statistics */
+.upload-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.upload-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.upload-stats .stat-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.upload-stats .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Enhanced Upload Button */
+.upload-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-btn.uploading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: button-loading 1.5s infinite;
+}
+
+@keyframes button-loading {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Mobile Responsiveness for Upload Components */
+@media (max-width: 768px) {
+    .upload-progress-container {
+        margin: 15px 0;
+        padding: 15px;
+    }
+    
+    .progress-bar-wrapper {
+        gap: 10px;
+    }
+    
+    .file-input-label {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+    
+    .upload-stats {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .upload-stats .stat {
+        flex-direction: row;
+        gap: 8px;
+    }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .upload-progress-container {
+    background: var(--card-bg-dark);
+    border-color: var(--border-dark);
+}
+
+[data-theme="dark"] .progress-bar {
+    background: var(--bg-secondary-dark);
+}
+
+[data-theme="dark"] .file-input-label {
+    background: var(--bg-secondary-dark);
+    border-color: var(--border-dark);
+}
+
+[data-theme="dark"] .file-input-label:hover {
+    background: var(--card-bg-dark);
+}
+
+[data-theme="dark"] .upload-stats {
+    background: var(--bg-secondary-dark);
+}

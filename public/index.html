@@ -1160,8 +1160,174 @@
                 <button id="create-game-btn" data-i18n="MAIN_MENU.CREATE_GAME" aria-label="Create a new game">Spiel erstellen</button>
                 <button id="join-game-btn" data-i18n="MAIN_MENU.JOIN_GAME" aria-label="Join an existing game">Spiel beitreten</button>
                 <button id="hall-of-fame-btn" data-i18n="MAIN_MENU.HALL_OF_FAME" aria-label="View hall of fame leaderboard">Ruhmeshalle</button>
+                <button id="statistics-btn" data-i18n="MAIN_MENU.STATISTICS" aria-label="View your personal statistics and performance">📊 Statistiken</button>
                 <button id="help-btn" data-i18n="MAIN_MENU.HELP" aria-label="Open help documentation">📖 Hilfe</button>
                 <button id="logout-btn" data-i18n="MAIN_MENU.LOGOUT" aria-label="Sign out of your account">Abmelden</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="statistics-screen" class="screen">
+        <div class="statistics-container">
+            <h2 data-i18n="STATISTICS.TITLE">📊 Deine Statistiken</h2>
+            <p data-i18n="STATISTICS.DESCRIPTION">Hier siehst du deine Spielleistung und persönlichen Rekorde im Überblick.</p>
+            
+            <!-- Loading State -->
+            <div id="statistics-loading" class="loading-section">
+                <div class="loading-spinner"></div>
+                <p data-i18n="STATISTICS.LOADING">Lade Statistiken...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div id="statistics-error" class="error-section" style="display: none;">
+                <div class="error-message">
+                    <h3 data-i18n="STATISTICS.ERROR_TITLE">⚠️ Fehler beim Laden</h3>
+                    <p data-i18n="STATISTICS.ERROR_MESSAGE">Statistiken konnten nicht geladen werden. Bitte versuche es später erneut.</p>
+                    <button id="retry-statistics-btn" class="btn-primary" data-i18n="STATISTICS.RETRY">Erneut versuchen</button>
+                </div>
+            </div>
+            
+            <!-- Statistics Content -->
+            <div id="statistics-content" class="statistics-content" style="display: none;">
+                
+                <!-- Overview Cards -->
+                <div class="stats-overview">
+                    <div class="stat-card games-played">
+                        <div class="stat-icon">🎮</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.GAMES_PLAYED">Spiele gespielt</h3>
+                            <div class="stat-value" id="stat-games-played">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card best-score">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.BEST_SCORE">Bester Score</h3>
+                            <div class="stat-value" id="stat-best-score">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card hall-of-fame">
+                        <div class="stat-icon">🌟</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.HALL_OF_FAME_ENTRIES">Ruhmeshalle Einträge</h3>
+                            <div class="stat-value" id="stat-hall-of-fame">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card accuracy">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.AVERAGE_ACCURACY">Durchschnittliche Genauigkeit</h3>
+                            <div class="stat-value" id="stat-accuracy">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card multiplier">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.HIGHEST_MULTIPLIER">Höchster Multiplikator</h3>
+                            <div class="stat-value" id="stat-multiplier">1x</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card catalogs">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-info">
+                            <h3 data-i18n="STATISTICS.CATALOGS_PLAYED">Fragensätze gespielt</h3>
+                            <div class="stat-value" id="stat-catalogs">0</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance Analysis -->
+                <div class="performance-analysis">
+                    <h3 data-i18n="STATISTICS.PERFORMANCE_ANALYSIS">📈 Leistungsanalyse</h3>
+                    
+                    <div class="performance-grid">
+                        <div class="performance-card accuracy-breakdown">
+                            <h4 data-i18n="STATISTICS.ACCURACY_DETAILS">Genauigkeits-Details</h4>
+                            <div class="accuracy-visual">
+                                <div class="accuracy-circle">
+                                    <div class="accuracy-fill" id="accuracy-fill"></div>
+                                    <div class="accuracy-text" id="accuracy-percentage">0%</div>
+                                </div>
+                                <div class="accuracy-stats">
+                                    <div class="accuracy-stat">
+                                        <span data-i18n="STATISTICS.CORRECT_ANSWERS">Richtige Antworten:</span>
+                                        <span id="correct-answers">0</span>
+                                    </div>
+                                    <div class="accuracy-stat">
+                                        <span data-i18n="STATISTICS.TOTAL_QUESTIONS">Gesamte Fragen:</span>
+                                        <span id="total-questions">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-card score-trends">
+                            <h4 data-i18n="STATISTICS.SCORE_PERFORMANCE">Score-Entwicklung</h4>
+                            <div class="score-stats">
+                                <div class="score-stat">
+                                    <span data-i18n="STATISTICS.BEST_SCORE">Bester Score:</span>
+                                    <span class="highlight" id="best-score-detail">0</span>
+                                </div>
+                                <div class="score-stat">
+                                    <span data-i18n="STATISTICS.AVERAGE_SCORE">Durchschnittlicher Score:</span>
+                                    <span id="average-score">0</span>
+                                </div>
+                                <div class="score-stat">
+                                    <span data-i18n="STATISTICS.SCORE_IMPROVEMENT">Verbesserung:</span>
+                                    <span id="score-improvement">--</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="performance-card multiplier-details">
+                            <h4 data-i18n="STATISTICS.MULTIPLIER_PERFORMANCE">Multiplikator-Leistung</h4>
+                            <div class="multiplier-stats">
+                                <div class="multiplier-stat">
+                                    <span data-i18n="STATISTICS.HIGHEST_MULTIPLIER">Höchster Multiplikator:</span>
+                                    <span class="highlight" id="highest-multiplier-detail">1x</span>
+                                </div>
+                                <div class="multiplier-stat">
+                                    <span data-i18n="STATISTICS.AVERAGE_MULTIPLIER">Durchschnittlicher Multiplikator:</span>
+                                    <span id="average-multiplier">1x</span>
+                                </div>
+                                <div class="multiplier-progress">
+                                    <div class="multiplier-bar">
+                                        <div class="multiplier-fill" id="multiplier-fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Achievement System -->
+                <div class="achievements-section">
+                    <h3 data-i18n="STATISTICS.ACHIEVEMENTS">🏅 Erfolge</h3>
+                    <div class="achievements-grid" id="achievements-grid">
+                        <!-- Achievements will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- No Data State -->
+                <div id="no-data-section" class="no-data-section" style="display: none;">
+                    <div class="no-data-content">
+                        <div class="no-data-icon">📊</div>
+                        <h3 data-i18n="STATISTICS.NO_DATA_TITLE">Noch keine Daten</h3>
+                        <p data-i18n="STATISTICS.NO_DATA_MESSAGE">Spiele dein erstes Spiel, um deine Statistiken zu sehen!</p>
+                        <button id="start-first-game-btn" class="btn-primary" data-i18n="STATISTICS.START_FIRST_GAME">Erstes Spiel starten</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="statistics-actions">
+                <button id="back-to-menu-from-stats" class="btn-secondary" data-i18n="UI.BACK_TO_MENU" aria-label="Return to main menu">Zurück zum Menü</button>
+                <button id="refresh-statistics-btn" class="btn-secondary" data-i18n="STATISTICS.REFRESH" aria-label="Refresh statistics">🔄 Aktualisieren</button>
             </div>
         </div>
     </div>

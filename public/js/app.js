@@ -13,6 +13,7 @@ import { initGameController } from '/js/game/gameController.js';
 import { initAudioManager } from '/js/audio/audioManager.js';
 import { initVolumeControls } from '/js/ui/volumeControls.js';
 import { initHelpSystem } from '/js/ui/helpSystem.js';
+import statisticsManager from '/js/ui/statisticsManager.js';
 import LanguageSwitcher from '/js/utils/languageSwitcher.js';
 import themeManager from '/js/utils/themeManager.js';
 import { SCREENS } from '/js/utils/constants.js';
@@ -228,6 +229,14 @@ async function initializeApp() {
         // Initialize help system
         appState.modules.helpSystem = initHelpSystem();
         console.log('initializeApp: Help system initialized successfully');
+        
+        updateLoadingStep('Statistik-Dashboard wird initialisiert...');
+        console.log('initializeApp: Initializing statistics manager...');
+        
+        // Initialize statistics manager
+        appState.modules.statisticsManager = statisticsManager;
+        appState.modules.statisticsManager.initialize();
+        console.log('initializeApp: Statistics manager initialized successfully');
         
         updateLoadingStep('Fragensätze werden initialisiert...');
         console.log('initializeApp: Initializing question set manager...');

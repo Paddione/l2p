@@ -1,6 +1,6 @@
 /**
  * Audio Manager Module
- * Handles background music and sound effects
+ * Handles background music and sound effects with enhanced browser compatibility
  */
 
 // Singleton instance
@@ -22,9 +22,74 @@ export function initAudioManager() {
     let gainNode = null;
     let isInitialized = false;
     const audioElements = new Map();
+    
+    // Audio format fallback support
+    const audioFormats = ['mp3', 'ogg', 'wav'];
+    const supportedFormats = detectSupportedFormats();
 
     /**
-     * Initializes the audio system
+     * Detects supported audio formats for this browser
+     * @returns {Array<string>} Array of supported formats
+     */
+    function detectSupportedFormats() {
+        const audio = document.createElement('audio');
+        const formats = [];
+        
+        // Check MP3 support
+        if (audio.canPlayType && audio.canPlayType('audio/mpeg') !== '') {
+            formats.push('mp3');
+        }
+        
+        // Check OGG support
+        if (audio.canPlayType && audio.canPlayType('audio/ogg') !== '') {
+            formats.push('ogg');
+        }
+        
+        // Check WAV support
+        if (audio.canPlayType && audio.canPlayType('audio/wav') !== '') {
+            formats.push('wav');
+        }
+        
+        console.log('Supported audio formats:', formats);
+        return formats.length > 0 ? formats : ['mp3']; // Default to mp3 if detection fails
+    }
+
+    /**
+     * Gets the best available audio format for a given sound
+     * @param {string} soundName - Name of the sound file
+     * @returns {string} URL to the best available format
+     */
+    function getBestAudioFormat(soundName) {
+        // For now, we'll use MP3 as primary since all files are MP3
+        // This structure allows for easy expansion to multiple formats
+        const format = supportedFormats.includes('mp3') ? 'mp3' : supportedFormats[0];
+        return `/assets/audio/${soundName}.${format}`;
+    }
+
+    /**
+     * Creates a Web Audio API context with better browser compatibility
+     * @returns {AudioContext|null}
+     */
+    function createAudioContext() {
+        try {
+            // Try standard AudioContext first
+            if (window.AudioContext) {
+                return new AudioContext();
+            }
+            // Fallback to webkit prefixed version
+            if (window.webkitAudioContext) {
+                return new webkitAudioContext();
+            }
+            console.warn('Web Audio API not supported in this browser');
+            return null;
+        } catch (error) {
+            console.warn('Failed to create audio context:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Initializes the audio system with enhanced browser compatibility
      * @returns {Promise<void>}
      */
     async function initialize() {
@@ -35,12 +100,19 @@ export function initAudioManager() {
 
         try {
             console.log('Initializing audio system...');
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            console.log('Audio context created:', audioContext.state);
             
-            gainNode = audioContext.createGain();
-            gainNode.connect(audioContext.destination);
-            console.log('Main gain node created and connected');
+            // Create audio context with fallbacks
+            audioContext = createAudioContext();
+            
+            if (audioContext) {
+                console.log('Audio context created:', audioContext.state);
+                
+                gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+                console.log('Main gain node created and connected');
+            } else {
+                console.warn('Web Audio API not available, using HTML5 audio only');
+            }
 
             // Create audio elements
             const sounds = [
@@ -86,8 +158,8 @@ export function initAudioManager() {
 
             console.log(`Starting to load ${sounds.length} audio files...`);
             
-            // Load audio files asynchronously with timeout
-            const loadPromises = sounds.map(sound => loadAudioFile(sound));
+            // Load audio files asynchronously with enhanced error handling
+            const loadPromises = sounds.map(sound => loadAudioFileWithFallback(sound));
             
             // Wait for all audio files to load (or timeout)
             const results = await Promise.allSettled(loadPromises);
@@ -117,9 +189,13 @@ export function initAudioManager() {
                 console.warn('Background music failed to load');
             }
 
-            // Resume audio context if it's suspended (browser autoplay policy)
-            if (audioContext.state === 'suspended') {
-                console.log('Audio context is suspended (this is expected due to browser autoplay policy)');
+            // Handle audio context state for browser autoplay policy
+            if (audioContext) {
+                if (audioContext.state === 'suspended') {
+                    console.log('Audio context is suspended (browser autoplay policy)');
+                    // Set up user interaction handler to resume context
+                    setupUserInteractionHandler();
+                }
             }
 
             isInitialized = true;
@@ -133,18 +209,46 @@ export function initAudioManager() {
     }
 
     /**
-     * Loads a single audio file with timeout
+     * Sets up user interaction handler to resume audio context
+     */
+    function setupUserInteractionHandler() {
+        const resumeAudioContext = async () => {
+            if (audioContext && audioContext.state === 'suspended') {
+                try {
+                    await audioContext.resume();
+                    console.log('Audio context resumed after user interaction');
+                } catch (error) {
+                    console.warn('Failed to resume audio context:', error);
+                }
+            }
+            // Remove listeners after first successful resume
+            document.removeEventListener('click', resumeAudioContext);
+            document.removeEventListener('keydown', resumeAudioContext);
+            document.removeEventListener('touchstart', resumeAudioContext);
+        };
+
+        // Listen for various user interaction events
+        document.addEventListener('click', resumeAudioContext, { once: true });
+        document.addEventListener('keydown', resumeAudioContext, { once: true });
+        document.addEventListener('touchstart', resumeAudioContext, { once: true });
+    }
+
+    /**
+     * Loads a single audio file with fallback format support and enhanced error handling
      * @param {string} sound - Sound name
      * @returns {Promise<void>}
      */
-    async function loadAudioFile(sound) {
+    async function loadAudioFileWithFallback(sound) {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error(`Timeout loading ${sound}`));
-            }, 5000); // 5 second timeout per file
+            }, 8000); // Increased timeout to 8 seconds for better reliability
 
             const audio = new Audio();
+            
+            // Enhanced preloading settings
             audio.preload = 'auto';
+            audio.crossOrigin = 'anonymous'; // For CORS if needed
             
             // Success handler
             const onSuccess = () => {
@@ -152,37 +256,51 @@ export function initAudioManager() {
                 console.log(`Sound loaded successfully: ${sound}`);
                 
                 try {
-                    // Connect to Web Audio API for volume control
-                    const source = audioContext.createMediaElementSource(audio);
-                    const soundGain = audioContext.createGain();
-                    source.connect(soundGain);
-                    soundGain.connect(audioContext.destination);
-                    soundGain.gain.value = sound === 'background-music' ? musicVolume : soundVolume;
+                    // Connect to Web Audio API for volume control (if available)
+                    if (audioContext && audioContext.state !== 'closed') {
+                        const source = audioContext.createMediaElementSource(audio);
+                        const soundGain = audioContext.createGain();
+                        source.connect(soundGain);
+                        soundGain.connect(audioContext.destination);
+                        soundGain.gain.value = sound === 'background-music' ? musicVolume : soundVolume;
 
-                    // Store gain node reference
-                    audio.gainNode = soundGain;
-                    console.log(`Audio routing set up for: ${sound}`);
+                        // Store gain node reference
+                        audio.gainNode = soundGain;
+                        console.log(`Audio routing set up for: ${sound}`);
+                    } else {
+                        // Fallback to HTML5 audio volume control
+                        audio.volume = sound === 'background-music' ? musicVolume : soundVolume;
+                        console.log(`Using HTML5 audio volume for: ${sound}`);
+                    }
                 } catch (routingError) {
                     console.warn(`Failed to set up audio routing for ${sound}:`, routingError);
-                    // Continue anyway - basic audio will still work
+                    // Fallback to HTML5 audio volume control
+                    audio.volume = sound === 'background-music' ? musicVolume : soundVolume;
                 }
                 
                 audioElements.set(sound, audio);
                 resolve();
             };
             
-            // Error handler
+            // Error handler with fallback format support
             const onError = (e) => {
                 clearTimeout(timeout);
+                console.warn(`Primary format failed for ${sound}, trying fallbacks...`);
+                
+                // For now, just reject since all our files are MP3
+                // This structure allows for future fallback format implementation
                 reject(new Error(`Error loading ${sound}: ${e.message || 'Unknown error'}`));
             };
             
-            // Set up event listeners
+            // Enhanced event listeners
             audio.addEventListener('canplaythrough', onSuccess, { once: true });
+            audio.addEventListener('loadeddata', () => {
+                console.log(`Audio data loaded for: ${sound}`);
+            }, { once: true });
             audio.addEventListener('error', onError, { once: true });
             
-            // Start loading
-            audio.src = `/assets/audio/${sound}.mp3`;
+            // Start loading with best available format
+            audio.src = getBestAudioFormat(sound);
         });
     }
 
@@ -437,7 +555,7 @@ export function initAudioManager() {
     }
 
     /**
-     * Generic sound playing function
+     * Generic sound playing function with enhanced browser compatibility
      * @param {string} soundName - Name of the sound to play
      * @returns {Promise<void>}
      */
@@ -448,13 +566,37 @@ export function initAudioManager() {
         const sound = audioElements.get(soundName);
         if (sound) {
             try {
+                // Reset audio position for replay
                 sound.currentTime = 0;
+                
+                // Resume audio context if needed (browser autoplay policy)
+                if (audioContext && audioContext.state === 'suspended') {
+                    try {
+                        await audioContext.resume();
+                        console.log('Audio context resumed for sound playback');
+                    } catch (resumeError) {
+                        console.warn('Failed to resume audio context:', resumeError);
+                    }
+                }
+                
+                // Attempt to play the sound
                 await sound.play();
+                
             } catch (error) {
-                console.warn(`Failed to play sound ${soundName}:`, error);
+                // Handle different types of audio playback errors
+                if (error.name === 'NotAllowedError') {
+                    console.warn(`Autoplay blocked for ${soundName} - user interaction required`);
+                    // Could implement a user interaction prompt here
+                } else if (error.name === 'NotSupportedError') {
+                    console.warn(`Audio format not supported for ${soundName}`);
+                } else if (error.name === 'AbortError') {
+                    console.warn(`Audio playback aborted for ${soundName}`);
+                } else {
+                    console.warn(`Failed to play sound ${soundName}:`, error.message);
+                }
             }
         } else {
-            console.warn(`Sound ${soundName} not found`);
+            console.warn(`Sound ${soundName} not found in audio elements`);
         }
     }
 
@@ -480,25 +622,54 @@ export function initAudioManager() {
     }
 
     /**
-     * Sets music volume
+     * Sets music volume with HTML5 audio fallback support
      * @param {number} volume - Volume level (0-1)
      */
     function setMusicVolume(volume) {
         musicVolume = Math.min(Math.max(volume, 0), 1);
-        if (backgroundMusic && backgroundMusic.gainNode) {
-            backgroundMusic.gainNode.gain.value = musicVolume;
+        console.log(`Setting music volume to: ${musicVolume}`);
+        
+        // Update background music volume if playing
+        if (backgroundMusic) {
+            if (backgroundMusic.gainNode) {
+                // Use Web Audio API gain node if available
+                backgroundMusic.gainNode.gain.value = musicVolume;
+            } else {
+                // Fallback to HTML5 audio volume
+                backgroundMusic.volume = musicVolume;
+            }
         }
+        
+        // Update volume for all music elements
+        audioElements.forEach((audio, name) => {
+            if (name === 'background-music') {
+                if (audio.gainNode) {
+                    audio.gainNode.gain.value = musicVolume;
+                } else {
+                    audio.volume = musicVolume;
+                }
+            }
+        });
     }
 
     /**
-     * Sets sound effects volume
+     * Sets sound effects volume with HTML5 audio fallback support
      * @param {number} volume - Volume level (0-1)
      */
     function setSoundVolume(volume) {
         soundVolume = Math.min(Math.max(volume, 0), 1);
+        console.log(`Setting sound effects volume to: ${soundVolume}`);
+        
+        // Update volume for all sound effect elements
         audioElements.forEach((audio, name) => {
-            if (name !== 'background-music' && audio.gainNode) {
-                audio.gainNode.gain.value = soundVolume;
+            if (name !== 'background-music') {
+                if (audio.gainNode) {
+                    // Use Web Audio API gain node if available
+                    audio.gainNode.gain.value = soundVolume;
+                } else {
+                    // Fallback to HTML5 audio volume
+                    audio.volume = soundVolume;
+                }
             }
         });
     }

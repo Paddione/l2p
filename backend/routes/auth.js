@@ -315,6 +315,27 @@ router.post('/reset-password', validatePasswordResetConfirm, asyncHandler(async 
 }));
 
 /**
+ * GET /api/auth/stats
+ * Get current user's statistics for the statistics dashboard  
+ */
+router.get('/stats', authenticateToken, async (req, res) => {
+    try {
+        const userStats = await User.getStatistics(req.user.userId);
+        
+        res.json({
+            success: true,
+            statistics: userStats
+        });
+    } catch (error) {
+        console.error('Get user statistics error:', error);
+        res.status(500).json({
+            error: 'Failed to get user statistics',
+            code: 'GET_USER_STATS_ERROR'
+        });
+    }
+});
+
+/**
  * GET /api/auth/rate-limit-stats
  * Get rate limiting statistics (for monitoring)
  */
