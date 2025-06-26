@@ -1,8 +1,7 @@
-// import React from 'react';
 import { Navigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuthStore } from '../stores/authStore';
-import { AuthModal } from '../components/auth/AuthModal';
+import { useAuth } from '../components/auth/AuthProvider';
+import { RegisterForm } from '../components/auth/RegisterForm';
 
 const Container = styled.div`
   display: flex;
@@ -37,10 +36,10 @@ const Subtitle = styled.p`
 `;
 
 export function RegisterPage() {
-  const { user } = useAuthStore();
+  const { isAuthenticated } = useAuth();
 
   // Redirect to home if already logged in
-  if (user) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -49,11 +48,7 @@ export function RegisterPage() {
       <Card>
         <Title>Join Learn2Play!</Title>
         <Subtitle>Create your account to start playing multiplayer quiz games</Subtitle>
-        <AuthModal 
-          isOpen={true} 
-          onClose={() => {}} 
-          initialMode="register"
-        />
+        <RegisterForm />
       </Card>
     </Container>
   );

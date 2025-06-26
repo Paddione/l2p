@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Button } from '../components/ui/Button';
-// import apiClient from '../services/api';
-import type { Leaderboard, LeaderboardEntry } from '../types/api';
+import { useNotification } from '../components/ui/NotificationProvider';
+import apiClient from '../services/api';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -46,6 +46,33 @@ const FilterButton = styled(Button)<{ active?: boolean }>`
     color: white;
     border-color: ${theme.colors.primary};
   `}
+`;
+
+const StatsSection = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-bottom: ${({ theme }) => theme.spacing.xl};
+`;
+
+const StatCard = styled.div`
+  background: ${({ theme }) => theme.colors.background.paper};
+  padding: ${({ theme }) => theme.spacing.lg};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  text-align: center;
+`;
+
+const StatValue = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const StatLabel = styled.div`
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: 0.875rem;
 `;
 
 const LeaderboardGrid = styled.div`
@@ -183,45 +210,104 @@ const ActionButtons = styled.div`
   margin-top: ${({ theme }) => theme.spacing.xl};
 `;
 
-type FilterType = 'all' | 'today' | 'week' | 'month';
+const RefreshButton = styled(Button)`
+  margin-left: auto;
+`;
+
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  character: string;
+  score: number;
+  questions_answered: number;
+  questions_correct: number;
+  accuracy: number;
+  achieved_at: string;
+}
+
+interface LeaderboardData {
+  catalog: string;
+  leaderboard: LeaderboardEntry[];
+  total: number;
+  catalog_display_name?: string;
+  total_players?: number;
+}
 
 export function HallOfFamePage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [filter, setFilter] = useState<FilterType>('all');
+  const { showError, showSuccess } = useNotification();
+  const [selectedCatalog, setSelectedCatalog] = useState<string | null>(null);
   
+  // Fetch available catalogs
   const {
-    data: leaderboards,
-    isLoading,
-    error,
+    data: catalogsData,
+    isLoading: catalogsLoading,
+    error: catalogsError
+  } = useQuery({
+    queryKey: ['hall-of-fame-catalogs'],
+    queryFn: () => apiClient.getHallOfFameCatalogs(20),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Fetch leaderboards for each catalog
+  const {
+    data: leaderboardsData,
+    isLoading: leaderboardsLoading,
+    error: leaderboardsError,
     refetch
   } = useQuery({
-    queryKey: ['leaderboards', filter],
+    queryKey: ['leaderboards', catalogsData?.catalogs],
     queryFn: async () => {
-      // Mock implementation - in real app this would call the API
-      const mockLeaderboards: Leaderboard[] = [
-        {
-          questionSet: 'General Knowledge',
-          lastUpdated: new Date().toISOString(),
-          entries: [
-            { username: 'Player1', character: 'wizard', score: 1250, questionsCorrect: 8, totalQuestions: 10 },
-            { username: 'Player2', character: 'knight', score: 1100, questionsCorrect: 7, totalQuestions: 10 },
-            { username: 'Player3', character: 'archer', score: 950, questionsCorrect: 6, totalQuestions: 10 },
-          ]
-        },
-        {
-          questionSet: 'Science & Technology',
-          lastUpdated: new Date().toISOString(),
-          entries: [
-            { username: 'TechGuru', character: 'robot', score: 1400, questionsCorrect: 9, totalQuestions: 10 },
-            { username: 'CodeMaster', character: 'wizard', score: 1200, questionsCorrect: 8, totalQuestions: 10 },
-          ]
+      if (!catalogsData?.catalogs?.length) return [];
+      
+      const leaderboardPromises = catalogsData.catalogs.map(async (catalog: any) => {
+        try {
+          const result = await apiClient.getLeaderboard(catalog.catalog_name, 10);
+          return {
+            ...result,
+            catalog_display_name: catalog.catalog_display_name || catalog.catalog_name,
+            total_players: catalog.total_entries || 0
+          };
+        } catch (error) {
+          console.warn(`Failed to fetch leaderboard for ${catalog.catalog_name}:`, error);
+          return null;
         }
-      ];
-      return mockLeaderboards;
+      });
+      
+      const results = await Promise.all(leaderboardPromises);
+      return results.filter(Boolean) as LeaderboardData[];
     },
-    refetchInterval: 30000,
+    enabled: !!catalogsData?.catalogs?.length,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
+
+  // Fetch user's personal stats
+  const {
+    data: myStats,
+    isLoading: myStatsLoading
+  } = useQuery({
+    queryKey: ['my-hall-of-fame-stats'],
+    queryFn: () => apiClient.getMyHallOfFameEntries(100),
+    enabled: !!user,
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  // Auto-select first catalog if none selected
+  useEffect(() => {
+    if (!selectedCatalog && catalogsData?.catalogs && catalogsData.catalogs.length > 0) {
+      setSelectedCatalog(catalogsData.catalogs[0].catalog_name);
+    }
+  }, [catalogsData, selectedCatalog]);
+
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      showSuccess('Refreshed', 'Leaderboards updated successfully!');
+    } catch (error) {
+      showError('Refresh Failed', 'Failed to refresh leaderboards');
+    }
+  };
 
   const formatScore = (score: number): string => {
     return score.toLocaleString();
@@ -232,32 +318,57 @@ export function HallOfFamePage() {
     return date.toLocaleDateString();
   };
 
-  const renderLeaderboardCard = (leaderboard: Leaderboard) => (
-    <LeaderboardCard key={leaderboard.questionSet}>
+  const formatAccuracy = (correct: number, total: number): string => {
+    if (total === 0) return '0%';
+    return `${Math.round((correct / total) * 100)}%`;
+  };
+
+  const calculatePersonalStats = () => {
+    if (!myStats?.entries?.length) return null;
+
+    const entries = myStats.entries;
+    const totalScore = entries.reduce((sum, entry) => sum + (entry.score || 0), 0);
+    const totalQuestions = entries.reduce((sum, entry) => sum + (entry.questions_answered || 0), 0);
+    const totalCorrect = entries.reduce((sum, entry) => sum + (entry.questions_correct || 0), 0);
+    const bestScore = Math.max(...entries.map(entry => entry.score || 0));
+
+    return {
+      totalGames: entries.length,
+      totalScore,
+      bestScore,
+      averageScore: Math.round(totalScore / entries.length),
+      overallAccuracy: totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0
+    };
+  };
+
+  const renderLeaderboardCard = (leaderboardData: LeaderboardData) => (
+    <LeaderboardCard key={leaderboardData.catalog}>
       <CardHeader>
-        <CardTitle>{leaderboard.questionSet}</CardTitle>
+        <CardTitle>{leaderboardData.catalog_display_name || leaderboardData.catalog}</CardTitle>
         <CardSubtitle>
-          {leaderboard.entries.length} players • Updated {formatDate(leaderboard.lastUpdated)}
+          {leaderboardData.leaderboard.length} players • {leaderboardData.total_players || 0} total entries
         </CardSubtitle>
       </CardHeader>
       <LeaderboardList>
-        {leaderboard.entries.length === 0 ? (
+        {leaderboardData.leaderboard.length === 0 ? (
           <EmptyState>No scores yet. Be the first to play!</EmptyState>
         ) : (
-          leaderboard.entries.map((entry: LeaderboardEntry, index: number) => (
+          leaderboardData.leaderboard.map((entry: LeaderboardEntry, index: number) => (
             <LeaderboardItem 
               key={`${entry.username}-${index}`}
               isCurrentUser={user?.username === entry.username}
             >
-              <Rank rank={index + 1}>{index + 1}</Rank>
+              <Rank rank={entry.rank || index + 1}>{entry.rank || index + 1}</Rank>
               <PlayerInfo>
                 <PlayerName>{entry.username}</PlayerName>
-                <PlayerCharacter>Character: {entry.character}</PlayerCharacter>
+                <PlayerCharacter>
+                  {entry.character} • {formatAccuracy(entry.questions_correct || 0, entry.questions_answered || 1)} accuracy
+                </PlayerCharacter>
               </PlayerInfo>
               <Score>
                 <ScoreValue>{formatScore(entry.score)}</ScoreValue>
                 <ScoreDetails>
-                  {entry.questionsCorrect || 0}/{entry.totalQuestions || 0} correct
+                  {entry.questions_correct || 0}/{entry.questions_answered || 0} correct
                 </ScoreDetails>
               </Score>
             </LeaderboardItem>
@@ -267,11 +378,13 @@ export function HallOfFamePage() {
     </LeaderboardCard>
   );
 
-  if (isLoading) {
+  const personalStats = calculatePersonalStats();
+
+  if (catalogsLoading || leaderboardsLoading) {
     return (
       <Container>
         <Header>
-          <Title>Hall of Fame</Title>
+          <Title>🏆 Hall of Fame</Title>
           <LoadingSpinner size="large" />
         </Header>
       </Container>
@@ -285,47 +398,46 @@ export function HallOfFamePage() {
         <Subtitle>
           Top players and their achievements across all game modes
         </Subtitle>
+        <RefreshButton variant="outline" onClick={handleRefresh}>
+          🔄 Refresh
+        </RefreshButton>
       </Header>
 
-      <FilterSection>
-        <FilterButton
-          active={filter === 'all'}
-          onClick={() => setFilter('all')}
-          variant={filter === 'all' ? 'primary' : 'outline'}
-        >
-          All Time
-        </FilterButton>
-        <FilterButton
-          active={filter === 'month'}
-          onClick={() => setFilter('month')}
-          variant={filter === 'month' ? 'primary' : 'outline'}
-        >
-          This Month
-        </FilterButton>
-        <FilterButton
-          active={filter === 'week'}
-          onClick={() => setFilter('week')}
-          variant={filter === 'week' ? 'primary' : 'outline'}
-        >
-          This Week
-        </FilterButton>
-        <FilterButton
-          active={filter === 'today'}
-          onClick={() => setFilter('today')}
-          variant={filter === 'today' ? 'primary' : 'outline'}
-        >
-          Today
-        </FilterButton>
-      </FilterSection>
+      {/* Personal Stats Section (if user is logged in) */}
+      {user && personalStats && (
+        <>
+          <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-primary)' }}>
+            Your Statistics
+          </h3>
+          <StatsSection>
+            <StatCard>
+              <StatValue>{personalStats.totalGames}</StatValue>
+              <StatLabel>Games Played</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue>{formatScore(personalStats.bestScore)}</StatValue>
+              <StatLabel>Best Score</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue>{formatScore(personalStats.averageScore)}</StatValue>
+              <StatLabel>Average Score</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue>{personalStats.overallAccuracy}%</StatValue>
+              <StatLabel>Overall Accuracy</StatLabel>
+            </StatCard>
+          </StatsSection>
+        </>
+      )}
 
-      {error && (
+      {(catalogsError || leaderboardsError) && (
         <ErrorMessage>
           <div>Failed to load leaderboards. Please try again.</div>
           <div style={{ marginTop: '1rem' }}>
             <Button 
               variant="outline" 
               size="small" 
-              onClick={() => refetch()}
+              onClick={handleRefresh}
             >
               Retry
             </Button>
@@ -333,12 +445,12 @@ export function HallOfFamePage() {
         </ErrorMessage>
       )}
 
-      {leaderboards && leaderboards.length > 0 ? (
+      {leaderboardsData && leaderboardsData.length > 0 ? (
         <LeaderboardGrid>
-          {leaderboards.map(renderLeaderboardCard)}
+          {leaderboardsData.map(renderLeaderboardCard)}
         </LeaderboardGrid>
       ) : (
-        !isLoading && !error && (
+        !catalogsLoading && !leaderboardsLoading && (
           <EmptyState>
             <h3>No leaderboards available</h3>
             <p>Start playing to see your scores here!</p>

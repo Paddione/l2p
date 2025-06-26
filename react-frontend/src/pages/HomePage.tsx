@@ -1,7 +1,7 @@
-// import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../components/auth/AuthProvider';
 import { Button } from '../components/ui/Button';
 
 const Container = styled.div`
@@ -41,7 +41,7 @@ const HomeButton = styled(Button)`
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
 
   return (
     <Container>

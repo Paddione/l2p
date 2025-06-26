@@ -1,397 +1,300 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { useAuthStore } from '../../stores/authStore';
-import { Button, Input } from '../ui';
-import type { RegisterFormData } from '../../types/game';
+import { useAuth } from './AuthProvider';
+import { Button } from '../ui/Button';
+import { Input } from '../ui/Input';
 
-const FormContainer = styled.form`
+const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: ${({ theme }) => theme.spacing.md};
+  width: 100%;
   max-width: 400px;
   margin: 0 auto;
-  padding: 2rem;
-  background: ${({ theme }) => theme.colors.background.paper};
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: ${({ theme }) => theme.spacing.xl};
+  background: ${({ theme }) => theme.colors.surface};
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
+  box-shadow: ${({ theme }) => theme.shadows.md};
 `;
 
 const Title = styled.h2`
   text-align: center;
-  margin-bottom: 1rem;
   color: ${({ theme }) => theme.colors.text.primary};
-  font-size: 1.5rem;
-  font-weight: 600;
+  margin-bottom: ${({ theme }) => theme.spacing.lg};
 `;
 
 const ErrorMessage = styled.div`
-  background: ${({ theme }) => theme.colors.error}10;
+  background: ${({ theme }) => theme.colors.error}20;
   color: ${({ theme }) => theme.colors.error};
-  padding: 0.75rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  border-left: 4px solid ${({ theme }) => theme.colors.error};
-`;
-
-const LinkButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.primary};
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.875rem;
-  text-align: center;
-  padding: 0.5rem 0;
-  
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary}dd;
-  }
-`;
-
-const CharacterSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
-const CharacterLabel = styled.label`
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text.primary};
+  padding: ${({ theme }) => theme.spacing.sm};
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  border: 1px solid ${({ theme }) => theme.colors.error};
+  font-size: 0.9rem;
 `;
 
 const CharacterGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
+  gap: ${({ theme }) => theme.spacing.sm};
+  margin: ${({ theme }) => theme.spacing.sm} 0;
 `;
 
-const CharacterOption = styled.button<{ selected?: boolean }>`
-  aspect-ratio: 1;
+const CharacterButton = styled.button<{ selected: boolean }>`
+  padding: ${({ theme }) => theme.spacing.sm};
   border: 2px solid ${({ theme, selected }) => 
     selected ? theme.colors.primary : theme.colors.border};
-  border-radius: 8px;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   background: ${({ theme, selected }) => 
-    selected ? `${theme.colors.primary}10` : theme.colors.background.secondary};
+    selected ? theme.colors.primary + '20' : theme.colors.surface};
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: ${({ theme }) => theme.transitions.fast};
   font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
-    background: ${({ theme }) => `${theme.colors.primary}10`};
   }
   
-  &:focus {
-    outline: 2px solid ${({ theme }) => theme.colors.primary};
-    outline-offset: 2px;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
-const CharacterError = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  font-size: 0.75rem;
-  margin-top: 0.25rem;
+const FieldLabel = styled.label`
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.primary};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
 `;
 
+const LinkText = styled.p`
+  text-align: center;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: 0.9rem;
+  
+  a {
+    color: ${({ theme }) => theme.colors.primary};
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
+const characters = ['🐱', '🐶', '🐺', '🦊', '🐻', '🐨', '🐯', '🦁'];
+
 interface RegisterFormProps {
-  onSwitchToLogin?: () => void;
   onSuccess?: () => void;
 }
 
-const CHARACTERS = ['👨', '👩', '🧑', '👦', '👧', '🧓', '👴', '👵'];
-
-const validateUsername = (username: string): string | null => {
-  if (!username.trim()) {
-    return 'Username is required';
-  }
-  if (username.length < 3) {
-    return 'Username must be at least 3 characters';
-  }
-  if (username.length > 20) {
-    return 'Username must be less than 20 characters';
-  }
-  if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-    return 'Username can only contain letters, numbers, hyphens, and underscores';
-  }
-  return null;
-};
-
-const validatePassword = (password: string): string | null => {
-  if (!password) {
-    return 'Password is required';
-  }
-  if (password.length < 6) {
-    return 'Password must be at least 6 characters';
-  }
-  return null;
-};
-
-const validateConfirmPassword = (password: string, confirmPassword: string): string | null => {
-  if (!confirmPassword) {
-    return 'Please confirm your password';
-  }
-  if (password !== confirmPassword) {
-    return 'Passwords do not match';
-  }
-  return null;
-};
-
-const validateCharacter = (character: string): string | null => {
-  if (!character) {
-    return 'Please select a character';
-  }
-  return null;
-};
-
-export const RegisterForm: React.FC<RegisterFormProps> = ({
-  onSwitchToLogin,
-  onSuccess,
-}) => {
-  const { register, isLoading, error, clearError } = useAuthStore();
-  const [formData, setFormData] = useState<RegisterFormData>({
-    username: { value: '', error: null, touched: false, valid: false },
-    password: { value: '', error: null, touched: false, valid: false },
-    confirmPassword: { value: '', error: null, touched: false, valid: false },
-    character: { value: '', error: null, touched: false, valid: false },
+export function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+    character: '',
   });
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { register, error, clearError, isLoading } = useAuth();
+  const navigate = useNavigate();
 
-  const handleInputChange = (field: keyof Omit<RegisterFormData, 'character'>) => (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
-    let error: string | null = null;
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
     
-    switch (field) {
-      case 'username':
-        error = validateUsername(value);
-        break;
-      case 'password':
-        error = validatePassword(value);
-        // Also revalidate confirm password if it's been touched
-        if (formData.confirmPassword.touched) {
-          const confirmError = validateConfirmPassword(value, formData.confirmPassword.value);
-          setFormData(prev => ({
-            ...prev,
-            confirmPassword: {
-              ...prev.confirmPassword,
-              error: confirmError,
-              valid: !confirmError,
-            },
-          }));
-        }
-        break;
-      case 'confirmPassword':
-        error = validateConfirmPassword(formData.password.value, value);
-        break;
+    // Username validation
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.length > 20) {
+      errors.username = 'Username must be less than 20 characters';
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+      errors.username = 'Username can only contain letters, numbers, hyphens, and underscores';
     }
+    
+    // Password validation
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+    
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    
+    // Character validation
+    if (!formData.character) {
+      errors.character = 'Please select a character';
+    }
+    
+    return errors;
+  };
 
-    setFormData(prev => ({
-      ...prev,
-      [field]: {
-        value,
-        error,
-        touched: true,
-        valid: !error,
-      },
-    }));
-
-    // Clear global error when user starts typing
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation errors for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
+    // Clear API error when user starts typing
     if (error) {
       clearError();
     }
   };
 
   const handleCharacterSelect = (character: string) => {
-    const error = validateCharacter(character);
+    setFormData(prev => ({ ...prev, character }));
     
-    setFormData(prev => ({
-      ...prev,
-      character: {
-        value: character,
-        error,
-        touched: true,
-        valid: !error,
-      },
-    }));
-
-    clearError();
+    // Clear character validation error
+    if (validationErrors.character) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.character;
+        return newErrors;
+      });
+    }
   };
 
-  const handleInputBlur = (field: keyof RegisterFormData) => () => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        touched: true,
-      },
-    }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    // Validate all fields
-    const usernameError = validateUsername(formData.username.value);
-    const passwordError = validatePassword(formData.password.value);
-    const confirmPasswordError = validateConfirmPassword(
-      formData.password.value, 
-      formData.confirmPassword.value
-    );
-    const characterError = validateCharacter(formData.character.value);
-    
-    const updatedFormData = {
-      username: {
-        ...formData.username,
-        error: usernameError,
-        touched: true,
-        valid: !usernameError,
-      },
-      password: {
-        ...formData.password,
-        error: passwordError,
-        touched: true,
-        valid: !passwordError,
-      },
-      confirmPassword: {
-        ...formData.confirmPassword,
-        error: confirmPasswordError,
-        touched: true,
-        valid: !confirmPasswordError,
-      },
-      character: {
-        ...formData.character,
-        error: characterError,
-        touched: true,
-        valid: !characterError,
-      },
-    };
-    
-    setFormData(updatedFormData);
-    
-    if (usernameError || passwordError || confirmPasswordError || characterError) {
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       return;
     }
 
+    setIsSubmitting(true);
+    
     try {
       await register({
-        username: formData.username.value,
-        password: formData.password.value,
-        character: formData.character.value,
+        username: formData.username.trim(),
+        password: formData.password,
+        character: formData.character,
       });
+      
       onSuccess?.();
-    } catch (error) {
-      // Error is handled by the store
-      console.error('Registration failed:', error);
+      navigate('/lobby');
+    } catch (err) {
+      console.error('Registration failed:', err);
+      // Error is handled by the auth store
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const isFormValid = 
-    formData.username.valid && 
-    formData.password.valid && 
-    formData.confirmPassword.valid && 
-    formData.character.valid;
+  const isFormValid = Object.keys(validateForm()).length === 0;
 
   return (
-    <FormContainer onSubmit={handleSubmit}>
-      <Title>Create Account</Title>
+    <FormContainer>
+      <Title>Join Learn2Play!</Title>
       
-      {error && (
-        <ErrorMessage>
-          {error}
-        </ErrorMessage>
-      )}
-      
-      <Input
-        type="text"
-        label="Username"
-        placeholder="Choose a username"
-        value={formData.username.value}
-        onChange={handleInputChange('username')}
-        onBlur={handleInputBlur('username')}
-        error={formData.username.touched ? (formData.username.error || false) : false}
-        required
-        autoComplete="username"
-        disabled={isLoading}
-        fullWidth
-      />
-      
-      <Input
-        type="password"
-        label="Password"
-        placeholder="Create a password"
-        value={formData.password.value}
-        onChange={handleInputChange('password')}
-        onBlur={handleInputBlur('password')}
-        error={formData.password.touched ? (formData.password.error || false) : false}
-        required
-        autoComplete="new-password"
-        disabled={isLoading}
-        fullWidth
-      />
-      
-      <Input
-        type="password"
-        label="Confirm Password"
-        placeholder="Confirm your password"
-        value={formData.confirmPassword.value}
-        onChange={handleInputChange('confirmPassword')}
-        onBlur={handleInputBlur('confirmPassword')}
-        error={formData.confirmPassword.touched ? (formData.confirmPassword.error || false) : false}
-        required
-        autoComplete="new-password"
-        disabled={isLoading}
-        fullWidth
-      />
-      
-      <CharacterSection>
-        <CharacterLabel>
-          Choose your character *
-        </CharacterLabel>
-        <CharacterGrid>
-          {CHARACTERS.map((char) => (
-            <CharacterOption
-              key={char}
-              type="button"
-              selected={formData.character.value === char}
-              onClick={() => handleCharacterSelect(char)}
-              disabled={isLoading}
-            >
-              {char}
-            </CharacterOption>
-          ))}
-        </CharacterGrid>
-        {formData.character.touched && formData.character.error && (
-          <CharacterError>
-            {formData.character.error}
-          </CharacterError>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <FieldLabel>Username</FieldLabel>
+          <Input
+            type="text"
+            name="username"
+            placeholder="Choose a username"
+            value={formData.username}
+            onChange={handleInputChange}
+            required
+            autoComplete="username"
+            disabled={isLoading || isSubmitting}
+            error={validationErrors.username}
+          />
+        </div>
+        
+        <div>
+          <FieldLabel>Password</FieldLabel>
+          <Input
+            type="password"
+            name="password"
+            placeholder="Choose a password"
+            value={formData.password}
+            onChange={handleInputChange}
+            required
+            autoComplete="new-password"
+            disabled={isLoading || isSubmitting}
+            error={validationErrors.password}
+          />
+        </div>
+        
+        <div>
+          <FieldLabel>Confirm Password</FieldLabel>
+          <Input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            required
+            autoComplete="new-password"
+            disabled={isLoading || isSubmitting}
+            error={validationErrors.confirmPassword}
+          />
+        </div>
+        
+        <div>
+          <FieldLabel>Choose Your Character</FieldLabel>
+          <CharacterGrid>
+            {characters.map((char) => (
+              <CharacterButton
+                key={char}
+                type="button"
+                selected={formData.character === char}
+                onClick={() => handleCharacterSelect(char)}
+                disabled={isLoading || isSubmitting}
+              >
+                {char}
+              </CharacterButton>
+            ))}
+          </CharacterGrid>
+          {validationErrors.character && (
+            <ErrorMessage>{validationErrors.character}</ErrorMessage>
+          )}
+        </div>
+        
+        {error && (
+          <ErrorMessage>
+            {error}
+          </ErrorMessage>
         )}
-      </CharacterSection>
-      
-      <Button
-        type="submit"
-        loading={isLoading}
-        disabled={!isFormValid}
-        fullWidth
-        size="large"
-      >
-        Create Account
-      </Button>
-      
-      {onSwitchToLogin && (
-        <LinkButton
-          type="button"
-          onClick={onSwitchToLogin}
-          disabled={isLoading}
+        
+        <Button
+          type="submit"
+          disabled={!isFormValid || isLoading || isSubmitting}
+          loading={isLoading || isSubmitting}
+          fullWidth
         >
-          Already have an account? Sign in
-        </LinkButton>
-      )}
+          {isSubmitting ? 'Creating Account...' : 'Create Account'}
+        </Button>
+      </form>
+      
+      <LinkText>
+        Already have an account?{' '}
+        <a href="/login" onClick={(e) => {
+          e.preventDefault();
+          navigate('/login');
+        }}>
+          Sign in here
+        </a>
+      </LinkText>
     </FormContainer>
   );
-};
-
-export default RegisterForm; 
+} 

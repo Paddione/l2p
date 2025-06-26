@@ -15,7 +15,10 @@ import {
 } from '../types/api';
 
 // Configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://10.0.0.44:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (window.location.protocol === 'https:' ? 
+    `https://${window.location.host}/api` : 
+    `http://${window.location.host}/api`);
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;
@@ -242,18 +245,43 @@ class ApiClient {
     return response.data;
   }
 
+  async getLeaderboard(catalog: string, limit: number = 10): Promise<{ catalog: string; leaderboard: any[]; total: number; }> {
+    const response: AxiosResponse<{ catalog: string; leaderboard: any[]; total: number; }> = 
+      await this.client.get(`/hall-of-fame/leaderboard/${encodeURIComponent(catalog)}?limit=${limit}`);
+    return response.data;
+  }
+
+  async getHallOfFameCatalogs(limit: number = 10): Promise<{ catalogs: any[]; total: number; }> {
+    const response: AxiosResponse<{ catalogs: any[]; total: number; }> = 
+      await this.client.get(`/hall-of-fame/catalogs?limit=${limit}`);
+    return response.data;
+  }
+
+  async getMyHallOfFameEntries(limit: number = 50): Promise<{ entries: any[]; total: number; }> {
+    const response: AxiosResponse<{ entries: any[]; total: number; }> = 
+      await this.client.get(`/hall-of-fame/my-entries?limit=${limit}`);
+    return response.data;
+  }
+
+  async getPlayerHallOfFameEntries(userId: number, limit: number = 10): Promise<{ userId: number; entries: any[]; total: number; isOwnData: boolean; }> {
+    const response: AxiosResponse<{ userId: number; entries: any[]; total: number; isOwnData: boolean; }> = 
+      await this.client.get(`/hall-of-fame/player/${userId}?limit=${limit}`);
+    return response.data;
+  }
+
   async addHallOfFameEntry(entry: Omit<HallOfFameEntry, 'id' | 'achieved_at'>): Promise<HallOfFameEntry> {
     const response: AxiosResponse<HallOfFameEntry> = await this.client.post('/hall-of-fame', entry);
     return response.data;
   }
 
-  async getCatalogs(limit: number = 50): Promise<Catalog[]> {
-    const params = new URLSearchParams();
-    if (limit) params.append('limit', limit.toString());
-    
-    const endpoint = `/hall-of-fame/catalogs${params.toString() ? '?' + params.toString() : ''}`;
-    const response: AxiosResponse<Catalog[]> = await this.client.get(endpoint);
-    return response.data;
+  async getCatalogs(): Promise<Catalog[]> {
+    const response: AxiosResponse<any[]> = await this.client.get('/question-sets');
+    return response.data.map((qs: any) => ({
+      name: qs.name,
+      display_name: qs.description || qs.name,
+      question_count: qs.question_count,
+      created_at: qs.created_at
+    }));
   }
 
   // Lobby endpoints

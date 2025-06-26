@@ -1,0 +1,239 @@
+# 🧩 Component Interaction Diagram
+
+This document provides a visual representation of how the React components interact within the Learn2Play system.
+
+## 🏗️ Application Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        App.tsx (Root)                          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                QueryClientProvider                      │   │
+│  │  ┌─────────────────────────────────────────────────┐   │   │
+│  │  │                ThemeProvider                    │   │   │
+│  │  │  ┌─────────────────────────────────────────┐   │   │   │
+│  │  │  │            NotificationProvider         │   │   │   │
+│  │  │  │  ┌─────────────────────────────────┐   │   │   │   │
+│  │  │  │  │          AuthProvider           │   │   │   │   │
+│  │  │  │  │  ┌─────────────────────────┐   │   │   │   │   │
+│  │  │  │  │  │        Router           │   │   │   │   │   │
+│  │  │  │  │  │  ┌─────────────────┐   │   │   │   │   │   │
+│  │  │  │  │  │  │     Layout      │   │   │   │   │   │   │
+│  │  │  │  │  │  │  ┌─────────┐   │   │   │   │   │   │   │
+│  │  │  │  │  │  │  │ Routes  │   │   │   │   │   │   │   │
+│  │  │  │  │  │  │  └─────────┘   │   │   │   │   │   │   │
+│  │  │  │  │  │  └─────────────────┘   │   │   │   │   │   │
+│  │  │  │  │  └─────────────────────────┘   │   │   │   │   │
+│  │  │  │  └─────────────────────────────────┘   │   │   │   │
+│  │  │  └─────────────────────────────────────────┘   │   │   │
+│  │  └─────────────────────────────────────────────────┘   │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 🔐 Authentication Flow
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   LoginPage     │    │  RegisterPage   │    │   HomePage      │
+│                 │    │                 │    │                 │
+│ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
+│ │ LoginForm   │ │    │ │RegisterForm │ │    │ │ User Status │ │
+│ │             │ │    │ │             │ │    │ │ Display     │ │
+│ │ - Username  │ │    │ │ - Username  │ │    │ │             │ │
+│ │ - Password  │ │    │ │ - Password  │ │    │ │ - Welcome   │ │
+│ │ - Submit    │ │    │ │ - Confirm   │ │    │ │ - Navigation│ │
+│ │ - Navigate  │ │    │ │ - Character │ │    │ │             │ │
+│ └─────────────┘ │    │ │ - Submit    │ │    │ └─────────────┘ │
+└─────────────────┘    │ │ - Navigate  │ │    └─────────────────┘
+                       │ └─────────────┘ │                      
+                       └─────────────────┘                      
+           │                    │                    │           
+           └────────────────────┼────────────────────┘           
+                                │                                
+                    ┌─────────────────┐                        
+                    │  AuthProvider   │                        
+                    │                 │                        
+                    │ ┌─────────────┐ │                        
+                    │ │ useAuth()   │ │                        
+                    │ │             │ │                        
+                    │ │ - login()   │ │                        
+                    │ │ - register()│ │                        
+                    │ │ - logout()  │ │                        
+                    │ │ - user      │ │                        
+                    │ │ - isAuth    │ │                        
+                    │ └─────────────┘ │                        
+                    └─────────────────┘                        
+                                │                                
+                    ┌─────────────────┐                        
+                    │  useAuthStore   │                        
+                    │                 │                        
+                    │ - State Mgmt    │                        
+                    │ - Persistence   │                        
+                    │ - API Calls     │                        
+                    └─────────────────┘                        
+```
+
+## 🎮 Game Flow Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   LobbyPage     │───▶│    GamePage     │───▶│ HallOfFamePage  │
+│                 │    │                 │    │                 │
+│ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
+│ │ LobbyCreation│ │    │ │QuestionDisp │ │    │ │ Leaderboard │ │
+│ │             │ │    │ │             │ │    │ │             │ │
+│ │ - Game Code │ │    │ │ - Question  │ │    │ │ - Top Scores│ │
+│ │ - Players   │ │    │ │ - Answers   │ │    │ │ - Medals    │ │
+│ │ - Settings  │ │    │ │ - Timer     │ │    │ │ - Stats     │ │
+│ │ - Start     │ │    │ │ - Score     │ │    │ │ - Upload    │ │
+│ └─────────────┘ │    │ │ - Progress  │ │    │ └─────────────┘ │
+│                 │    │ └─────────────┘ │    │                 │
+│ ┌─────────────┐ │    │                 │    │                 │
+│ │ Player List │ │    │ ┌─────────────┐ │    │                 │
+│ │             │ │    │ │ Multiplayer │ │    │                 │
+│ │ - Avatars   │ │    │ │ Status      │ │    │                 │
+│ │ - Ready     │ │    │ │             │ │    │                 │
+│ │ - Status    │ │    │ │ - Live Feed │ │    │                 │
+│ └─────────────┘ │    │ │ - Scores    │ │    │                 │
+└─────────────────┘    │ │ - Progress  │ │    └─────────────────┘
+                       │ └─────────────┘ │                      
+                       └─────────────────┘                      
+```
+
+## 🌐 Real-time Communication
+
+```
+                    ┌─────────────────────────────────┐
+                    │         WebSocket Server        │
+                    │         (Socket.IO)             │
+                    └─────────────────────────────────┘
+                                     │
+                    ┌─────────────────────────────────┐
+                    │       useWebSocket Hook         │
+                    │                                 │
+                    │ ┌─────────────────────────────┐ │
+                    │ │     Connection Management   │ │
+                    │ │                             │ │
+                    │ │ - connect()                 │ │
+                    │ │ - disconnect()              │ │
+                    │ │ - emit()                    │ │
+                    │ │ - subscribe()               │ │
+                    │ │ - Auto-reconnect            │ │
+                    │ └─────────────────────────────┘ │
+                    └─────────────────────────────────┘
+                                     │
+        ┌────────────────────────────┼────────────────────────────┐
+        │                            │                            │
+┌───────▼───────┐           ┌────────▼────────┐          ┌───────▼───────┐
+│   LobbyPage   │           │    GamePage     │          │  Other Pages  │
+│               │           │                 │          │               │
+│ - Join Events │           │ - Game Events   │          │ - Notifications│
+│ - Leave Events│           │ - Answer Events │          │ - Updates     │
+│ - Ready Events│           │ - Timer Events  │          │               │
+│ - Start Events│           │ - Score Events  │          │               │
+└───────────────┘           └─────────────────┘          └───────────────┘
+```
+
+## 🎨 UI Component Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Layout                                  │
+│                                                                 │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │                      Header                                 │ │
+│ │                                                             │ │
+│ │              Learn2Play Title                               │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│ ┌─────────────────────────────────────────────────────────────┐ │
+│ │                      Main Content                           │ │
+│ │                                                             │ │
+│ │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │ │
+│ │  │   Button    │ │    Input    │ │    Modal    │          │ │
+│ │  │             │ │             │ │             │          │ │
+│ │  │ - Variants  │ │ - Validation│ │ - Overlay   │          │ │
+│ │  │ - Sizes     │ │ - Error Msg │ │ - Content   │          │ │
+│ │  │ - Loading   │ │ - Icons     │ │ - Actions   │          │ │
+│ │  │ - Disabled  │ │ - Disabled  │ │ - Animation │          │ │
+│ │  └─────────────┘ └─────────────┘ └─────────────┘          │ │
+│ │                                                             │ │
+│ │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │ │
+│ │  │LoadingSpinner│ │ErrorBoundary│ │Notifications│          │ │
+│ │  │             │ │             │ │             │          │ │
+│ │  │ - Animation │ │ - Catch     │ │ - Toast     │          │ │
+│ │  │ - Size      │ │ - Display   │ │ - Types     │          │ │
+│ │  │ - Color     │ │ - Reload    │ │ - Animation │          │ │
+│ │  └─────────────┘ └─────────────┘ └─────────────┘          │ │
+│ └─────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 🔄 State Management Flow
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  User Actions   │───▶│   Components    │───▶│   State Stores  │
+│                 │    │                 │    │                 │
+│ - Login         │    │ - LoginForm     │    │ - useAuthStore  │
+│ - Register      │    │ - RegisterForm  │    │ - useGameStore  │
+│ - Join Game     │    │ - LobbyPage     │    │ - Persistence   │
+│ - Answer Qs     │    │ - GamePage      │    │ - API Calls     │
+│ - View Scores   │    │ - HallOfFame    │    │ - Validation    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │   API Client    │    │   Local Storage │
+                       │                 │    │                 │
+                       │ - HTTP Requests │    │ - Auth Tokens   │
+                       │ - Error Handling│    │ - User Prefs    │
+                       │ - Retry Logic   │    │ - Game State    │
+                       │ - Auth Headers  │    │ - Settings      │
+                       └─────────────────┘    └─────────────────┘
+                                │                        
+                                ▼                        
+                       ┌─────────────────┐              
+                       │  Backend API    │              
+                       │                 │              
+                       │ - Authentication│              
+                       │ - Game Logic    │              
+                       │ - WebSocket     │              
+                       │ - Database      │              
+                       └─────────────────┘              
+```
+
+## 🔧 Development Workflow
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Development   │───▶│     Build       │───▶│   Production    │
+│                 │    │                 │    │                 │
+│ - Hot Reload    │    │ - TypeScript    │    │ - Docker        │
+│ - Dev Server    │    │ - Vite Build    │    │ - Nginx         │
+│ - Linting       │    │ - Optimization  │    │ - SSL/HTTPS     │
+│ - Type Check    │    │ - Minification  │    │ - Load Balancer │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## 🧪 Integration Points
+
+### Frontend ↔ Backend
+- **Authentication**: JWT tokens, login/register endpoints
+- **Game Data**: REST API for game setup, WebSocket for real-time
+- **Scoring**: API calls for score submission and leaderboards
+
+### Component ↔ Component  
+- **Auth Provider**: Shared authentication state across all components
+- **Notification System**: Global toast notifications from any component
+- **Theme Provider**: Consistent styling across all UI components
+
+### External Integrations
+- **Database**: PostgreSQL for persistent data storage
+- **Reverse Proxy**: Traefik for SSL termination and routing
+- **Container Orchestration**: Docker Compose for service management
+
+---
+
+This diagram helps visualize the interconnected nature of the Learn2Play system and serves as a reference for understanding component relationships and data flow. 

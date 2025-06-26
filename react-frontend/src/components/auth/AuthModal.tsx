@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
+import { LoginForm } from './LoginForm';
+import { RegisterForm } from './RegisterForm';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,9 +23,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
-  const handleSwitchToLogin = () => setMode('login');
-  const handleSwitchToRegister = () => setMode('register');
-
   return (
     <Modal 
       isOpen={isOpen} 
@@ -33,16 +30,38 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       size="small"
       showCloseButton={false}
     >
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+        <button
+          onClick={() => setMode('login')}
+          style={{
+            padding: '0.5rem 1rem',
+            border: 'none',
+            background: mode === 'login' ? '#007bff' : 'transparent',
+            color: mode === 'login' ? 'white' : '#007bff',
+            cursor: 'pointer',
+            borderRadius: '4px 0 0 4px',
+          }}
+        >
+          Login
+        </button>
+        <button
+          onClick={() => setMode('register')}
+          style={{
+            padding: '0.5rem 1rem',
+            border: 'none',
+            background: mode === 'register' ? '#007bff' : 'transparent',
+            color: mode === 'register' ? 'white' : '#007bff',
+            cursor: 'pointer',
+            borderRadius: '0 4px 4px 0',
+          }}
+        >
+          Register
+        </button>
+      </div>
       {mode === 'login' ? (
-        <LoginForm
-          onSwitchToRegister={handleSwitchToRegister}
-          onSuccess={handleSuccess}
-        />
+        <LoginForm onSuccess={handleSuccess} />
       ) : (
-        <RegisterForm
-          onSwitchToLogin={handleSwitchToLogin}
-          onSuccess={handleSuccess}
-        />
+        <RegisterForm onSuccess={handleSuccess} />
       )}
     </Modal>
   );

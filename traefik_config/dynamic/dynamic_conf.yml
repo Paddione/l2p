@@ -20,7 +20,7 @@ http:
         contentTypeNosniff: true
         browserXssFilter: true
         referrerPolicy: "strict-origin-when-cross-origin"
-        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
+        contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://10.0.0.44 https://game.korczewski.de https://l2p.korczewski.de ws://10.0.0.44 wss://game.korczewski.de wss://l2p.korczewski.de"
     
     contenttype-fix:
       contentType: {}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../components/auth/AuthProvider';
 import type { WebSocketMessage, WebSocketState } from '../types/game';
 
 interface UseWebSocketOptions {
@@ -21,13 +21,17 @@ interface UseWebSocketReturn extends WebSocketState {
 
 export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketReturn => {
   const {
-    url = import.meta.env.VITE_WS_URL || 'http://localhost:3001',
+    url = import.meta.env.VITE_WS_URL || 
+      (window.location.protocol === 'https:' ? 
+        `wss://${window.location.host}` : 
+        `ws://${window.location.host}`),
     autoConnect = true,
     reconnectAttempts = 5,
     reconnectDelay = 1000,
   } = options;
 
-  const { token, isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuth();
+  const token = localStorage.getItem('jwtToken');
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventListenersRef = useRef<Map<string, Set<(data: any) => void>>>(new Map());

@@ -1,6 +1,8 @@
 // Export all authentication components
-export { default as LoginForm } from './LoginForm';
-export { default as RegisterForm } from './RegisterForm';
-export { default as AuthModal } from './AuthModal';
+export { LoginForm } from './LoginForm';
+export { RegisterForm } from './RegisterForm';
+export { AuthModal } from './AuthModal';
+export { AuthProvider, useAuth } from './AuthProvider';
+export { ProtectedRoute } from './ProtectedRoute';
 
 // Note: AuthProvider and ProtectedRoute are placeholders and need to be implemented 
