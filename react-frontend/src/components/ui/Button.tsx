@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import styled, { css } from 'styled-components';
+import { LoadingSpinner } from './LoadingSpinner';
+import { useAudio } from '../../hooks/useAudio';
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -12,6 +14,7 @@ interface ButtonProps {
   children: React.ReactNode;
   className?: string;
   testId?: string;
+  enableSound?: boolean;
 }
 
 const ButtonBase = styled.button<ButtonProps>`
@@ -120,54 +123,63 @@ const ButtonBase = styled.button<ButtonProps>`
   }}
 `;
 
-const LoadingSpinner = styled.div`
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+const LoadingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.sm};
 `;
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'medium',
-  disabled = false,
-  loading = false,
-  fullWidth = false,
-  onClick,
-  type = 'button',
-  children,
-  className,
-  testId,
-  ...props
-}) => {
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (loading || disabled) return;
-    onClick?.(event);
-  };
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ 
+    variant = 'primary',
+    size = 'medium',
+    disabled = false,
+    loading = false,
+    fullWidth = false,
+    enableSound = true,
+    onClick,
+    type = 'button',
+    children,
+    className,
+    testId,
+    ...props
+  }, ref) => {
+    const { playButtonClick } = useAudio();
 
-  return (
-    <ButtonBase
-      variant={variant}
-      size={size}
-      disabled={disabled || loading}
-      fullWidth={fullWidth}
-      onClick={handleClick}
-      type={type}
-      className={className}
-      data-testid={testId}
-      {...props}
-    >
-      {loading && <LoadingSpinner />}
-      {children}
-    </ButtonBase>
-  );
-};
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (loading || disabled) return;
+      if (enableSound && !disabled && !loading) {
+        playButtonClick();
+      }
+      onClick?.(event);
+    };
+
+    return (
+      <ButtonBase
+        ref={ref}
+        variant={variant}
+        size={size}
+        disabled={disabled || loading}
+        fullWidth={fullWidth}
+        onClick={handleClick}
+        type={type}
+        className={className}
+        data-testid={testId}
+        {...props}
+      >
+        {loading ? (
+          <LoadingContainer>
+            <LoadingSpinner />
+            {children}
+          </LoadingContainer>
+        ) : (
+          children
+        )}
+      </ButtonBase>
+    );
+  }
+);
+
+Button.displayName = 'Button';
 
 export default Button; 

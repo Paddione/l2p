@@ -18,6 +18,7 @@ import { HallOfFamePage } from './pages/HallOfFamePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { NotificationProvider } from './components/ui/NotificationProvider';
+import { AudioControlWidget } from './components/ui/AudioSettings';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -71,6 +72,7 @@ function App() {
                     <Route path="*" element={<div>Page not found</div>} />
                   </Routes>
                 </Layout>
+                <AudioControlWidget />
               </Router>
             </AuthProvider>
           </NotificationProvider>

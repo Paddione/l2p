@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useAudio } from '../../hooks/useAudio';
 
 interface Notification {
   id: string;
@@ -121,6 +122,7 @@ interface NotificationProviderProps {
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [leavingIds, setLeavingIds] = useState<Set<string>>(new Set());
+  const { playNotification, playCorrectAnswer, playIncorrectAnswer } = useAudio();
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -134,13 +136,30 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
     setNotifications(prev => [...prev, newNotification]);
 
+    // Play appropriate sound based on notification type
+    switch (newNotification.type) {
+      case 'success':
+        playCorrectAnswer();
+        break;
+      case 'error':
+        playIncorrectAnswer();
+        break;
+      case 'warning':
+      case 'info':
+        playNotification();
+        break;
+      default:
+        playNotification();
+        break;
+    }
+
     // Auto-hide after duration
     if (newNotification.duration && newNotification.duration > 0) {
       setTimeout(() => {
         hideNotification(id);
       }, newNotification.duration);
     }
-  }, []);
+  }, [playNotification, playCorrectAnswer, playIncorrectAnswer]);
 
   const hideNotification = useCallback((id: string) => {
     setLeavingIds(prev => new Set(prev).add(id));
