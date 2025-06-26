@@ -2,9 +2,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ThemeProvider } from 'styled-components';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { theme } from './styles/theme';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Import components (will be created later)
 import { AuthProvider } from './components/auth/AuthProvider';
@@ -38,9 +38,10 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <GlobalStyles />
-          <NotificationProvider>
+        <LanguageProvider>
+          <ThemeProvider>
+            <GlobalStyles />
+            <NotificationProvider>
             <AuthProvider>
               <Router>
                 <Layout>
@@ -77,6 +78,7 @@ function App() {
             </AuthProvider>
           </NotificationProvider>
         </ThemeProvider>
+        </LanguageProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </ErrorBoundary>
