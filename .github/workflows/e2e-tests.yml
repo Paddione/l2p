@@ -1,0 +1,240 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+        cd ../e2e && npm ci
+        
+    - name: Install Playwright browsers
+      run: cd e2e && npx playwright install --with-deps
+      
+    - name: Create .env for testing
+      run: |
+        cat > .env << EOF
+        # Test Environment Configuration
+        NODE_ENV=test
+        
+        # Database
+        POSTGRES_DB=learn2play_test
+        POSTGRES_USER=test_user
+        POSTGRES_PASSWORD=test_password
+        DATABASE_URL=postgresql://test_user:test_password@localhost:5433/learn2play_test
+        
+        # Backend
+        BACKEND_PORT=3001
+        JWT_SECRET=test-jwt-secret-for-ci-only
+        JWT_REFRESH_SECRET=test-jwt-refresh-secret-for-ci-only
+        FRONTEND_URL=http://localhost:3000
+        
+        # Frontend
+        VITE_API_URL=http://localhost:3001/api
+        VITE_SOCKET_URL=http://localhost:3001
+        
+        # Other
+        DB_SSL=false
+        LOG_LEVEL=warn
+        EOF
+        
+    - name: Start test environment
+      run: |
+        docker-compose --profile test up -d
+        
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for backend to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+        echo "Waiting for frontend to be ready..."
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+        
+    - name: Run E2E tests
+      run: |
+        cd e2e
+        npx playwright test --project=${{ matrix.browser }}
+      env:
+        BASE_URL: http://localhost:3000
+        API_URL: http://localhost:3001/api
+        SOCKET_URL: http://localhost:3001
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-${{ matrix.browser }}
+        path: e2e/playwright-report/
+        retention-days: 30
+        
+    - name: Upload test videos
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-videos-${{ matrix.browser }}
+        path: e2e/test-results/
+        retention-days: 30
+        
+    - name: Stop test environment
+      if: always()
+      run: |
+        docker-compose --profile test down
+        
+  smoke-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+        cd ../e2e && npm ci
+        
+    - name: Install Playwright browsers
+      run: cd e2e && npx playwright install chromium
+      
+    - name: Create .env for testing
+      run: |
+        cat > .env << EOF
+        NODE_ENV=test
+        POSTGRES_DB=learn2play_test
+        POSTGRES_USER=test_user
+        POSTGRES_PASSWORD=test_password
+        DATABASE_URL=postgresql://test_user:test_password@localhost:5433/learn2play_test
+        BACKEND_PORT=3001
+        JWT_SECRET=test-jwt-secret-for-ci-only
+        JWT_REFRESH_SECRET=test-jwt-refresh-secret-for-ci-only
+        FRONTEND_URL=http://localhost:3000
+        VITE_API_URL=http://localhost:3001/api
+        VITE_SOCKET_URL=http://localhost:3001
+        DB_SSL=false
+        LOG_LEVEL=warn
+        EOF
+        
+    - name: Start test environment
+      run: docker-compose --profile test up -d
+        
+    - name: Wait for services
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+        
+    - name: Run smoke tests only
+      run: cd e2e && npm run test:smoke
+      
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request' && failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '🚨 Smoke tests failed for this PR. Please check the test results and fix any issues before merging.'
+          })
+          
+    - name: Stop test environment
+      if: always()
+      run: docker-compose --profile test down
+      
+  accessibility-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        cd ../backend && npm ci
+        cd ../e2e && npm ci
+        
+    - name: Install Playwright browsers
+      run: cd e2e && npx playwright install chromium
+      
+    - name: Create .env for testing
+      run: |
+        cat > .env << EOF
+        NODE_ENV=test
+        POSTGRES_DB=learn2play_test
+        POSTGRES_USER=test_user
+        POSTGRES_PASSWORD=test_password
+        DATABASE_URL=postgresql://test_user:test_password@localhost:5433/learn2play_test
+        BACKEND_PORT=3001
+        JWT_SECRET=test-jwt-secret-for-ci-only
+        JWT_REFRESH_SECRET=test-jwt-refresh-secret-for-ci-only
+        FRONTEND_URL=http://localhost:3000
+        VITE_API_URL=http://localhost:3001/api
+        VITE_SOCKET_URL=http://localhost:3001
+        DB_SSL=false
+        LOG_LEVEL=warn
+        EOF
+        
+    - name: Start test environment
+      run: docker-compose --profile test up -d
+        
+    - name: Wait for services
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+        
+    - name: Run accessibility tests
+      run: cd e2e && npm run test:accessibility
+      
+    - name: Upload accessibility report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: accessibility-report
+        path: e2e/playwright-report/
+        retention-days: 30
+        
+    - name: Stop test environment
+      if: always()
+      run: docker-compose --profile test down 

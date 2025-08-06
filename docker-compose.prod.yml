@@ -1,0 +1,402 @@
+# Production Docker Compose configuration with optimized settings
+# This file contains production-specific configurations with security hardening,
+# monitoring, logging, and performance optimizations
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database with production optimizations
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-l2p-postgres}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-learn2play}
+      POSTGRES_USER: ${POSTGRES_USER:-l2p_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      # Performance tuning
+      POSTGRES_SHARED_PRELOAD_LIBRARIES: "pg_stat_statements"
+      POSTGRES_MAX_CONNECTIONS: "200"
+      POSTGRES_SHARED_BUFFERS: "256MB"
+      POSTGRES_EFFECTIVE_CACHE_SIZE: "1GB"
+      POSTGRES_WORK_MEM: "4MB"
+      POSTGRES_MAINTENANCE_WORK_MEM: "64MB"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./database/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    networks:
+      - l2p-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-l2p_user} -d ${POSTGRES_DB:-learn2play}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+
+  # Backend API with production optimizations
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      cache_from:
+        - node:18-alpine
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: learn2play/backend:${VERSION:-latest}
+    container_name: ${BACKEND_CONTAINER_NAME:-l2p-api}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: ${BACKEND_PORT:-3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-l2p_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-learn2play}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL}
+      DB_SSL: ${DB_SSL:-true}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SECURE: ${SMTP_SECURE}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_SENDER_ADDRESS: ${EMAIL_SENDER_ADDRESS}
+      EMAIL_SENDER_NAME: ${EMAIL_SENDER_NAME}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID}
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
+      CHROMA_PATH: /app/chroma/chroma_db
+      # Production logging and monitoring
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: json
+      ENABLE_METRICS: "true"
+      METRICS_PORT: "9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - l2p-network
+    volumes:
+      - chroma_data:/app/chroma:rw
+      - backend_logs:/app/logs:rw
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-api.entrypoints=websecure"
+      - "traefik.http.routers.backend-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.backend-api.priority=100"
+      - "traefik.http.routers.backend-socket.rule=Host(`${DOMAIN}`) && PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.backend-socket.entrypoints=websecure"
+      - "traefik.http.routers.backend-socket.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.backend-socket.priority=100"
+      - "traefik.http.services.backend.loadbalancer.server.port=3001"
+      # Health check configuration
+      - "traefik.http.services.backend.loadbalancer.healthcheck.path=/api/health"
+      - "traefik.http.services.backend.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.backend.loadbalancer.healthcheck.timeout=10s"
+      # Rate limiting
+      - "traefik.http.middlewares.backend-ratelimit.ratelimit.burst=100"
+      - "traefik.http.middlewares.backend-ratelimit.ratelimit.average=50"
+      - "traefik.http.routers.backend-api.middlewares=backend-ratelimit@docker"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+
+  # ChromaDB Vector Database with production settings
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: ${CHROMA_CONTAINER_NAME:-l2p-chroma}
+    restart: unless-stopped
+    environment:
+      CHROMA_SERVER_HOST: 0.0.0.0
+      CHROMA_SERVER_HTTP_PORT: 8000
+      CHROMA_SERVER_CORS_ALLOW_ORIGINS: "*"
+      # Production settings
+      CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: ${CHROMA_AUTH_PROVIDER:-}
+      CHROMA_SERVER_AUTH_CREDENTIALS: ${CHROMA_AUTH_CREDENTIALS:-}
+      CHROMA_TELEMETRY_ANONYMIZED: "false"
+    volumes:
+      - chroma_data:/chroma/chroma:rw
+    networks:
+      - l2p-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+
+  # Frontend React App with production optimizations
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+      cache_from:
+        - node:18-alpine
+        - nginx:alpine
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: learn2play/frontend:${VERSION:-latest}
+    container_name: ${FRONTEND_CONTAINER_NAME:-l2p-app}
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_SOCKET_URL: ${VITE_SOCKET_URL}
+    depends_on:
+      - backend
+    networks:
+      - l2p-network
+    volumes:
+      - frontend_logs:/var/log/nginx:rw
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend.priority=1"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      # Health check configuration
+      - "traefik.http.services.frontend.loadbalancer.healthcheck.path=/health"
+      - "traefik.http.services.frontend.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.frontend.loadbalancer.healthcheck.timeout=10s"
+      # Security middleware
+      - "traefik.http.middlewares.security-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      # Rate limiting for frontend
+      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.burst=200"
+      - "traefik.http.middlewares.frontend-ratelimit.ratelimit.average=100"
+      # Block common bot requests
+      - "traefik.http.middlewares.bot-block.replacepathregex.regex=^/(.*\\.php|wp-admin|wp-login|xmlrpc\\.php|admin|administrator).*"
+      - "traefik.http.middlewares.bot-block.replacepathregex.replacement=/404"
+      - "traefik.http.routers.frontend.middlewares=security-headers@docker,frontend-ratelimit@docker,bot-block@docker"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+
+  # Traefik Reverse Proxy with production configuration
+  traefik:
+    image: traefik:v3.0
+    container_name: ${TRAEFIK_CONTAINER_NAME:-l2p-proxy}
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      # Production logging and monitoring
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - "--log.filepath=/var/log/traefik/traefik.log"
+      # Metrics and monitoring
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--entrypoints.metrics.address=:8080"
+      - "--metrics.prometheus.entryPoint=metrics"
+      # Security settings
+      - "--global.sendAnonymousUsage=false"
+      - "--serversTransport.insecureSkipVerify=false"
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+      - "${TRAEFIK_METRICS_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt_data:/letsencrypt:rw
+      - traefik_logs:/var/log/traefik:rw
+    networks:
+      - l2p-network
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    security_opt:
+      - no-new-privileges:true
+
+  # Log aggregation service (optional)
+  logrotate:
+    image: alpine:latest
+    container_name: l2p-logrotate
+    restart: unless-stopped
+    volumes:
+      - backend_logs:/logs/backend:rw
+      - frontend_logs:/logs/frontend:rw
+      - traefik_logs:/logs/traefik:rw
+    command: >
+      sh -c "
+        apk add --no-cache logrotate &&
+        echo '
+        /logs/*/*.log {
+          daily
+          rotate 7
+          compress
+          delaycompress
+          missingok
+          notifempty
+          create 644 root root
+        }' > /etc/logrotate.d/app-logs &&
+        while true; do
+          logrotate -f /etc/logrotate.d/app-logs
+          sleep 86400
+        done
+      "
+    networks:
+      - l2p-network
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/postgres
+  letsencrypt_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/letsencrypt
+  chroma_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/chroma
+  backend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOGS_PATH:-./logs}/backend
+  frontend_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOGS_PATH:-./logs}/frontend
+  traefik_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOGS_PATH:-./logs}/traefik
+
+networks:
+  l2p-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: l2p-bridge

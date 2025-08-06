@@ -1,0 +1,1762 @@
+{
+  "generatedAt": "2025-08-06T03:27:47.706Z",
+  "generatedBy": "Test File Discovery Script",
+  "summary": {
+    "totalFiles": 160,
+    "byType": {
+      "unit": 107,
+      "integration": 12,
+      "e2e": 27,
+      "performance": 8,
+      "accessibility": 0,
+      "cli": 6,
+      "orphaned": 0
+    },
+    "byRunner": {
+      "jest": 125,
+      "playwright": 27,
+      "custom": 8,
+      "unknown": 0
+    },
+    "validFiles": 160,
+    "invalidFiles": 0
+  },
+  "categories": {
+    "unit": [
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/unit/example.test.ts",
+        "relativePath": "backend/src/__tests__/unit/example.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 562,
+        "lastModified": "2025-08-05T22:50:24.456Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/middleware/__tests__/AuthMiddleware.test.ts",
+        "relativePath": "backend/src/middleware/__tests__/AuthMiddleware.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 20759,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/middleware/__tests__/ErrorHandler.test.ts",
+        "relativePath": "backend/src/middleware/__tests__/ErrorHandler.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18810,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/middleware/__tests__/FileUploadMiddleware.test.ts",
+        "relativePath": "backend/src/middleware/__tests__/FileUploadMiddleware.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 16812,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/middleware/__tests__/LoggingMiddleware.test.ts",
+        "relativePath": "backend/src/middleware/__tests__/LoggingMiddleware.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 16873,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/middleware/__tests__/ValidationMiddleware.test.ts",
+        "relativePath": "backend/src/middleware/__tests__/ValidationMiddleware.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 23219,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/BaseRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/BaseRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 19826,
+        "lastModified": "2025-08-04T21:24:16.272Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/GameSessionRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/GameSessionRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18459,
+        "lastModified": "2025-08-04T21:25:07.350Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/HallOfFameRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/HallOfFameRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 22507,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/LobbyRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/LobbyRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 36632,
+        "lastModified": "2025-08-04T21:26:46.705Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/QuestionRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/QuestionRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 36866,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/repositories/__tests__/UserRepository.test.ts",
+        "relativePath": "backend/src/repositories/__tests__/UserRepository.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 34589,
+        "lastModified": "2025-08-04T21:18:53.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/AuthService.test.ts",
+        "relativePath": "backend/src/services/__tests__/AuthService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 36754,
+        "lastModified": "2025-08-04T21:18:53.995Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/ChromaService.test.ts",
+        "relativePath": "backend/src/services/__tests__/ChromaService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 25642,
+        "lastModified": "2025-08-04T21:18:53.995Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/DatabaseService.test.ts",
+        "relativePath": "backend/src/services/__tests__/DatabaseService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 25374,
+        "lastModified": "2025-08-02T13:03:29.746Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/EmailService.test.ts",
+        "relativePath": "backend/src/services/__tests__/EmailService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 24896,
+        "lastModified": "2025-08-02T13:03:29.761Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/Example.test.ts",
+        "relativePath": "backend/src/services/__tests__/Example.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 315,
+        "lastModified": "2025-08-02T13:03:29.754Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/FileProcessingService.test.ts",
+        "relativePath": "backend/src/services/__tests__/FileProcessingService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 8658,
+        "lastModified": "2025-08-04T21:18:53.995Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/GameService.test.ts",
+        "relativePath": "backend/src/services/__tests__/GameService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 37671,
+        "lastModified": "2025-08-04T21:18:53.995Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/GeminiService.test.ts",
+        "relativePath": "backend/src/services/__tests__/GeminiService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 33224,
+        "lastModified": "2025-08-02T13:03:29.765Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/LobbyService.test.ts",
+        "relativePath": "backend/src/services/__tests__/LobbyService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 33847,
+        "lastModified": "2025-08-02T13:03:29.747Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/QuestionService.test.ts",
+        "relativePath": "backend/src/services/__tests__/QuestionService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 37600,
+        "lastModified": "2025-08-02T13:03:29.763Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/ScoringService.test.ts",
+        "relativePath": "backend/src/services/__tests__/ScoringService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 21549,
+        "lastModified": "2025-08-02T13:03:29.760Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/SocketService.test.ts",
+        "relativePath": "backend/src/services/__tests__/SocketService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 38505,
+        "lastModified": "2025-08-04T21:18:53.995Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/useAudio.enhanced.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/useAudio.enhanced.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 17282,
+        "lastModified": "2025-08-04T21:42:48.471Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/useAudio.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/useAudio.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18862,
+        "lastModified": "2025-08-04T20:56:29.604Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/useLocalization.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/useLocalization.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 5880,
+        "lastModified": "2025-08-02T11:21:17.815Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/usePerformanceOptimizedState.simple.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/usePerformanceOptimizedState.simple.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 6825,
+        "lastModified": "2025-08-05T17:18:00.732Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/usePerformanceOptimizedState.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/usePerformanceOptimizedState.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12841,
+        "lastModified": "2025-08-05T17:20:22.667Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/hooks/__tests__/useVisualFeedback.test.ts",
+        "relativePath": "frontend/src/hooks/__tests__/useVisualFeedback.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 17803,
+        "lastModified": "2025-08-04T21:42:22.752Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/apiService.test.ts",
+        "relativePath": "frontend/src/services/__tests__/apiService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 22687,
+        "lastModified": "2025-08-02T08:50:30.740Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/audioManager.test.ts",
+        "relativePath": "frontend/src/services/__tests__/audioManager.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12704,
+        "lastModified": "2025-08-02T12:21:10.784Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/localization.test.ts",
+        "relativePath": "frontend/src/services/__tests__/localization.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12061,
+        "lastModified": "2025-08-05T17:19:16.802Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/navigationService.test.ts",
+        "relativePath": "frontend/src/services/__tests__/navigationService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12138,
+        "lastModified": "2025-08-05T17:19:34.626Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/performanceOptimizer.simple.test.ts",
+        "relativePath": "frontend/src/services/__tests__/performanceOptimizer.simple.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1694,
+        "lastModified": "2025-07-27T20:17:02.339Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/performanceOptimizer.test.ts",
+        "relativePath": "frontend/src/services/__tests__/performanceOptimizer.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 16165,
+        "lastModified": "2025-08-05T17:16:30.962Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/socketService.test.ts",
+        "relativePath": "frontend/src/services/__tests__/socketService.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18626,
+        "lastModified": "2025-08-05T17:19:58.370Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/services/__tests__/visualFeedback.test.ts",
+        "relativePath": "frontend/src/services/__tests__/visualFeedback.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18512,
+        "lastModified": "2025-08-02T11:22:59.795Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/audioStore.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/audioStore.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 16931,
+        "lastModified": "2025-08-02T11:26:43.081Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/characterStore.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/characterStore.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 24357,
+        "lastModified": "2025-08-02T05:08:44.345Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/gameStore.simple.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/gameStore.simple.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1824,
+        "lastModified": "2025-07-27T20:16:44.533Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/gameStore.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/gameStore.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 19329,
+        "lastModified": "2025-08-02T11:26:51.951Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/settingsStore.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/settingsStore.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 11550,
+        "lastModified": "2025-08-02T11:23:45.204Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/stores/__tests__/themeStore.test.ts",
+        "relativePath": "frontend/src/stores/__tests__/themeStore.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 13404,
+        "lastModified": "2025-08-02T11:23:59.609Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/AccessibilityTestFramework.test.ts",
+        "relativePath": "shared/test-config/__tests__/AccessibilityTestFramework.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 9396,
+        "lastModified": "2025-08-06T00:20:15.123Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/BlueGreenDeployment.test.ts",
+        "relativePath": "shared/test-config/__tests__/BlueGreenDeployment.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 13442,
+        "lastModified": "2025-08-06T02:22:57.448Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/CoverageConfigManager.test.ts",
+        "relativePath": "shared/test-config/__tests__/CoverageConfigManager.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12937,
+        "lastModified": "2025-08-05T23:38:48.586Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/CoverageReporter.test.ts",
+        "relativePath": "shared/test-config/__tests__/CoverageReporter.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 16655,
+        "lastModified": "2025-08-06T00:21:26.700Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/DeploymentPipeline.test.ts",
+        "relativePath": "shared/test-config/__tests__/DeploymentPipeline.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 9291,
+        "lastModified": "2025-08-06T02:13:38.024Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/PerformanceTestFramework.test.ts",
+        "relativePath": "shared/test-config/__tests__/PerformanceTestFramework.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 8130,
+        "lastModified": "2025-08-06T00:17:52.794Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/TestConfigManager.test.ts",
+        "relativePath": "shared/test-config/__tests__/TestConfigManager.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 11024,
+        "lastModified": "2025-08-05T22:31:25.880Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/TestEnvironment.test.ts",
+        "relativePath": "shared/test-config/__tests__/TestEnvironment.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 13150,
+        "lastModified": "2025-08-05T23:10:59.348Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/TestFileRegistry.test.ts",
+        "relativePath": "shared/test-config/__tests__/TestFileRegistry.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12723,
+        "lastModified": "2025-08-06T03:22:23.858Z"
+      },
+      {
+        "path": "/home/patrick/l2p/shared/test-config/__tests__/TestRunner.test.ts",
+        "relativePath": "shared/test-config/__tests__/TestRunner.test.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 7854,
+        "lastModified": "2025-08-05T23:21:09.707Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/App.test.tsx",
+        "relativePath": "frontend/src/__tests__/App.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 10227,
+        "lastModified": "2025-08-02T16:57:36.311Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/unit/example.test.tsx",
+        "relativePath": "frontend/src/__tests__/unit/example.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1153,
+        "lastModified": "2025-08-05T22:55:38.634Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/AudioIntegration.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/AudioIntegration.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 10943,
+        "lastModified": "2025-08-05T17:21:19.997Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/AuthForm.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/AuthForm.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 21048,
+        "lastModified": "2025-08-05T17:21:19.975Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/AuthGuard.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/AuthGuard.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 11924,
+        "lastModified": "2025-08-05T21:47:12.767Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/CharacterSelector.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/CharacterSelector.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 7275,
+        "lastModified": "2025-08-05T17:21:20.006Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/ComponentIntegration.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/ComponentIntegration.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 3846,
+        "lastModified": "2025-08-05T17:21:20.019Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/ConnectionStatus.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/ConnectionStatus.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1994,
+        "lastModified": "2025-08-05T17:21:20.004Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/DemoPage.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/DemoPage.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 3701,
+        "lastModified": "2025-08-05T17:21:19.984Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/DocumentProcessor.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/DocumentProcessor.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 7725,
+        "lastModified": "2025-08-05T17:21:19.989Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/EmailVerificationPage.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/EmailVerificationPage.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 19892,
+        "lastModified": "2025-08-05T21:26:19.256Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/ErrorBoundary.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/ErrorBoundary.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 11852,
+        "lastModified": "2025-08-05T17:21:19.982Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/Example.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/Example.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 413,
+        "lastModified": "2025-08-05T17:21:20.012Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/FileManager.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/FileManager.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 5819,
+        "lastModified": "2025-08-05T17:21:20.011Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/FileUpload.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/FileUpload.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 4425,
+        "lastModified": "2025-08-05T17:21:19.992Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/GameInterface.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/GameInterface.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 9835,
+        "lastModified": "2025-08-05T17:21:19.986Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/Header.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/Header.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 19476,
+        "lastModified": "2025-08-05T17:21:19.999Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/LanguageSelector.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/LanguageSelector.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 12501,
+        "lastModified": "2025-08-05T17:21:19.979Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/LoadingSpinner.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/LoadingSpinner.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1660,
+        "lastModified": "2025-08-05T17:21:19.990Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/LobbyView.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/LobbyView.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 7376,
+        "lastModified": "2025-08-05T17:21:20.009Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/PasswordResetForm.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/PasswordResetForm.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 21903,
+        "lastModified": "2025-08-05T21:10:28.937Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/PerformanceOptimizedTimer.coverage.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/PerformanceOptimizedTimer.coverage.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1902,
+        "lastModified": "2025-08-05T17:21:20.003Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/PerformanceOptimizedTimer.simple.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/PerformanceOptimizedTimer.simple.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1643,
+        "lastModified": "2025-08-05T17:21:20.020Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/PerformanceOptimizedTimer.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/PerformanceOptimizedTimer.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 5544,
+        "lastModified": "2025-08-05T17:21:19.980Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/PlayerGrid.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/PlayerGrid.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 6319,
+        "lastModified": "2025-08-05T17:21:20.014Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/QuestionSetManager.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/QuestionSetManager.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 24916,
+        "lastModified": "2025-08-05T17:21:20.001Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/ScoreDisplay.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/ScoreDisplay.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 3923,
+        "lastModified": "2025-08-05T17:21:19.994Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/SettingsModal.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/SettingsModal.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 17198,
+        "lastModified": "2025-08-05T17:21:20.016Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/ThemeProvider.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/ThemeProvider.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 10079,
+        "lastModified": "2025-08-05T17:21:20.008Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/components/__tests__/Timer.test.tsx",
+        "relativePath": "frontend/src/components/__tests__/Timer.test.tsx",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 4001,
+        "lastModified": "2025-08-05T17:21:19.977Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/setup.ts",
+        "relativePath": "backend/src/__tests__/setup.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 5461,
+        "lastModified": "2025-08-06T00:35:55.680Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth-api.ts",
+        "relativePath": "backend/src/routes/__tests__/test-auth-api.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 7924,
+        "lastModified": "2025-08-02T13:08:21.205Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth-basic.ts",
+        "relativePath": "backend/src/routes/__tests__/test-auth-basic.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4022,
+        "lastModified": "2025-08-02T18:43:14.703Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth-complete.ts",
+        "relativePath": "backend/src/routes/__tests__/test-auth-complete.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 9607,
+        "lastModified": "2025-08-02T13:07:43.623Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth.ts",
+        "relativePath": "backend/src/routes/__tests__/test-auth.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4278,
+        "lastModified": "2025-08-02T18:43:02.523Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-database.ts",
+        "relativePath": "backend/src/routes/__tests__/test-database.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 6661,
+        "lastModified": "2025-08-02T13:08:28.885Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-file-upload-integration.ts",
+        "relativePath": "backend/src/routes/__tests__/test-file-upload-integration.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4317,
+        "lastModified": "2025-08-04T21:30:23.821Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-hall-of-fame.ts",
+        "relativePath": "backend/src/routes/__tests__/test-hall-of-fame.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 8121,
+        "lastModified": "2025-08-04T21:30:17.574Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-lobby-api.ts",
+        "relativePath": "backend/src/routes/__tests__/test-lobby-api.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4548,
+        "lastModified": "2025-08-04T21:30:09.516Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-lobby-endpoints.ts",
+        "relativePath": "backend/src/routes/__tests__/test-lobby-endpoints.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4147,
+        "lastModified": "2025-08-02T18:43:08.905Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-lobby-full.ts",
+        "relativePath": "backend/src/routes/__tests__/test-lobby-full.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 6096,
+        "lastModified": "2025-08-04T21:29:59.124Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-question-api.ts",
+        "relativePath": "backend/src/routes/__tests__/test-question-api.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 6969,
+        "lastModified": "2025-08-04T21:29:47.593Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-question-set-management.ts",
+        "relativePath": "backend/src/routes/__tests__/test-question-set-management.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 28998,
+        "lastModified": "2025-08-04T21:29:40.960Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-repositories.ts",
+        "relativePath": "backend/src/routes/__tests__/test-repositories.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 7136,
+        "lastModified": "2025-08-04T21:29:30.990Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-socket.ts",
+        "relativePath": "backend/src/routes/__tests__/test-socket.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4525,
+        "lastModified": "2025-08-02T13:09:10.486Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/verify-schema.ts",
+        "relativePath": "backend/src/routes/__tests__/verify-schema.ts",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 5597,
+        "lastModified": "2025-08-04T21:29:17.187Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/globalSetup.js",
+        "relativePath": "backend/src/__tests__/globalSetup.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 2051,
+        "lastModified": "2025-08-05T22:49:52.996Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/globalTeardown.js",
+        "relativePath": "backend/src/__tests__/globalTeardown.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 728,
+        "lastModified": "2025-08-05T22:50:04.453Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth-minimal.js",
+        "relativePath": "backend/src/routes/__tests__/test-auth-minimal.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 2365,
+        "lastModified": "2025-08-02T09:02:46.816Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-auth-valid.js",
+        "relativePath": "backend/src/routes/__tests__/test-auth-valid.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 1714,
+        "lastModified": "2025-08-02T09:02:46.816Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-database.js",
+        "relativePath": "backend/src/routes/__tests__/test-database.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 1706,
+        "lastModified": "2025-08-02T09:02:46.816Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-hall-of-fame.js",
+        "relativePath": "backend/src/routes/__tests__/test-hall-of-fame.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 1705,
+        "lastModified": "2025-08-02T09:02:46.817Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/test-simple-auth.js",
+        "relativePath": "backend/src/routes/__tests__/test-simple-auth.js",
+        "type": "unit",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 1973,
+        "lastModified": "2025-08-02T09:02:46.817Z"
+      }
+    ],
+    "integration": [
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/integration/basic.test.ts",
+        "relativePath": "backend/src/__tests__/integration/basic.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 1072,
+        "lastModified": "2025-08-05T19:29:52.393Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/integration/error-scenarios.test.ts",
+        "relativePath": "backend/src/__tests__/integration/error-scenarios.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 7836,
+        "lastModified": "2025-08-05T20:08:10.128Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/integration/simple.test.ts",
+        "relativePath": "backend/src/__tests__/integration/simple.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 269,
+        "lastModified": "2025-08-05T19:13:05.210Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/auth.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/auth.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 5241,
+        "lastModified": "2025-08-02T13:03:29.733Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/AuthRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/AuthRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 23014,
+        "lastModified": "2025-08-02T13:03:29.723Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/FileUploadRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/FileUploadRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 22498,
+        "lastModified": "2025-08-02T13:03:29.730Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/GameRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/GameRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 36575,
+        "lastModified": "2025-08-02T13:03:29.726Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/HealthRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/HealthRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 19117,
+        "lastModified": "2025-08-02T13:03:29.728Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/LobbyRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/LobbyRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 30468,
+        "lastModified": "2025-08-02T13:03:29.731Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/QuestionRoutesIntegration.test.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/QuestionRoutesIntegration.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 39621,
+        "lastModified": "2025-08-02T13:03:29.725Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/services/__tests__/integration/socket.test.ts",
+        "relativePath": "backend/src/services/__tests__/integration/socket.test.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 17769,
+        "lastModified": "2025-08-02T13:03:29.749Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/routes/__tests__/integration/test-auth-integration.ts",
+        "relativePath": "backend/src/routes/__tests__/integration/test-auth-integration.ts",
+        "type": "integration",
+        "runner": "jest",
+        "valid": true,
+        "errors": [],
+        "size": 18892,
+        "lastModified": "2025-08-02T11:09:46.384Z"
+      }
+    ],
+    "e2e": [
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/accessibility/a11y-tests.spec.ts",
+        "relativePath": "frontend/e2e/tests/accessibility/a11y-tests.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 9184,
+        "lastModified": "2025-08-05T20:49:47.315Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/accessibility/comprehensive-a11y.spec.ts",
+        "relativePath": "frontend/e2e/tests/accessibility/comprehensive-a11y.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 17466,
+        "lastModified": "2025-08-06T00:36:19.065Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/auth-flow.spec.ts",
+        "relativePath": "frontend/e2e/tests/auth-flow.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 14169,
+        "lastModified": "2025-08-05T18:37:31.068Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/debug-auth.spec.ts",
+        "relativePath": "frontend/e2e/tests/debug-auth.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 3275,
+        "lastModified": "2025-08-05T18:37:31.068Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/error-handling/authentication-errors.spec.ts",
+        "relativePath": "frontend/e2e/tests/error-handling/authentication-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 12997,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/error-handling/database-errors.spec.ts",
+        "relativePath": "frontend/e2e/tests/error-handling/database-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 13408,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/error-handling/file-upload-errors.spec.ts",
+        "relativePath": "frontend/e2e/tests/error-handling/file-upload-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15565,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/error-handling/network-errors.spec.ts",
+        "relativePath": "frontend/e2e/tests/error-handling/network-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 14956,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/error-handling/validation-errors.spec.ts",
+        "relativePath": "frontend/e2e/tests/error-handling/validation-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15776,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/examples/enhanced-auth-flow.spec.ts",
+        "relativePath": "frontend/e2e/tests/examples/enhanced-auth-flow.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 6434,
+        "lastModified": "2025-08-06T00:03:02.565Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/integration/game-flow.spec.ts",
+        "relativePath": "frontend/e2e/tests/integration/game-flow.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15848,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/performance/load-testing.spec.ts",
+        "relativePath": "frontend/e2e/tests/performance/load-testing.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 17201,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/question-set-management.spec.ts",
+        "relativePath": "frontend/e2e/tests/question-set-management.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 22672,
+        "lastModified": "2025-08-05T18:37:31.068Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/e2e/tests/smoke/basic-functionality.spec.ts",
+        "relativePath": "frontend/e2e/tests/smoke/basic-functionality.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 12736,
+        "lastModified": "2025-08-05T18:37:31.069Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/accessibility/a11y-tests.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/accessibility/a11y-tests.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 9150,
+        "lastModified": "2025-08-05T18:49:05.333Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/auth-flow.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/auth-flow.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 14169,
+        "lastModified": "2025-08-05T18:49:00.810Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/debug-auth.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/debug-auth.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 3275,
+        "lastModified": "2025-08-05T18:49:00.810Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/error-handling/authentication-errors.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/error-handling/authentication-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 12997,
+        "lastModified": "2025-08-05T18:49:10.046Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/error-handling/database-errors.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/error-handling/database-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 13408,
+        "lastModified": "2025-08-05T18:49:10.046Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/error-handling/file-upload-errors.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/error-handling/file-upload-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15565,
+        "lastModified": "2025-08-05T18:49:10.046Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/error-handling/network-errors.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/error-handling/network-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 14956,
+        "lastModified": "2025-08-05T18:49:10.046Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/error-handling/validation-errors.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/error-handling/validation-errors.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15776,
+        "lastModified": "2025-08-05T18:49:10.046Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/integration/game-flow.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/integration/game-flow.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 15848,
+        "lastModified": "2025-08-05T18:49:14.352Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/performance/load-testing.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/performance/load-testing.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 17201,
+        "lastModified": "2025-08-05T18:49:22.405Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/question-set-management.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/question-set-management.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 22672,
+        "lastModified": "2025-08-05T18:49:00.810Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/smoke/basic-functionality.spec.ts",
+        "relativePath": "frontend/src/__tests__/e2e/smoke/basic-functionality.spec.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 12736,
+        "lastModified": "2025-08-05T18:49:29.427Z"
+      },
+      {
+        "path": "/home/patrick/l2p/frontend/src/__tests__/e2e/setup.ts",
+        "relativePath": "frontend/src/__tests__/e2e/setup.ts",
+        "type": "e2e",
+        "runner": "playwright",
+        "valid": true,
+        "errors": [],
+        "size": 7280,
+        "lastModified": "2025-08-05T18:49:34.479Z"
+      }
+    ],
+    "performance": [
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/simple-performance.test.ts",
+        "relativePath": "backend/src/__tests__/performance/simple-performance.test.ts",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [],
+        "size": 2871,
+        "lastModified": "2025-08-06T00:36:07.985Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/performance-tests.ts",
+        "relativePath": "backend/src/__tests__/performance/performance-tests.ts",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [],
+        "size": 6478,
+        "lastModified": "2025-08-06T00:36:09.535Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/test-ai-generation-performance.ts",
+        "relativePath": "backend/src/__tests__/performance/test-ai-generation-performance.ts",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [],
+        "size": 16047,
+        "lastModified": "2025-08-05T18:50:05.408Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/database/database-performance-test.js",
+        "relativePath": "backend/src/__tests__/performance/database/database-performance-test.js",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 13828,
+        "lastModified": "2025-08-05T18:50:05.407Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/load/load-test.js",
+        "relativePath": "backend/src/__tests__/performance/load/load-test.js",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 7369,
+        "lastModified": "2025-08-05T18:50:05.408Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/memory/memory-test.js",
+        "relativePath": "backend/src/__tests__/performance/memory/memory-test.js",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 10965,
+        "lastModified": "2025-08-05T18:50:05.408Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/stress/stress-test.js",
+        "relativePath": "backend/src/__tests__/performance/stress/stress-test.js",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 10400,
+        "lastModified": "2025-08-05T18:50:05.408Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/performance/websocket/websocket-performance-test.js",
+        "relativePath": "backend/src/__tests__/performance/websocket/websocket-performance-test.js",
+        "type": "performance",
+        "runner": "custom",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 12725,
+        "lastModified": "2025-08-05T18:50:05.408Z"
+      }
+    ],
+    "accessibility": [],
+    "cli": [
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/check-chroma-collections.ts",
+        "relativePath": "backend/src/__tests__/cli/check-chroma-collections.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 2186,
+        "lastModified": "2025-08-05T18:49:51.760Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/check-chroma-direct.ts",
+        "relativePath": "backend/src/__tests__/cli/check-chroma-direct.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 2310,
+        "lastModified": "2025-08-05T18:49:51.760Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/test-ai-mock.ts",
+        "relativePath": "backend/src/__tests__/cli/test-ai-mock.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 3127,
+        "lastModified": "2025-08-05T18:49:51.760Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/test-ai-real.ts",
+        "relativePath": "backend/src/__tests__/cli/test-ai-real.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 4310,
+        "lastModified": "2025-08-05T18:49:51.761Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/test-ai.ts",
+        "relativePath": "backend/src/__tests__/cli/test-ai.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 5819,
+        "lastModified": "2025-08-05T18:49:51.761Z"
+      },
+      {
+        "path": "/home/patrick/l2p/backend/src/__tests__/cli/test-chroma-simple.ts",
+        "relativePath": "backend/src/__tests__/cli/test-chroma-simple.ts",
+        "type": "cli",
+        "runner": "jest",
+        "valid": true,
+        "errors": [
+          "No test patterns found"
+        ],
+        "size": 883,
+        "lastModified": "2025-08-05T18:49:51.761Z"
+      }
+    ],
+    "orphaned": []
+  },
+  "duplicates": [
+    [
+      "frontend/e2e/tests/accessibility/a11y-tests.spec.ts",
+      "frontend/src/__tests__/e2e/accessibility/a11y-tests.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/auth-flow.spec.ts",
+      "frontend/src/__tests__/e2e/auth-flow.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/debug-auth.spec.ts",
+      "frontend/src/__tests__/e2e/debug-auth.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/error-handling/authentication-errors.spec.ts",
+      "frontend/src/__tests__/e2e/error-handling/authentication-errors.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/error-handling/database-errors.spec.ts",
+      "frontend/src/__tests__/e2e/error-handling/database-errors.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/error-handling/file-upload-errors.spec.ts",
+      "frontend/src/__tests__/e2e/error-handling/file-upload-errors.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/error-handling/network-errors.spec.ts",
+      "frontend/src/__tests__/e2e/error-handling/network-errors.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/error-handling/validation-errors.spec.ts",
+      "frontend/src/__tests__/e2e/error-handling/validation-errors.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/integration/game-flow.spec.ts",
+      "frontend/src/__tests__/e2e/integration/game-flow.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/performance/load-testing.spec.ts",
+      "frontend/src/__tests__/e2e/performance/load-testing.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/question-set-management.spec.ts",
+      "frontend/src/__tests__/e2e/question-set-management.spec.ts"
+    ],
+    [
+      "frontend/e2e/tests/smoke/basic-functionality.spec.ts",
+      "frontend/src/__tests__/e2e/smoke/basic-functionality.spec.ts"
+    ],
+    [
+      "backend/src/__tests__/setup.ts",
+      "frontend/src/__tests__/e2e/setup.ts"
+    ]
+  ],
+  "orphaned": [],
+  "recommendations": [
+    "Found 13 sets of duplicate test files that should be consolidated",
+    "Consider consolidating E2E tests from frontend/src/__tests__/e2e/ to frontend/e2e/tests/",
+    "Remove empty integration test directories"
+  ]
+}

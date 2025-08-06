@@ -1,0 +1,159 @@
+# Test Environment Makefile
+# Provides convenient commands for managing the Docker-based test environment
+
+.PHONY: help test-env-validate test-env-start test-env-stop test-env-restart test-env-reset test-env-cleanup test-env-status test-env-health test-env-logs test-env-urls test-build test-run test-unit test-integration test-e2e test-all
+
+# Default target
+help: ## Show this help message
+	@echo "Test Environment Management"
+	@echo ""
+	@echo "Available targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+
+# Environment validation
+test-env-validate: ## Validate test environment configuration
+	@echo "Validating test environment..."
+	@./scripts/validate-test-environment.sh
+
+# Environment management
+test-env-start: ## Start the test environment
+	@echo "Starting test environment..."
+	@./scripts/test-environment.sh start
+
+test-env-stop: ## Stop the test environment
+	@echo "Stopping test environment..."
+	@./scripts/test-environment.sh stop
+
+test-env-restart: ## Restart the test environment
+	@echo "Restarting test environment..."
+	@./scripts/test-environment.sh restart
+
+test-env-reset: ## Reset the test environment (clean start)
+	@echo "Resetting test environment..."
+	@./scripts/test-environment.sh reset
+
+test-env-cleanup: ## Clean up test environment and remove all data
+	@echo "Cleaning up test environment..."
+	@./scripts/test-environment.sh cleanup
+
+# Environment monitoring
+test-env-status: ## Show test environment status
+	@./scripts/test-environment.sh status
+
+test-env-health: ## Run health checks on test services
+	@./scripts/test-environment.sh health
+
+test-env-logs: ## Show logs for all test services
+	@./scripts/test-environment.sh logs
+
+test-env-logs-backend: ## Show logs for backend test service
+	@./scripts/test-environment.sh logs backend-test
+
+test-env-logs-frontend: ## Show logs for frontend test service
+	@./scripts/test-environment.sh logs frontend-test
+
+test-env-logs-db: ## Show logs for database test service
+	@./scripts/test-environment.sh logs postgres-test
+
+test-env-urls: ## Show test service URLs
+	@./scripts/test-environment.sh urls
+
+# Build targets
+test-build: ## Build test Docker images
+	@echo "Building test images..."
+	@docker-compose -f docker-compose.test.yml build --parallel
+
+test-build-no-cache: ## Build test Docker images without cache
+	@echo "Building test images without cache..."
+	@docker-compose -f docker-compose.test.yml build --no-cache --parallel
+
+# Test execution targets
+test-run: test-env-start ## Start test environment and run all tests
+	@echo "Running all tests..."
+	@$(MAKE) test-all
+	@$(MAKE) test-env-stop
+
+test-unit: ## Run unit tests (requires test environment)
+	@echo "Running unit tests..."
+	@docker-compose -f docker-compose.test.yml exec -T backend-test npm run test:unit
+	@docker-compose -f docker-compose.test.yml exec -T frontend-test npm run test:unit
+
+test-integration: ## Run integration tests (requires test environment)
+	@echo "Running integration tests..."
+	@docker-compose -f docker-compose.test.yml exec -T backend-test npm run test:integration
+
+test-e2e: ## Run end-to-end tests (requires test environment)
+	@echo "Running end-to-end tests..."
+	@docker-compose -f docker-compose.test.yml exec -T frontend-test npm run test:e2e
+
+test-performance: ## Run performance tests (requires test environment)
+	@echo "Running performance tests..."
+	@docker-compose -f docker-compose.test.yml exec -T backend-test npm run test:performance
+
+test-accessibility: ## Run accessibility tests (requires test environment)
+	@echo "Running accessibility tests..."
+	@docker-compose -f docker-compose.test.yml exec -T frontend-test npm run test:a11y
+
+test-all: ## Run all test suites (requires test environment)
+	@echo "Running all test suites..."
+	@$(MAKE) test-unit
+	@$(MAKE) test-integration
+	@$(MAKE) test-e2e
+	@$(MAKE) test-performance
+	@$(MAKE) test-accessibility
+
+# Coverage targets
+test-coverage: ## Generate test coverage reports
+	@echo "Generating coverage reports..."
+	@docker-compose -f docker-compose.test.yml exec -T backend-test npm run test:coverage
+	@docker-compose -f docker-compose.test.yml exec -T frontend-test npm run test:coverage
+
+test-coverage-open: ## Generate and open coverage reports
+	@$(MAKE) test-coverage
+	@echo "Opening coverage reports..."
+	@open backend/coverage/lcov-report/index.html || xdg-open backend/coverage/lcov-report/index.html || echo "Please open backend/coverage/lcov-report/index.html manually"
+	@open frontend/coverage/lcov-report/index.html || xdg-open frontend/coverage/lcov-report/index.html || echo "Please open frontend/coverage/lcov-report/index.html manually"
+
+# Database management
+test-db-reset: ## Reset test database
+	@echo "Resetting test database..."
+	@docker-compose -f docker-compose.test.yml exec -T postgres-test psql -U test_user -d learn2play_test -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	@docker-compose -f docker-compose.test.yml exec -T postgres-test psql -U test_user -d learn2play_test -f /docker-entrypoint-initdb.d/01-init.sql
+	@docker-compose -f docker-compose.test.yml exec -T postgres-test psql -U test_user -d learn2play_test -f /docker-entrypoint-initdb.d/02-test-data.sql
+
+test-db-shell: ## Open database shell
+	@echo "Opening database shell..."
+	@docker-compose -f docker-compose.test.yml exec postgres-test psql -U test_user -d learn2play_test
+
+# Development helpers
+test-shell-backend: ## Open shell in backend test container
+	@docker-compose -f docker-compose.test.yml exec backend-test sh
+
+test-shell-frontend: ## Open shell in frontend test container
+	@docker-compose -f docker-compose.test.yml exec frontend-test sh
+
+# Quick setup for new developers
+test-setup: ## Complete test environment setup for new developers
+	@echo "Setting up test environment for development..."
+	@$(MAKE) test-env-validate
+	@$(MAKE) test-build
+	@$(MAKE) test-env-start
+	@$(MAKE) test-env-health
+	@$(MAKE) test-env-urls
+	@echo ""
+	@echo "Test environment is ready! You can now run:"
+	@echo "  make test-all    # Run all tests"
+	@echo "  make test-unit   # Run unit tests only"
+	@echo "  make test-e2e    # Run E2E tests only"
+
+# CI/CD targets
+ci-test: ## Run tests in CI environment
+	@echo "Running tests in CI mode..."
+	@$(MAKE) test-env-validate
+	@$(MAKE) test-build
+	@$(MAKE) test-env-start
+	@$(MAKE) test-env-health
+	@$(MAKE) test-all
+	@$(MAKE) test-coverage
+	@$(MAKE) test-env-cleanup

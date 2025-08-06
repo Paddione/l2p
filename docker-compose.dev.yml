@@ -1,0 +1,23 @@
+services:
+  # PostgreSQL Database - expose port for local development
+  postgres:
+    ports:
+      - "5432:5432"
+    profiles:
+      - development
+      - production
+
+  # For development, we'll run backend locally, so we can disable the container
+  backend:
+    profiles:
+      - production-only
+
+  # For development, we'll run frontend locally, so we can disable the container  
+  frontend:
+    profiles:
+      - production-only
+
+  # Keep Traefik for production
+  traefik:
+    profiles:
+      - production

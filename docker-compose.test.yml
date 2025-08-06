@@ -1,0 +1,217 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: l2p-postgres-test
+    environment:
+      POSTGRES_DB: learn2play_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/test-data.sql:/docker-entrypoint-initdb.d/02-test-data.sql
+      - test_postgres_data:/var/lib/postgresql/data
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d learn2play_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+
+  # ChromaDB Test Vector Database
+  chromadb-test:
+    image: chromadb/chroma:latest
+    container_name: l2p-chromadb-test
+    environment:
+      CHROMA_SERVER_HOST: 0.0.0.0
+      CHROMA_SERVER_HTTP_PORT: 8000
+      CHROMA_SERVER_CORS_ALLOW_ORIGINS: "*"
+      CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: chromadb.auth.token_authn
+      CHROMA_SERVER_AUTH_CREDENTIALS: test-token
+      CHROMA_SERVER_AUTH_PROVIDER: chromadb.auth.basic_authn
+    ports:
+      - "8001:8000"
+    volumes:
+      - test_chroma_data:/chroma/chroma
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # Backend Test Service
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+      cache_from:
+        - node:18-alpine
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: l2p-backend-test
+    environment:
+      NODE_ENV: test
+      PORT: 3001
+      DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/learn2play_test
+      JWT_SECRET: test-jwt-secret-for-testing-only-do-not-use-in-production
+      JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-testing-only-do-not-use-in-production
+      FRONTEND_URL: http://frontend-test:3000
+      DB_SSL: false
+      LOG_LEVEL: warn
+      CHROMA_URL: http://chromadb-test:8000
+      CHROMA_AUTH_TOKEN: test-token
+      GEMINI_API_KEY: test-api-key
+      SMTP_HOST: mailhog-test
+      SMTP_PORT: 1025
+      SMTP_SECURE: false
+      SMTP_USER: test
+      SMTP_PASS: test
+      EMAIL_SENDER_ADDRESS: test@learn2play.test
+      EMAIL_SENDER_NAME: Learn2Play Test
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      chromadb-test:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/src:/app/src:ro
+      - ./backend/package.json:/app/package.json:ro
+      - ./backend/package-lock.json:/app/package-lock.json:ro
+      - test_backend_node_modules:/app/node_modules
+      - test_backend_logs:/app/logs
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+    tmpfs:
+      - /tmp
+
+  # Frontend Test Service
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+      cache_from:
+        - node:18-alpine
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: l2p-frontend-test
+    environment:
+      NODE_ENV: test
+      VITE_API_URL: http://localhost:3001/api
+      VITE_SOCKET_URL: http://localhost:3001
+      VITE_TEST_MODE: true
+      VITE_CHROMA_URL: http://localhost:8001
+    depends_on:
+      backend-test:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+      - ./frontend/package.json:/app/package.json:ro
+      - ./frontend/package-lock.json:/app/package-lock.json:ro
+      - test_frontend_node_modules:/app/node_modules
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    tmpfs:
+      - /tmp
+
+  # MailHog for Email Testing
+  mailhog-test:
+    image: mailhog/mailhog:latest
+    container_name: l2p-mailhog-test
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+
+  # Redis for Session/Cache Testing (if needed)
+  redis-test:
+    image: redis:7-alpine
+    container_name: l2p-redis-test
+    ports:
+      - "6380:6379"
+    volumes:
+      - test_redis_data:/data
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+
+volumes:
+  test_postgres_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=512m,uid=999,gid=999
+  test_chroma_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=256m,uid=1000,gid=1000
+  test_redis_data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=128m,uid=999,gid=999
+  test_backend_node_modules:
+    driver: local
+  test_frontend_node_modules:
+    driver: local
+  test_backend_logs:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
