@@ -58,7 +58,7 @@ export class TestFileRegistryCLI {
     Object.entries(fileMap).forEach(([type, files]) => {
       if (files.length > 0) {
         console.log(`${type.toUpperCase()}: ${files.length} files`);
-        files.forEach(file => console.log(`  - ${file}`));
+        files.forEach((file: string) => console.log(`  - ${file}`));
         console.log();
       }
     });
@@ -73,9 +73,9 @@ export class TestFileRegistryCLI {
     
     if (invalidFiles > 0) {
       console.log('\n🚨 Invalid Files:');
-      allFiles.filter(f => !f.valid).forEach(file => {
+      allFiles.filter(f => !f.valid).forEach((file: any) => {
         console.log(`  - ${file.relativePath}`);
-        file.errors.forEach(error => console.log(`    ❌ ${error}`));
+        file.errors.forEach((error: string) => console.log(`    ❌ ${error}`));
       });
     }
   }
@@ -308,11 +308,11 @@ export class TestFileRegistryCLI {
             <div class="category-section">
                 <h2>📁 ${category.charAt(0).toUpperCase() + category.slice(1)} Tests (${files.length})</h2>
                 <div class="file-list">
-                    ${files.map(file => `
+                    ${files.map((file: any) => `
                         <div class="file-item ${file.valid ? 'valid' : 'invalid'}">
                             <strong>${file.relativePath}</strong>
                             <span style="float: right; color: #666;">${file.runner} | ${(file.size / 1024).toFixed(1)}KB</span>
-                            ${file.errors.map(error => `<div class="error">❌ ${error}</div>`).join('')}
+                            ${file.errors.map((error: string) => `<div class="error">❌ ${error}</div>`).join('')}
                         </div>
                     `).join('')}
                 </div>

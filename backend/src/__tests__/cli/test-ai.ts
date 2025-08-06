@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 import { GeminiService, QuestionGenerationRequest } from '../../services/GeminiService.js';
-import { ChromaService } from '../../services/ChromaService.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -24,22 +23,7 @@ async function testGeminiConnection() {
   }
 }
 
-async function testChromaConnection() {
-  console.log('🔍 Testing ChromaDB connection...');
-  
-  try {
-    const chromaService = new ChromaService();
-    const result = await chromaService.testConnection();
-    
-    if (result.success) {
-      console.log('✅ ChromaDB connection successful');
-    } else {
-      console.log('❌ ChromaDB connection failed:', result.error);
-    }
-  } catch (error) {
-    console.log('❌ Error testing ChromaDB:', error instanceof Error ? error.message : 'Unknown error');
-  }
-}
+
 
 async function testQuestionGeneration() {
   console.log('🔍 Testing question generation...');
@@ -74,66 +58,7 @@ async function testQuestionGeneration() {
   }
 }
 
-async function testChromaOperations() {
-  console.log('🔍 Testing ChromaDB operations...');
-  
-  try {
-    const chromaService = new ChromaService();
-    
-    // Initialize collection
-    console.log('📁 Initializing collection...');
-    const initResult = await chromaService.initializeCollection();
-    if (initResult.success) {
-      console.log('✅ Collection initialized');
-    } else {
-      console.log('❌ Collection initialization failed:', initResult.error);
-      return;
-    }
-    
-    // Add sample document
-    console.log('📄 Adding sample document...');
-    const sampleContent = `
-# JavaScript Fundamentals
 
-JavaScript is a programming language that is one of the core technologies of the World Wide Web, alongside HTML and CSS.
-
-## Variables
-Variables are containers for storing data values. In JavaScript, you can declare variables using var, let, or const.
-
-## Functions
-Functions are reusable blocks of code that can be called to perform specific tasks.
-    `;
-    
-    const metadata = {
-      source: 'javascript_basics.pdf',
-      title: 'JavaScript Fundamentals',
-      course: 'Web Development 101',
-      subject: 'Programming'
-    };
-    
-    const addResult = await chromaService.addDocument(sampleContent, metadata);
-    
-    if (addResult.success) {
-      console.log(`✅ Document added successfully`);
-    } else {
-      console.log('❌ Failed to add document:', addResult.error);
-      return;
-    }
-    
-    // Test search
-    console.log('🔍 Testing search...');
-    const searchResults = await chromaService.searchDocuments('JavaScript variables', 3);
-    console.log(`✅ Search method available: ${searchResults.success ? 'Yes' : 'No'}`);
-    
-    // Get stats
-    console.log('📊 Getting collection stats...');
-    const stats = await chromaService.getCollectionStats();
-    console.log('📈 Collection stats:', stats);
-    
-  } catch (error) {
-    console.log('❌ Error testing ChromaDB operations:', error instanceof Error ? error.message : 'Unknown error');
-  }
-}
 
 async function main() {
   const command = process.argv[2];
@@ -144,21 +69,11 @@ async function main() {
     case 'gemini':
       await testGeminiConnection();
       break;
-    case 'chroma':
-      await testChromaConnection();
-      break;
     case 'generate':
       await testQuestionGeneration();
       break;
-    case 'chroma-ops':
-      await testChromaOperations();
-      break;
     case 'all':
       await testGeminiConnection();
-      console.log('');
-      await testChromaConnection();
-      console.log('');
-      await testChromaOperations();
       console.log('');
       await testQuestionGeneration();
       break;
@@ -167,14 +82,11 @@ async function main() {
       console.log('');
       console.log('Commands:');
       console.log('  gemini     - Test Gemini API connection');
-      console.log('  chroma     - Test ChromaDB connection');
       console.log('  generate   - Test question generation');
-      console.log('  chroma-ops - Test ChromaDB operations');
       console.log('  all        - Run all tests');
       console.log('');
       console.log('Environment variables required:');
       console.log('  GEMINI_API_KEY - Google Gemini API key');
-      console.log('  CHROMA_URL     - ChromaDB server URL (default: http://localhost:8000)');
   }
 }
 

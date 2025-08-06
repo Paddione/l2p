@@ -6,19 +6,19 @@ services:
     image: postgres:15-alpine
     container_name: l2p-postgres-test
     environment:
-      POSTGRES_DB: learn2play_test
-      POSTGRES_USER: test_user
-      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: ${POSTGRES_DB:-learn2play_test}
+      POSTGRES_USER: ${POSTGRES_USER:-test_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-test_password}
       POSTGRES_INITDB_ARGS: "--auth-host=md5"
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - ./database/init-test.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - test_postgres_data:/var/lib/postgresql/data
     networks:
       - test-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U test_user -d learn2play_test"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-test_user} -d ${POSTGRES_DB:-learn2play_test}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -42,22 +42,24 @@ services:
     container_name: l2p-backend-test
     environment:
       NODE_ENV: test
-      PORT: 3001
-      DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/learn2play_test
-      JWT_SECRET: test-jwt-secret-for-testing-only-do-not-use-in-production
-      JWT_REFRESH_SECRET: test-jwt-refresh-secret-for-testing-only-do-not-use-in-production
+      PORT: ${BACKEND_PORT:-3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-test_user}:${POSTGRES_PASSWORD:-test_password}@postgres-test:5432/${POSTGRES_DB:-learn2play_test}
+      JWT_SECRET: ${JWT_SECRET:-test-jwt-secret-for-testing-only-do-not-use-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-test-jwt-refresh-secret-for-testing-only-do-not-use-in-production}
       FRONTEND_URL: http://frontend-test:3000
-      DB_SSL: false
-      LOG_LEVEL: warn
+      DB_SSL: ${DB_SSL:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-warn}
       # CHROMA_URL removed - no longer needed
-      GEMINI_API_KEY: test-api-key
-      SMTP_HOST: mailhog-test
-      SMTP_PORT: 1025
-      SMTP_SECURE: false
-      SMTP_USER: test
-      SMTP_PASS: test
-      EMAIL_SENDER_ADDRESS: test@learn2play.test
-      EMAIL_SENDER_NAME: Learn2Play Test
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-test-api-key}
+      SMTP_HOST: ${SMTP_HOST:-mailhog-test}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-test}
+      SMTP_PASS: ${SMTP_PASS:-test}
+      EMAIL_SENDER_ADDRESS: ${EMAIL_SENDER_ADDRESS:-test@learn2play.test}
+      EMAIL_SENDER_NAME: ${EMAIL_SENDER_NAME:-Learn2Play Test}
+      GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID:-}
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL:-}
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -93,10 +95,10 @@ services:
     container_name: l2p-frontend-test
     environment:
       NODE_ENV: test
-      VITE_API_URL: http://localhost:3001/api
-      VITE_SOCKET_URL: http://localhost:3001
-      VITE_TEST_MODE: true
-      VITE_CHROMA_URL: http://localhost:8001
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
+      VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://localhost:3001}
+      VITE_TEST_MODE: ${VITE_TEST_MODE:-true}
+      VITE_CHROMA_URL: ${VITE_CHROMA_URL:-http://localhost:8001}
     depends_on:
       backend-test:
         condition: service_healthy

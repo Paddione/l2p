@@ -1,24 +1,24 @@
 // Central exports for error handling and logging system
-export { CentralizedErrorHandler, errorHandler } from './ErrorHandler.js';
-export { RequestLogger } from './Logger.js';
-export { HealthMonitor, healthMonitor } from './HealthMonitor.js';
-export { NotificationService, notificationService } from './NotificationService.js';
+export { CentralizedErrorHandler, errorHandler } from './ErrorHandler';
+export { RequestLogger } from './Logger';
+export { HealthMonitor, healthMonitor } from './HealthMonitor';
+export { NotificationService, notificationService } from './NotificationService';
 
 // Import instances for internal use
-import { RequestLogger } from './Logger.js';
-import { healthMonitor } from './HealthMonitor.js';
+import { RequestLogger } from './Logger';
+import { healthMonitor } from './HealthMonitor';
 
 // Type exports
 export type { 
   ErrorContext, 
   ErrorDetails, 
   RecoveryStrategy 
-} from './ErrorHandler.js';
+} from './ErrorHandler';
 
 export type { 
   LogEntry, 
   LoggerConfig 
-} from './Logger.js';
+} from './Logger';
 
 export type { 
   HealthCheck, 
@@ -26,13 +26,13 @@ export type {
   SystemHealth, 
   SystemMetrics, 
   AlertRule 
-} from './HealthMonitor.js';
+} from './HealthMonitor';
 
 export type { 
   NotificationChannel, 
   NotificationMessage, 
   NotificationTemplate 
-} from './NotificationService.js';
+} from './NotificationService';
 
 // Convenience function to initialize the entire error handling system
 export async function initializeErrorHandling(config?: {

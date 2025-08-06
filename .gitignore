@@ -3,6 +3,8 @@
 .env.local
 .env.production
 .env.test
+.env.test.backup
+.env.test.prod-enabled
 
 # Dependencies
 node_modules/

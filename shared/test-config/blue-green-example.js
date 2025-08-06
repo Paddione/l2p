@@ -3,11 +3,11 @@
  * Blue-Green Deployment Example
  * Demonstrates how to use the blue-green deployment system
  */
-import { DeploymentPipeline } from './DeploymentPipeline.js';
-import { BlueGreenDeployment } from './BlueGreenDeployment.js';
-import { STAGING_TARGET, PRODUCTION_TARGET } from './deployment-targets.js';
-import { STAGING_BLUE_GREEN_CONFIG, PRODUCTION_BLUE_GREEN_CONFIG } from './blue-green-config.js';
-import { NginxConfigGenerator } from './generate-nginx-config.js';
+import { DeploymentPipeline } from './DeploymentPipeline';
+import { BlueGreenDeployment } from './BlueGreenDeployment';
+import { STAGING_TARGET, PRODUCTION_TARGET } from './deployment-targets';
+import { STAGING_BLUE_GREEN_CONFIG, PRODUCTION_BLUE_GREEN_CONFIG } from './blue-green-config';
+import { NginxConfigGenerator } from './generate-nginx-config';
 async function demonstrateBlueGreenDeployment() {
     console.log('🔄 Blue-Green Deployment Demonstration\n');
     try {

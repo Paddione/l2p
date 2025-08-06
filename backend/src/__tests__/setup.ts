@@ -1,5 +1,5 @@
-import { TestUtilities } from '../../../shared/test-config/dist/cjs/TestUtilities.js';
-import { TestExecutionContext } from '../../../shared/test-config/dist/cjs/types.js';
+import { TestUtilities } from 'shared/test-config/TestUtilities';
+import { TestExecutionContext } from 'shared/test-config/types';
 import { Server } from 'http';
 import express from 'express';
 

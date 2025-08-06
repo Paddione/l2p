@@ -19,6 +19,9 @@ COMPOSE_FILE="docker-compose.yml"
 PROFILE="production"
 ENV_FILE=".env"
 
+# Available profiles
+AVAILABLE_PROFILES=("test" "dev" "production")
+
 # Function to print colored output
 print_status() {
     echo -e "${GREEN}[INFO]${NC} $1"
@@ -38,6 +41,57 @@ print_header() {
 
 print_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+# Function to validate profile
+validate_profile() {
+    local profile=$1
+    for valid_profile in "${AVAILABLE_PROFILES[@]}"; do
+        if [[ "$profile" == "$valid_profile" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to show profile selection menu
+show_profile_menu() {
+    print_header "=== Profile Selection ==="
+    echo "Available profiles:"
+    for i in "${!AVAILABLE_PROFILES[@]}"; do
+        local profile="${AVAILABLE_PROFILES[$i]}"
+        if [[ "$profile" == "$PROFILE" ]]; then
+            echo -e "  ${GREEN}$((i+1))) $profile (current)${NC}"
+        else
+            echo "  $((i+1))) $profile"
+        fi
+    done
+    echo "  0) Cancel"
+    echo
+}
+
+# Function to select profile interactively
+select_profile() {
+    while true; do
+        show_profile_menu
+        read -p "Select profile (0-${#AVAILABLE_PROFILES[@]}): " choice
+        echo
+        
+        if [[ "$choice" == "0" ]]; then
+            print_status "Profile selection cancelled"
+            return 1
+        elif [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le "${#AVAILABLE_PROFILES[@]}" ]]; then
+            local selected_profile="${AVAILABLE_PROFILES[$((choice-1))]}"
+            if [[ "$selected_profile" != "$PROFILE" ]]; then
+                print_status "Switching from $PROFILE to $selected_profile profile"
+                PROFILE="$selected_profile"
+            fi
+            return 0
+        else
+            print_error "Invalid choice. Please try again."
+            sleep 1
+        fi
+    done
 }
 
 # Function to show help
@@ -64,21 +118,34 @@ show_help() {
     echo "  restart             Restart all services"
     echo "  cache-clean         Clean Docker build cache"
     echo "  cache-prune         Prune unused Docker images and volumes"
+    echo "  create-profile-env  Create a new environment file for the current profile"
     echo
     echo "OPTIONS:"
     echo "  -h, --help          Show this help message"
     echo "  -y, --yes           Auto-confirm all prompts (for automation)"
     echo "  -v, --verbose       Verbose output"
-    echo "  -p, --profile       Docker Compose profile (default: production)"
+    echo "  -p, --profile       Docker Compose profile (test|dev|production, default: production)"
     echo "  -f, --file          Docker Compose file (default: docker-compose.yml)"
     echo "  -e, --env           Environment file (default: .env)"
     echo
+    echo "PROFILES:"
+    echo "  test                Test environment with minimal services"
+    echo "  dev                 Development environment with debugging tools"
+    echo "  production          Production environment with all services"
+    echo
     echo "EXAMPLES:"
     echo "  $0 rebuild-all -y                    # Rebuild all services without prompts"
-    echo "  $0 rebuild-frontend -y               # Rebuild frontend only"
-    echo "  $0 status                            # Show current status"
-    echo "  $0 logs frontend                     # View frontend logs"
-    echo "  $0 reset-db -y                       # Reset database with auto-confirm"
+    echo "  $0 rebuild-frontend -y -p dev        # Rebuild frontend in dev profile"
+    echo "  $0 status -p test                    # Show status for test profile"
+    echo "  $0 logs frontend -p production       # View frontend logs in production"
+    echo "  $0 reset-db -y -p dev                # Reset database in dev profile"
+    echo "  $0 start -p test                     # Start services in test profile"
+    echo "  $0 stop -p production                # Stop services in production profile"
+    echo
+    echo "PROFILE-SPECIFIC COMMANDS:"
+    echo "  $0 -p test rebuild-all               # Rebuild test environment"
+    echo "  $0 -p dev logs backend               # View backend logs in dev"
+    echo "  $0 -p production verify-routing      # Verify production routing"
     echo
     echo "For interactive mode, run without parameters: $0"
 }
@@ -104,6 +171,11 @@ parse_args() {
                 ;;
             -p|--profile)
                 PROFILE="$2"
+                if ! validate_profile "$PROFILE"; then
+                    print_error "Invalid profile: $PROFILE"
+                    print_status "Valid profiles: ${AVAILABLE_PROFILES[*]}"
+                    exit 1
+                fi
                 shift 2
                 ;;
             -f|--file)
@@ -114,7 +186,7 @@ parse_args() {
                 ENV_FILE="$2"
                 shift 2
                 ;;
-            status|rebuild-all|rebuild-frontend|rebuild-backend|rebuild-db|reset-db|backup-db|logs|verify-routing|start|stop|restart)
+            status|rebuild-all|rebuild-all-force|rebuild-frontend|rebuild-frontend-force|rebuild-backend|rebuild-backend-force|rebuild-db|reset-db|backup-db|logs|verify-routing|start|stop|restart|cache-clean|cache-prune|create-profile-env)
                 COMMAND="$1"
                 shift
                 # Handle logs command with optional service parameter
@@ -149,9 +221,17 @@ check_prerequisites() {
         exit 1
     fi
     
+    # Check for main environment file
     if [[ ! -f "$ENV_FILE" ]]; then
-        print_error ".env file not found!"
-        exit 1
+        print_warning ".env file not found!"
+        print_status "You may want to create a .env file with your environment variables"
+    fi
+    
+    # Check for profile-specific environment file
+    local profile_env_file=".env.$PROFILE"
+    if [[ ! -f "$profile_env_file" ]]; then
+        print_warning "Profile-specific environment file $profile_env_file not found!"
+        print_status "You may want to create $profile_env_file for $PROFILE-specific settings"
     fi
     
     if ! command -v docker &> /dev/null; then
@@ -167,20 +247,36 @@ check_prerequisites() {
 
 # Function to load environment variables
 load_env() {
+    # Try to load profile-specific environment file first
+    local profile_env_file=".env.$PROFILE"
+    if [[ -f "$profile_env_file" ]]; then
+        print_status "Loading profile-specific environment from $profile_env_file"
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" =~ ^[^#]*= ]]; then
+                export "$line"
+            fi
+        done < "$profile_env_file"
+    fi
+    
+    # Load main environment file (will override profile-specific vars if needed)
     if [[ -f "$ENV_FILE" ]]; then
-        # Use a safer method to load environment variables
+        print_status "Loading environment variables from $ENV_FILE"
         while IFS= read -r line || [[ -n "$line" ]]; do
             if [[ "$line" =~ ^[^#]*= ]]; then
                 export "$line"
             fi
         done < "$ENV_FILE"
-        print_status "Environment variables loaded from $ENV_FILE"
     fi
+    
+    print_status "Environment loaded for profile: $PROFILE"
 }
 
 # Function to show current status
 show_status() {
     print_header "=== Current Container Status ==="
+    local profile_indicator=$(get_profile_indicator)
+    print_status "Profile: $profile_indicator $PROFILE"
+    echo
     docker-compose --profile "$PROFILE" ps
     echo
     
@@ -354,6 +450,8 @@ prune_cache() {
 # Function to verify Traefik routing
 verify_routing() {
     print_header "=== Traefik Routing Verification ==="
+    local profile_indicator=$(get_profile_indicator)
+    print_status "Profile: $profile_indicator $PROFILE"
     print_status "Domain: $DOMAIN"
     print_status "Frontend URL: https://$DOMAIN"
     print_status "Backend API URL: https://$DOMAIN/api"
@@ -393,12 +491,121 @@ verify_routing() {
     echo "4. Check SSL certificate is valid and from Let's Encrypt"
 }
 
+# Function to show profile services
+show_profile_services() {
+    print_header "=== Profile Services for $PROFILE ==="
+    
+    case $PROFILE in
+        test)
+            print_status "Test profile includes minimal services for testing:"
+            echo "  • frontend (minimal build)"
+            echo "  • backend (test mode)"
+            echo "  • postgres (test database)"
+            echo "  • traefik (basic routing)"
+            ;;
+        dev)
+            print_status "Development profile includes debugging tools:"
+            echo "  • frontend (with hot reload)"
+            echo "  • backend (with debug mode)"
+            echo "  • postgres (development database)"
+            echo "  • traefik (development routing)"
+            echo "  • Additional debugging services"
+            ;;
+        production)
+            print_status "Production profile includes all services:"
+            echo "  • frontend (optimized build)"
+            echo "  • backend (production mode)"
+            echo "  • postgres (production database)"
+            echo "  • traefik (production routing with SSL)"
+            echo "  • Monitoring and logging services"
+            ;;
+    esac
+    echo
+}
+
+# Function to create profile environment file
+create_profile_env() {
+    local profile_env_file=".env.$PROFILE"
+    
+    if [[ -f "$profile_env_file" ]]; then
+        print_warning "Profile environment file $profile_env_file already exists!"
+        if ! auto_confirm "Do you want to overwrite it?"; then
+            print_status "Profile environment file creation cancelled"
+            return 0
+        fi
+    fi
+    
+    print_status "Creating profile environment file: $profile_env_file"
+    
+    cat > "$profile_env_file" << EOF
+# Learn2Play Environment Configuration for $PROFILE profile
+# Generated on $(date)
+
+# Database Configuration
+POSTGRES_DB=l2p_${PROFILE}
+POSTGRES_USER=l2p_${PROFILE}_user
+POSTGRES_PASSWORD=change_me_${PROFILE}
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+
+# Application Configuration
+NODE_ENV=${PROFILE}
+DOMAIN=l2p.korczewski.de
+
+# Add your $PROFILE-specific environment variables below
+# Example:
+# DEBUG=true
+# LOG_LEVEL=debug
+# API_URL=http://localhost:3000
+
+EOF
+    
+    print_success "Profile environment file created: $profile_env_file"
+    print_status "Please edit the file to set appropriate values for your $PROFILE environment"
+}
+
+# Function to show profile information
+show_profile_info() {
+    print_header "=== Profile Information ==="
+    print_status "Current profile: $PROFILE"
+    echo
+    print_status "Available profiles:"
+    for profile in "${AVAILABLE_PROFILES[@]}"; do
+        if [[ "$profile" == "$PROFILE" ]]; then
+            echo -e "  ${GREEN}✓ $profile (active)${NC}"
+        else
+            echo "  ○ $profile"
+        fi
+    done
+    echo
+    print_status "Profile descriptions:"
+    echo "  test        - Test environment with minimal services"
+    echo "  dev         - Development environment with debugging tools"
+    echo "  production  - Production environment with all services"
+    echo
+    
+    # Show current profile services
+    show_profile_services
+}
+
+# Function to get profile indicator
+get_profile_indicator() {
+    case $PROFILE in
+        test) echo -e "${YELLOW}[TEST]${NC}" ;;
+        dev) echo -e "${BLUE}[DEV]${NC}" ;;
+        production) echo -e "${GREEN}[PROD]${NC}" ;;
+        *) echo -e "${RED}[UNKNOWN]${NC}" ;;
+    esac
+}
+
 # Function to show main menu (interactive mode)
 show_menu() {
     clear
+    local profile_indicator=$(get_profile_indicator)
     print_header "======================================"
     print_header "    Learn2Play Container Manager"
     print_header "    Domain: $DOMAIN"
+    print_header "    Profile: $profile_indicator $PROFILE"
     print_header "======================================"
     echo
     echo "1)  Show container status"
@@ -413,6 +620,10 @@ show_menu() {
     echo "10) Start all services"
     echo "11) Stop all services"
     echo "12) Restart all services"
+    echo "13) Change profile"
+    echo "14) Show profile info"
+    echo "15) Create profile environment file"
+    echo "16) Show profile services"
     echo "0)  Exit"
     echo
 }
@@ -477,6 +688,9 @@ execute_command() {
         cache-prune)
             prune_cache
             ;;
+        create-profile-env)
+            create_profile_env
+            ;;
         *)
             print_error "Unknown command: $COMMAND"
             show_help
@@ -490,14 +704,27 @@ main() {
     # Parse command line arguments
     parse_args "$@"
     
+    # Validate profile if specified
+    if ! validate_profile "$PROFILE"; then
+        print_error "Invalid profile: $PROFILE"
+        print_status "Valid profiles: ${AVAILABLE_PROFILES[*]}"
+        exit 1
+    fi
+    
     # If no command specified, run interactive mode
     if [[ -z "$COMMAND" ]]; then
         check_prerequisites
         load_env
         
+        print_header "=== Learn2Play Container Manager ==="
+        local profile_indicator=$(get_profile_indicator)
+        print_status "Current profile: $profile_indicator $PROFILE"
+        print_status "Domain: $DOMAIN"
+        echo
+        
         while true; do
             show_menu
-            read -p "Enter your choice (0-12): " choice
+            read -p "Enter your choice (0-16): " choice
             echo
             
             case $choice in
@@ -554,6 +781,22 @@ main() {
                     print_success "All services restarted"
                     read -p "Press Enter to continue..."
                     ;;
+                13)
+                    select_profile
+                    read -p "Press Enter to continue..."
+                    ;;
+                14)
+                    show_profile_info
+                    read -p "Press Enter to continue..."
+                    ;;
+                15)
+                    create_profile_env
+                    read -p "Press Enter to continue..."
+                    ;;
+                16)
+                    show_profile_services
+                    read -p "Press Enter to continue..."
+                    ;;
                 0)
                     print_success "Goodbye!"
                     exit 0
@@ -568,6 +811,8 @@ main() {
         # Non-interactive mode
         check_prerequisites
         load_env
+        local profile_indicator=$(get_profile_indicator)
+        print_status "Using profile: $profile_indicator $PROFILE"
         execute_command
     fi
 }

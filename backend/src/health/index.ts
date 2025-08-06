@@ -1,4 +1,4 @@
-import { healthMonitor } from '../../../shared/error-handling/index.js';
+import { healthMonitor } from 'shared/error-handling/index';
 import { databaseHealthCheck } from './DatabaseHealthCheck.js';
 
 /**
@@ -11,7 +11,7 @@ export async function initializeBackendHealthChecks(): Promise<void> {
   // Register backend-specific alert rules
   healthMonitor.registerAlertRule({
     name: 'database-connection-failed',
-    condition: (health) => {
+    condition: (health: any) => {
       const dbCheck = health.checks['database'];
       return Boolean(dbCheck && dbCheck.status === 'unhealthy');
     },
@@ -22,7 +22,7 @@ export async function initializeBackendHealthChecks(): Promise<void> {
 
   healthMonitor.registerAlertRule({
     name: 'database-slow-response',
-    condition: (health) => {
+    condition: (health: any) => {
       const dbCheck = health.checks['database'];
       return Boolean(dbCheck && dbCheck.status === 'degraded' && dbCheck.responseTime && dbCheck.responseTime > 2000);
     },

@@ -6,7 +6,7 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import { TestConfigManager } from './TestConfigManager.js';
+import { TestConfigManager } from './TestConfigManager';
 export class TestRunner {
     constructor(configPath) {
         this.runningProcesses = new Map();

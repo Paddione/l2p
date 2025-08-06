@@ -411,7 +411,7 @@ export class AccessibilityTestFramework {
         const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, a, button, label, input, textarea');
         const results: any[] = [];
         
-        for (const element of textElements) {
+        for (const element of Array.from(textElements)) {
           const computedStyle = window.getComputedStyle(element);
           const color = computedStyle.color;
           const backgroundColor = computedStyle.backgroundColor;
@@ -470,10 +470,10 @@ export class AccessibilityTestFramework {
         // Test common ARIA attributes
         const elementsWithAria = document.querySelectorAll('[aria-label], [aria-labelledby], [aria-describedby], [role], [aria-expanded], [aria-hidden]');
         
-        for (const element of elementsWithAria) {
+        for (const element of Array.from(elementsWithAria)) {
           const attributes = element.attributes;
           
-          for (const attr of attributes) {
+          for (const attr of Array.from(attributes)) {
             if (attr.name.startsWith('aria-') || attr.name === 'role') {
               results.push({
                 selector: element.tagName.toLowerCase() + (element.id ? `#${element.id}` : ''),
@@ -983,15 +983,17 @@ export class AccessibilityTestFramework {
     
     const getLuminance = (color: string): number => {
       // Extract RGB values from color string
-      const rgb = color.match(/\d+/g);
-      if (!rgb || rgb.length < 3) return 0;
+      const match = color.match(/\d+/g);
+      if (!match || match.length < 3) return 0;
       
-      const [r, g, b] = rgb.map(x => {
-        const val = parseInt(x) / 255;
+      const rgb = match.map(x => parseInt(x));
+      
+      const [r, g, b] = rgb.map((x: number) => {
+        const val = x / 255;
         return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
       });
       
-      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      return 0.2126 * (r || 0) + 0.7152 * (g || 0) + 0.0722 * (b || 0);
     };
     
     const fgLuminance = getLuminance(foreground);

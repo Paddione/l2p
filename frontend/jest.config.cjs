@@ -80,13 +80,13 @@ try {
       }
     },
     coveragePathIgnorePatterns: [
-      '**/*.test.ts',
-      '**/*.test.tsx',
-      '**/*.spec.ts',
-      '**/*.spec.tsx',
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/coverage/**'
+      '.*\.test\.ts$',
+      '.*\.test\.tsx$',
+      '.*\.spec\.ts$',
+      '.*\.spec\.tsx$',
+      '/node_modules/',
+      '/dist/',
+      '/coverage/'
     ]
   };
 }

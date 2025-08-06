@@ -148,21 +148,32 @@ The test runner has been enhanced with several improvements to prevent getting s
 
 #### Quick Start
 ```bash
-# Run all tests
+# Run all tests with modern infrastructure
 ./test-runner.sh
 
 # Run specific test types
 ./test-runner.sh smoke           # Basic functionality
 ./test-runner.sh unit            # Unit tests only
+./test-runner.sh integration     # Integration tests
 ./test-runner.sh e2e             # End-to-end tests
 ./test-runner.sh performance     # Load and performance
 ./test-runner.sh accessibility   # A11y compliance
 ./test-runner.sh error-handling  # Error scenarios
 
-# With options
-./test-runner.sh --verbose e2e   # Verbose output
-./test-runner.sh --no-cleanup    # Keep test environment
-./test-runner.sh --timeout 30    # Set custom timeout (seconds)
+# Environment-specific testing
+./test-runner.sh --env local unit     # Local environment
+./test-runner.sh --env docker e2e     # Docker environment
+./test-runner.sh --env ci performance # CI environment
+
+# Advanced options
+./test-runner.sh --verbose e2e        # Verbose output
+./test-runner.sh --coverage --report html  # Coverage with HTML report
+./test-runner.sh --retry 5 unit       # Retry failed tests 5 times
+./test-runner.sh --sequential e2e     # Sequential execution
+./test-runner.sh --basic unit         # Use basic infrastructure (fallback)
+
+# Custom configuration
+./test-runner.sh --config custom-test-config.yml
 ```
 
 #### Troubleshooting Stuck Tests
@@ -237,6 +248,25 @@ npm run test:all
 # Cleanup test environment
 npm run stop:test-env
 ```
+
+#### Modern Test Infrastructure
+The platform now uses a comprehensive modern test infrastructure built with TypeScript and Node.js:
+
+**Core Components:**
+- **TestConfigManager**: Centralized configuration management with YAML-based settings
+- **TestRunner**: Orchestrated test execution with parallel/sequential modes
+- **TestReporter**: Comprehensive reporting in HTML, JSON, and JUnit formats
+- **TestEnvironment**: Automated environment setup and health monitoring
+- **ResourceCleanup**: Automatic resource cleanup and state restoration
+
+**Key Features:**
+- **Automatic Infrastructure Building**: Builds test infrastructure if not available
+- **Environment Support**: Local, CI, and Docker environments
+- **Health Checks**: Comprehensive service health monitoring
+- **Fallback Mode**: Automatic fallback to basic infrastructure when needed
+- **Coverage Reporting**: Multi-format coverage reports with thresholds
+- **Retry Logic**: Configurable retry attempts for failed tests
+- **Resource Management**: Automatic cleanup and state restoration
 
 #### Test Infrastructure
 - **Isolated Database**: Separate PostgreSQL instance for testing
@@ -929,6 +959,46 @@ npm run test:env:stop
 # Complete cleanup
 npm run test:env:cleanup
 ```
+
+#### Test Environment Configuration with Production Variables
+
+The test environment can be configured to use production environment variables as defaults while maintaining test-specific overrides. This allows for more realistic testing scenarios and helps catch environment-specific issues early.
+
+**Features:**
+- **Production Variable Inheritance**: Uses production environment variables as defaults
+- **Test-Specific Overrides**: Maintains test-specific values for critical testing needs
+- **Easy Switching**: Toggle between production and test-specific configurations
+- **Automatic Backup**: Preserves original test configuration
+- **Status Checking**: View current configuration status
+
+**Usage:**
+```bash
+# Enable production variables for testing
+./scripts/use-prod-env-for-testing.sh --enable
+
+# Disable production variables (use test-specific only)
+./scripts/use-prod-env-for-testing.sh --disable
+
+# Check current configuration status
+./scripts/use-prod-env-for-testing.sh --status
+
+# Show help
+./scripts/use-prod-env-for-testing.sh --help
+```
+
+**Configuration Details:**
+- Production variables are loaded from `.env.production`
+- Test-specific overrides are applied for database names, ports, and secrets
+- Environment variable substitution is used in `docker-compose.test.yml`
+- Backup files are created automatically (`.env.test.backup`)
+- Status is tracked with a flag file (`.env.test.prod-enabled`)
+
+**Benefits:**
+- More realistic testing scenarios
+- Early detection of environment-specific issues
+- Consistent configuration between test and production
+- Easy rollback to test-specific configuration
+- Maintains test isolation while using production defaults
 
 ### Troubleshooting Docker Issues
 

@@ -126,28 +126,28 @@ export class CoverageConfigManager {
     if (coverageReports.length > 0) {
       // Generate aggregated reports
       const reportOptions: CoverageReportOptions = {
-        outputDir: this.config.global.aggregatedDirectory,
-        formats: this.config.global.formats as any[],
-        includeHistorical: this.config.global.includeHistorical,
+        outputDir: this.config.global?.aggregatedDirectory || 'coverage-reports',
+        formats: (this.config.global?.formats as any[]) || ['html', 'json', 'lcov', 'text'],
+        includeHistorical: !!this.config.global?.includeHistorical,
         includeUncovered: true,
         includeFileDetails: true,
-        thresholds: this.config.global.thresholds,
+        thresholds: this.config.global?.thresholds,
         excludePatterns: this.getGlobalExcludePatterns()
       };
 
       reportPaths = await this.coverageReporter.generateReport(coverageReports, reportOptions);
 
       // Generate badge if enabled
-      if (this.config.global.badgeGeneration) {
+      if (this.config.global?.badgeGeneration && coverageReports.length > 0) {
         badgePath = await this.generateCoverageBadge(coverageReports);
       }
 
       // Get aggregated coverage for threshold checking
       if (coverageReports.length === 1) {
-        aggregatedCoverage = coverageReports[0];
+        aggregatedCoverage = coverageReports[0] || null;
       } else {
         // This would be handled by the CoverageReporter's aggregation logic
-        aggregatedCoverage = coverageReports[0]; // Simplified for now
+        aggregatedCoverage = coverageReports[0] || null; // Simplified for now
       }
     }
 
@@ -179,7 +179,7 @@ export class CoverageConfigManager {
     };
 
     const badgePaths = await this.coverageReporter.generateReport(coverageReports, badgeOptions);
-    return badgePaths[0];
+    return badgePaths[0] || '';
   }
 
   /**
@@ -602,16 +602,16 @@ export class CoverageConfigManager {
           '!src/test-utils.tsx'
         ],
         exclude: [
-          '**/*.test.ts',
-          '**/*.test.tsx',
-          '**/*.spec.ts',
-          '**/*.spec.tsx',
-          '**/node_modules/**',
-          '**/dist/**',
-          '**/coverage/**',
-          '**/__mocks__/**',
-          '**/test-utils.tsx',
-          '**/setupTests.ts'
+          '.*\.test\.ts$',
+          '.*\.test\.tsx$',
+          '.*\.spec\.ts$',
+          '.*\.spec\.tsx$',
+          '/node_modules/',
+          '/dist/',
+          '/coverage/',
+          '/__mocks__/',
+          '/test-utils.tsx$',
+          '/setupTests.ts$'
         ],
         reporters: ['text', 'lcov', 'html', 'json-summary'],
         directory: 'coverage',
@@ -634,14 +634,14 @@ export class CoverageConfigManager {
           '!src/test-setup.ts'
         ],
         exclude: [
-          '**/*.test.ts',
-          '**/*.spec.ts',
-          '**/node_modules/**',
-          '**/dist/**',
-          '**/coverage/**',
-          '**/__tests__/**',
-          '**/test-setup.ts',
-          '**/cli/**'
+          '.*\.test\.ts$',
+          '.*\.spec\.ts$',
+          '/node_modules/',
+          '/dist/',
+          '/coverage/',
+          '/__tests__/',
+          '/test-setup.ts$',
+          '/cli/'
         ],
         reporters: ['text', 'lcov', 'html', 'json-summary'],
         directory: 'coverage',

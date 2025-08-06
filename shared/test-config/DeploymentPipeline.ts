@@ -674,9 +674,9 @@ export class DeploymentPipeline {
       if (diskResult.exitCode === 0) {
         // Parse disk usage (simplified)
         const lines = diskResult.output.split('\n');
-        if (lines.length > 1) {
+        if (lines.length > 1 && lines[1]) {
           const usage = lines[1].split(/\s+/);
-          if (usage.length > 4) {
+          if (usage.length > 4 && usage[4]) {
             const usagePercent = parseInt(usage[4].replace('%', ''), 10);
             if (usagePercent > 90) {
               warnings.push(`Disk usage is high: ${usagePercent}%`);

@@ -2,7 +2,6 @@ import request from 'supertest';
 import { app } from '../../server';
 import { DatabaseService } from '../../services/DatabaseService';
 import { AuthService } from '../../services/AuthService';
-import { ChromaService } from '../../services/ChromaService';
 import { FileProcessingService } from '../../services/FileProcessingService';
 import path from 'path';
 import fs from 'fs';
@@ -10,7 +9,6 @@ import fs from 'fs';
 describe('File Upload Routes Integration Tests', () => {
   let dbService: DatabaseService;
   let authService: AuthService;
-  let chromaService: ChromaService;
   let fileProcessingService: FileProcessingService;
   let authToken: string;
   let testUserId: number;
@@ -20,7 +18,6 @@ describe('File Upload Routes Integration Tests', () => {
     dbService = DatabaseService.getInstance();
     
     authService = new AuthService();
-    chromaService = new ChromaService();
     fileProcessingService = new FileProcessingService();
   });
 
@@ -523,47 +520,7 @@ describe('File Upload Routes Integration Tests', () => {
     });
   });
 
-  describe('ChromaService Integration', () => {
-    it('should add processed content to vector database', async () => {
-      const testFilePath = path.join(__dirname, '../../fixtures/chroma-test.txt');
-      const testContent = 'This is test content for ChromaDB integration testing. It contains specific keywords and concepts that should be searchable.';
-      fs.writeFileSync(testFilePath, testContent);
 
-      const response = await request(app)
-        .post('/api/file-upload/single')
-        .set('Authorization', `Bearer ${authToken}`)
-        .attach('file', testFilePath)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('success', true);
-      expect(response.body.data).toHaveProperty('chromaDocumentId');
-
-      // Verify document was added to ChromaDB
-      const documentId = response.body.data.chromaDocumentId;
-      expect(documentId).toBeDefined();
-
-      // Clean up
-      fs.unlinkSync(testFilePath);
-    });
-
-    it('should handle ChromaDB connection failures gracefully', async () => {
-      // This test would require mocking ChromaService to simulate failures
-      // For now, we'll test the basic flow
-      const testFilePath = path.join(__dirname, '../../fixtures/chroma-failure-test.txt');
-      fs.writeFileSync(testFilePath, 'Test content for ChromaDB failure testing');
-
-      const response = await request(app)
-        .post('/api/file-upload/single')
-        .set('Authorization', `Bearer ${authToken}`)
-        .attach('file', testFilePath)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('success', true);
-
-      // Clean up
-      fs.unlinkSync(testFilePath);
-    });
-  });
 
   describe('Rate Limiting', () => {
     it('should enforce upload rate limits', async () => {

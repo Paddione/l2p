@@ -22,17 +22,18 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "allowImportingTsExtensions": false,
-    "baseUrl": ".",
+    "baseUrl": "..",
     "paths": {
-      "@/*": ["src/*"],
-      "@/routes/*": ["src/routes/*"],
-      "@/services/*": ["src/services/*"],
-      "@/models/*": ["src/models/*"],
-      "@/middleware/*": ["src/middleware/*"],
-      "@/utils/*": ["src/utils/*"],
-      "@/types/*": ["src/types/*"]
+      "@/*": ["backend/src/*"],
+      "@/routes/*": ["backend/src/routes/*"],
+      "@/services/*": ["backend/src/services/*"],
+      "@/models/*": ["backend/src/models/*"],
+      "@/middleware/*": ["backend/src/middleware/*"],
+      "@/utils/*": ["backend/src/utils/*"],
+      "@/types/*": ["backend/src/types/*"],
+      "shared/*": ["shared/*"]
     }
   },
-  "include": ["src/**/*", "../shared/error-handling/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/cli/**/*", "src/routes/__tests__/**/*", "../shared/**/test-*.ts"]
+  "include": ["src/**/*", "../shared/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "src/cli/**/*", "src/routes/__tests__/**/*"]
 }

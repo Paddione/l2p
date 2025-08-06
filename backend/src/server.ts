@@ -16,13 +16,13 @@ import questionRoutes from './routes/questions.js';
 import questionManagementRoutes from './routes/question-management.js';
 import scoringRoutes from './routes/scoring.js';
 import hallOfFameRoutes from './routes/hall-of-fame.js';
-import characterRoutes from './routes/characters.js';
-import fileUploadRoutes from './routes/file-upload.js';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
-import { requestLogger, errorLogger } from './middleware/logging.js';
-import { sanitize } from './middleware/validation.js';
-import { initializeErrorHandling } from '../../shared/error-handling/index.js';
-import { initializeBackendHealthChecks } from './health/index.js';
+import characterRoutes from './routes/characters';
+import fileUploadRoutes from './routes/file-upload';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { requestLogger, errorLogger } from './middleware/logging';
+import { sanitize } from './middleware/validation';
+import { errorHandler as centralErrorHandler } from 'shared/error-handling/index';
+import { initializeBackendHealthChecks } from './health/index';
 
 // Load environment variables
 dotenv.config();
@@ -279,14 +279,6 @@ async function startServer() {
   const PORT = process.env.PORT || 3001;
 
   try {
-    console.log('Initializing error handling system...');
-    await initializeErrorHandling({
-      logLevel: (process.env.LOG_LEVEL as any) || 'info',
-      enableFileLogging: process.env.ENABLE_FILE_LOGGING === 'true',
-      enableRemoteLogging: process.env.ENABLE_REMOTE_LOGGING === 'true',
-      enableHealthMonitoring: true,
-      enableNotifications: process.env.ENABLE_NOTIFICATIONS !== 'false'
-    });
     console.log('Error handling system initialized');
 
     console.log('Initializing backend health checks...');

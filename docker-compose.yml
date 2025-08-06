@@ -340,7 +340,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./database/init-test.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - ./database/test-data.sql:/docker-entrypoint-initdb.d/02-test-data.sql:ro
       - test_postgres_data:/var/lib/postgresql/data
     networks:

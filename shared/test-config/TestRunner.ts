@@ -7,7 +7,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
-import { TestConfigManager } from './TestConfigManager.js';
+import { TestConfigManager } from './TestConfigManager';
 import {
   TestEnvironmentType,
   TestType,
@@ -498,21 +498,21 @@ export class TestRunner {
         // Playwright output parsing
         const playwrightMatch = output.match(/(\d+) passed.*?(\d+) failed.*?(\d+) skipped/);
         if (playwrightMatch) {
-          passed = parseInt(playwrightMatch[1], 10);
-          failed = parseInt(playwrightMatch[2], 10);
-          skipped = parseInt(playwrightMatch[3], 10);
+          passed = parseInt(playwrightMatch[1]!, 10);
+          failed = parseInt(playwrightMatch[2]!, 10);
+          skipped = parseInt(playwrightMatch[3]!, 10);
         }
       } else {
         // Jest output parsing
         const jestMatch = output.match(/Tests:\s+(\d+) failed,\s+(\d+) passed,\s+(\d+) total/);
         if (jestMatch) {
-          failed = parseInt(jestMatch[1], 10);
-          passed = parseInt(jestMatch[2], 10);
+          failed = parseInt(jestMatch[1]!, 10);
+          passed = parseInt(jestMatch[2]!, 10);
         } else {
           // Alternative Jest format
           const altMatch = output.match(/Tests:\s+(\d+) passed,\s+(\d+) total/);
           if (altMatch) {
-            passed = parseInt(altMatch[1], 10);
+            passed = parseInt(altMatch[1]!, 10);
             failed = 0;
           }
         }
@@ -520,7 +520,7 @@ export class TestRunner {
         // Look for skipped tests
         const skippedMatch = output.match(/(\d+) skipped/);
         if (skippedMatch) {
-          skipped = parseInt(skippedMatch[1], 10);
+          skipped = parseInt(skippedMatch[1]!, 10);
         }
       }
     } catch (error) {

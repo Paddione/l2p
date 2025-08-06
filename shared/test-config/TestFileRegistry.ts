@@ -447,7 +447,7 @@ export class TestFileRegistry {
   private findDuplicateFiles(files: string[]): string[][] {
     const filesByName = new Map<string, string[]>();
     
-    files.forEach(file => {
+    files.forEach((file: string) => {
       const fileName = path.basename(file);
       if (!filesByName.has(fileName)) {
         filesByName.set(fileName, []);

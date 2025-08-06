@@ -8,8 +8,8 @@ import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { TestConfigManager } from './TestConfigManager.js';
-import { TestExecutionContext } from './types.js';
+import { TestConfigManager } from './TestConfigManager';
+import { TestExecutionContext } from './types';
 
 export interface PerformanceMetrics {
   responseTime: {

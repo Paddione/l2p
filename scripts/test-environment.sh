@@ -99,8 +99,7 @@ start_environment() {
     # Wait for database first
     wait_for_service "postgres-test" 30
     
-    # Wait for ChromaDB
-    wait_for_service "chromadb-test" 20
+
     
     # Wait for backend
     wait_for_service "backend-test" 40
@@ -165,7 +164,7 @@ show_service_urls() {
     echo "  Frontend:     http://localhost:3000"
     echo "  Backend API:  http://localhost:3001/api"
     echo "  Database:     postgresql://test_user:test_password@localhost:5433/learn2play_test"
-    echo "  ChromaDB:     http://localhost:8001"
+
     echo "  MailHog UI:   http://localhost:8025"
     echo "  Redis:        redis://localhost:6380"
     echo ""
@@ -188,7 +187,7 @@ show_logs() {
 health_check() {
     log_info "Running health checks..."
     
-    local services=("postgres-test" "chromadb-test" "backend-test" "frontend-test" "mailhog-test" "redis-test")
+    local services=("postgres-test" "backend-test" "frontend-test" "mailhog-test" "redis-test")
     local all_healthy=true
     
     for service in "${services[@]}"; do

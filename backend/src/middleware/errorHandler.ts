@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { errorHandler as centralErrorHandler } from '../../../shared/error-handling/index.js';
+import { errorHandler as centralErrorHandler } from 'shared/error-handling/index';
 
 export interface ApiError extends Error {
   statusCode?: number;
@@ -13,13 +13,14 @@ export class ErrorHandler {
    */
   static handle = (err: ApiError, req: Request, res: Response, next: NextFunction): void => {
     // Use centralized error handler
+
     centralErrorHandler.handleError(err, {
       userId: req.user?.userId,
       ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent'),
       url: req.url,
       method: req.method
-    }).catch(handlingError => {
+    }).catch((handlingError: any) => {
       console.error('Failed to handle error centrally:', handlingError);
     });
 

@@ -205,7 +205,7 @@ describe('DeploymentPipeline', () => {
       
       const history = pipeline.getDeploymentHistory();
       expect(history.length).toBe(1);
-      expect(history[0].deploymentId).toBe(result.deploymentId);
+      expect(history[0]!.deploymentId).toBe(result.deploymentId);
       
       const deployment = pipeline.getDeployment(result.deploymentId);
       expect(deployment).toBeDefined();

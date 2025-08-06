@@ -32,11 +32,7 @@ environments:
         timeout: 30
         startup_timeout: 120
       
-      chromadb:
-        base_url: "http://localhost:8001"
-        health_endpoint: "/api/v1/heartbeat"
-        timeout: 15
-        startup_timeout: 45
+
       
       mailhog:
         base_url: "http://localhost:8025"
@@ -88,7 +84,7 @@ environments:
       DATABASE_URL: "postgresql://test_user:test_pass@localhost:5433/test_db"
       BACKEND_URL: "http://localhost:3001"
       FRONTEND_URL: "http://localhost:3000"
-      CHROMA_URL: "http://localhost:8001"
+
       MAILHOG_URL: "http://localhost:8025"
       REDIS_URL: "redis://localhost:6380"
 
@@ -112,11 +108,7 @@ environments:
         timeout: 45
         startup_timeout: 150
       
-      chromadb:
-        base_url: "http://chromadb-test:8000"
-        health_endpoint: "/api/v1/heartbeat"
-        timeout: 30
-        startup_timeout: 60
+
       
       mailhog:
         base_url: "http://mailhog-test:8025"
@@ -168,7 +160,7 @@ environments:
       DATABASE_URL: "postgresql://test_user:test_pass@postgres-test:5432/test_db"
       BACKEND_URL: "http://backend-test:3001"
       FRONTEND_URL: "http://frontend-test:3000"
-      CHROMA_URL: "http://chromadb-test:8000"
+
       MAILHOG_URL: "http://mailhog-test:8025"
       REDIS_URL: "redis://redis-test:6379"
 
@@ -248,7 +240,7 @@ environments:
       DATABASE_URL: "postgresql://test_user:test_pass@localhost:5433/test_db"
       BACKEND_URL: "http://localhost:3001"
       FRONTEND_URL: "http://localhost:3000"
-      CHROMA_URL: "http://localhost:8001"
+
       MAILHOG_URL: "http://localhost:8025"
       REDIS_URL: "redis://localhost:6380"
 

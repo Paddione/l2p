@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RequestLogger as CentralLogger } from '../../../shared/error-handling/index.js';
+import { RequestLogger as CentralLogger } from 'shared/error-handling/index';
 
 export interface LogEntry {
   timestamp: string;

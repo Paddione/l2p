@@ -3,7 +3,7 @@
  * Simple demonstration of TestReporter functionality
  * This shows the core reporting capabilities without requiring full configuration
  */
-import TestReporter from './TestReporter.js';
+import TestReporter from './TestReporter';
 async function demonstrateReporting() {
     console.log('🚀 Demonstrating Test Reporting Framework\n');
     // Initialize the reporter

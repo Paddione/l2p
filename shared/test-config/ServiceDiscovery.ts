@@ -262,7 +262,7 @@ export class ServiceDiscovery {
       try {
         const [result] = await ServiceDiscovery.checkServiceEndpoints([endpoint]);
         
-        if (result.isAvailable) {
+        if (result && result.isAvailable) {
           return true;
         }
       } catch (error) {
@@ -288,9 +288,9 @@ export class ServiceDiscovery {
       const match = pair.match(/(\d+):(\d+)\/(tcp|udp)/);
       if (match) {
         mappings.push({
-          hostPort: parseInt(match[1]),
-          containerPort: parseInt(match[2]),
-          protocol: match[3] as 'tcp' | 'udp'
+          hostPort: parseInt(match[1]!),
+          containerPort: parseInt(match[2]!),
+          protocol: match[3]! as 'tcp' | 'udp'
         });
       }
     }

@@ -187,7 +187,6 @@ export class TestConfigManager {
     // Set service URLs
     process.env.BACKEND_URL = envConfig.services.backend.base_url;
     process.env.FRONTEND_URL = envConfig.services.frontend.base_url;
-    process.env.CHROMA_URL = envConfig.services.chromadb.base_url;
 
     console.log(`Environment variables set for ${environment} environment`);
   }
@@ -201,14 +200,13 @@ export class TestConfigManager {
     
     const healthChecks: Promise<HealthCheckResult>[] = [
       this.checkServiceHealth('backend', envConfig.services.backend),
-      this.checkServiceHealth('frontend', envConfig.services.frontend),
-      this.checkServiceHealth('chromadb', envConfig.services.chromadb)
+      this.checkServiceHealth('frontend', envConfig.services.frontend)
     ];
 
     try {
       const results = await Promise.allSettled(healthChecks);
-      const serviceResults: HealthCheckResult[] = results.map((result, index) => {
-        const serviceName = ['backend', 'frontend', 'chromadb'][index];
+      const serviceResults = results.map((result, index) => {
+        const serviceName = ['backend', 'frontend'][index] as 'backend' | 'frontend';
         if (result.status === 'fulfilled') {
           return result.value;
         } else {
@@ -312,7 +310,7 @@ export class TestConfigManager {
     }
 
     // Validate services
-    const requiredServices = ['backend', 'frontend', 'chromadb'];
+    const requiredServices = ['backend', 'frontend'];
     for (const service of requiredServices) {
       if (!envConfig.services?.[service]) {
         errors.push({ field: `environments.${envName}.services.${service}`, message: `${service} service configuration is required` });
@@ -425,7 +423,7 @@ export class TestConfigManager {
     }
   }
 
-  private getServiceUrl(serviceName: string, envConfig: TestEnvironmentConfig): string {
+  private getServiceUrl(serviceName: 'backend' | 'frontend', envConfig: TestEnvironmentConfig): string {
     const service = envConfig.services[serviceName];
     return service ? service.base_url : '';
   }

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { healthMonitor } from '../../../shared/error-handling/index.js';
+import { healthMonitor } from 'shared/error-handling/index';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -46,12 +46,12 @@ router.get('/ready', asyncHandler(async (req: Request, res: Response) => {
   
   // Check if critical services are healthy
   const criticalChecks = Object.entries(health.checks)
-    .filter(([name, result]) => {
+    .filter(([name, result]: [string, any]) => {
       // Assume database and disk are critical
       return ['database', 'disk'].includes(name);
     });
   
-  const allCriticalHealthy = criticalChecks.every(([, result]) => 
+  const allCriticalHealthy = criticalChecks.every(([, result]: [string, any]) => 
     result.status === 'healthy'
   );
   
@@ -65,8 +65,8 @@ router.get('/ready', asyncHandler(async (req: Request, res: Response) => {
       status: 'not ready',
       timestamp: new Date().toISOString(),
       failedChecks: criticalChecks
-        .filter(([, result]) => result.status !== 'healthy')
-        .map(([name, result]) => ({ name, status: result.status, message: result.message }))
+        .filter(([, result]: [string, any]) => result.status !== 'healthy')
+        .map(([name, result]: [string, any]) => ({ name, status: result.status, message: result.message }))
     });
   }
 }));

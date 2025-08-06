@@ -1,5 +1,21 @@
-import { HealthCheck, HealthCheckResult } from '../../../shared/error-handling/index.js';
 import { db } from '../services/DatabaseService.js';
+
+interface HealthCheckResult {
+  status: 'healthy' | 'unhealthy' | 'degraded';
+  message: string;
+  responseTime: number;
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+interface HealthCheck {
+  name: string;
+  description: string;
+  critical: boolean;
+  timeout: number;
+  interval: number;
+  check(): Promise<HealthCheckResult>;
+}
 
 export const databaseHealthCheck: HealthCheck = {
   name: 'database',

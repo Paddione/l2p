@@ -26,7 +26,7 @@ export const STAGING_TARGET = {
         environmentVariables: {
             NODE_ENV: 'staging',
             DATABASE_URL: 'postgresql://staging_user:staging_pass@postgres:5432/staging_db',
-            CHROMA_URL: 'http://chromadb:8000',
+
             FRONTEND_URL: 'http://localhost:3000',
             BACKEND_URL: 'http://localhost:3001',
             LOG_LEVEL: 'info',
@@ -48,17 +48,7 @@ export const STAGING_TARGET = {
                 },
                 dependencies: []
             },
-            {
-                name: 'chromadb',
-                image: 'chromadb/chroma:latest',
-                healthCheck: {
-                    endpoint: 'http://localhost:8000/api/v1/heartbeat',
-                    timeout: 15,
-                    retries: 5,
-                    interval: 5
-                },
-                dependencies: []
-            },
+
             {
                 name: 'redis',
                 image: 'redis:7-alpine',
@@ -79,7 +69,7 @@ export const STAGING_TARGET = {
                     retries: 10,
                     interval: 5
                 },
-                dependencies: ['postgres', 'chromadb', 'redis']
+                dependencies: ['postgres', 'redis']
             },
             {
                 name: 'frontend',
@@ -123,7 +113,7 @@ export const PRODUCTION_TARGET = {
         environmentVariables: {
             NODE_ENV: 'production',
             DATABASE_URL: '${DATABASE_URL}', // Injected from secrets
-            CHROMA_URL: '${CHROMA_URL}',
+
             FRONTEND_URL: 'https://learn2play.com',
             BACKEND_URL: 'https://api.learn2play.com',
             LOG_LEVEL: 'warn',
@@ -150,17 +140,7 @@ export const PRODUCTION_TARGET = {
                 },
                 dependencies: []
             },
-            {
-                name: 'chromadb',
-                image: 'chromadb/chroma:latest',
-                healthCheck: {
-                    endpoint: 'http://chromadb:8000/api/v1/heartbeat',
-                    timeout: 30,
-                    retries: 10,
-                    interval: 10
-                },
-                dependencies: []
-            },
+
             {
                 name: 'redis',
                 image: 'redis:7-alpine',
@@ -181,7 +161,7 @@ export const PRODUCTION_TARGET = {
                     retries: 15,
                     interval: 10
                 },
-                dependencies: ['postgres', 'chromadb', 'redis']
+                dependencies: ['postgres', 'redis']
             },
             {
                 name: 'frontend',

@@ -263,7 +263,7 @@ Environment Variables:
 
 Services:
   postgres-test       PostgreSQL test database
-  chromadb-test       ChromaDB vector database
+
   backend-test        Backend API service
   frontend-test       Frontend web service
   mailhog-test        Email testing service

@@ -201,7 +201,7 @@ export class CoverageReporter {
     }
 
     if (coverageData.length === 1) {
-      return coverageData[0];
+      return coverageData[0]!;
     }
 
     // Aggregate metrics from multiple reports
@@ -783,18 +783,18 @@ ${coverage.uncoveredLines.map(line => `${line.file}:${line.line} (${line.type})`
     current: CoverageMetrics,
     historicalData: HistoricalCoverageData[]
   ): CoverageTrend[] {
-    if (historicalData.length < 2) {
+    if (historicalData && historicalData.length < 2) {
       return [];
     }
     
-    const previous = historicalData[historicalData.length - 2].coverage;
+    const previous = historicalData && historicalData.length > 1 ? historicalData[historicalData.length - 2]!.coverage : null;
     const trends: CoverageTrend[] = [];
     
     const metrics: Array<keyof CoverageMetrics> = ['statements', 'branches', 'functions', 'lines'];
     
     for (const metric of metrics) {
       const currentValue = current[metric].percentage;
-      const previousValue = previous[metric].percentage;
+      const previousValue = previous ? previous[metric].percentage : 0;
       const change = currentValue - previousValue;
       
       let trend: 'improving' | 'declining' | 'stable';

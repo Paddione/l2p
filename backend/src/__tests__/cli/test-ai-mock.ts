@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 import { GeminiService, QuestionGenerationRequest } from '../../services/GeminiService.js';
-import { ChromaService } from '../../services/ChromaService.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -20,21 +19,7 @@ async function testAIIntegrationStructure() {
       console.log('✅ GeminiService properly validates API key requirement');
     }
     
-    // Test ChromaService instantiation
-    console.log('🔍 Testing ChromaService structure...');
-    const chromaService = new ChromaService();
-    console.log('✅ ChromaService instantiated successfully');
-    
-    // Test ChromaService methods
-    console.log('🔍 Testing ChromaService methods...');
-    const initResult = await chromaService.initializeCollection();
-    console.log('✅ initializeCollection:', initResult.success);
-    
-    const stats = await chromaService.getCollectionStats();
-    console.log('✅ getCollectionStats:', stats);
-    
-    const searchResult = await chromaService.searchDocuments('test query');
-    console.log('✅ searchDocuments:', searchResult.success ? 'success' : 'failed');
+
     
     // Test question generation request validation
     console.log('🔍 Testing request validation...');
@@ -79,7 +64,6 @@ async function testAIIntegrationStructure() {
     console.log('\n📋 Next Steps:');
     console.log('1. Add GEMINI_API_KEY to .env file');
     console.log('2. Test with real API calls');
-    console.log('3. Configure ChromaDB for RAG functionality');
     
   } catch (error) {
     console.error('❌ Error testing AI integration:', error);

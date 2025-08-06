@@ -3,8 +3,8 @@
  * Comprehensive performance testing for API endpoints and services
  */
 
-import { PerformanceTestFramework } from '../../../../shared/test-config/dist/cjs/PerformanceTestFramework';
-import { TestConfigManager } from '../../../../shared/test-config/dist/cjs/TestConfigManager';
+import { PerformanceTestFramework } from 'shared/test-config/PerformanceTestFramework';
+import { TestConfigManager } from 'shared/test-config/TestConfigManager';
 
 describe('Backend Performance Tests', () => {
   let performanceFramework: PerformanceTestFramework;
@@ -35,7 +35,7 @@ describe('Backend Performance Tests', () => {
     expect(results).toHaveLength(2); // api-baseline and high-load scenarios
     
     // Check that at least one scenario passed thresholds
-    const passedScenarios = results.filter(r => r.thresholdsPassed);
+    const passedScenarios = results.filter((r: any) => r.thresholdsPassed);
     expect(passedScenarios.length).toBeGreaterThan(0);
     
     // Verify metrics were collected
@@ -51,7 +51,7 @@ describe('Backend Performance Tests', () => {
     
     // Log results for debugging
     console.log('\n📊 Performance Test Results Summary:');
-    results.forEach(result => {
+    results.forEach((result: any) => {
       console.log(`\n🎯 Scenario: ${result.scenario}`);
       console.log(`✅ Passed: ${result.thresholdsPassed}`);
       console.log(`⏱️  Avg Response: ${result.metrics.responseTime.avg.toFixed(2)}ms`);
@@ -60,7 +60,7 @@ describe('Backend Performance Tests', () => {
       console.log(`❌ Error Rate: ${result.metrics.errors.errorRate.toFixed(2)}%`);
       
       if (result.regression?.detected) {
-        console.log(`⚠️  Regression detected: ${result.regression.details.join(', ')}`);
+        console.log(`⚠️  Regression detected: ${(result.regression.details as string[]).join(', ')}`);
       }
     });
     
@@ -133,9 +133,9 @@ describe('Backend Performance Tests', () => {
       expect(result.artifacts.length).toBeGreaterThan(0);
       
       // Check for expected artifact types
-      const hasLogFiles = result.artifacts.some(artifact => 
-        artifact.includes('test-output.log') || artifact.includes('system-metrics.json')
-      );
+      const hasLogFiles = result.artifacts.some((artifact: any) => {
+        return artifact.includes('test-output.log') || artifact.includes('system-metrics.json')
+      });
       expect(hasLogFiles).toBe(true);
     }
     

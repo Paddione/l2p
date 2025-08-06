@@ -383,12 +383,14 @@ export class InfrastructureAnalyzer {
 
     // Add configuration consolidations
     for (const config of analysis.redundantConfigurations) {
-      plan.configurationsToConsolidate.push({
+      if (config.files.length > 0) {
+        plan.configurationsToConsolidate.push({
         type: config.type,
         sourceFiles: config.files.slice(1), // Keep first, consolidate others
-        targetFile: config.files[0],
+        targetFile: config.files[0] || '',
         action: config.action
-      });
+        });
+      }
     }
 
     // Calculate estimated space saved

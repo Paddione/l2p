@@ -237,7 +237,7 @@ check_environment_variables() {
 check_docker_images() {
     log_info "Checking Docker images..."
     
-    local images=("postgres:15-alpine" "chromadb/chroma:latest" "node:18-alpine" "redis:7-alpine" "mailhog/mailhog:latest")
+    local images=("postgres:15-alpine" "node:18-alpine" "redis:7-alpine" "mailhog/mailhog:latest")
     
     for image in "${images[@]}"; do
         if docker image inspect "$image" >/dev/null 2>&1; then

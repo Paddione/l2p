@@ -20,7 +20,6 @@ export interface ServiceConfig {
 export interface ServicesConfig {
   backend: ServiceConfig;
   frontend: ServiceConfig;
-  chromadb: ServiceConfig;
   [key: string]: ServiceConfig;
 }
 

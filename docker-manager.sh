@@ -81,7 +81,7 @@ create_directories() {
     
     # Create data directories
     mkdir -p "${data_path}/postgres"
-    mkdir -p "${data_path}/chroma"
+
     mkdir -p "${data_path}/letsencrypt"
     
     # Create log directories
@@ -90,7 +90,7 @@ create_directories() {
     mkdir -p "${logs_path}/traefik"
     
     # Set proper permissions
-    chmod 755 "${data_path}"/{postgres,chroma,letsencrypt}
+    chmod 755 "${data_path}"/{postgres,letsencrypt}
     chmod 755 "${logs_path}"/{backend,frontend,traefik}
     
     echo -e "${GREEN}Directories created successfully${NC}"

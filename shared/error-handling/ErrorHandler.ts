@@ -1,4 +1,4 @@
-import { RequestLogger } from './Logger.js';
+import { RequestLogger } from './Logger';
 
 export interface ErrorContext {
   userId?: number;

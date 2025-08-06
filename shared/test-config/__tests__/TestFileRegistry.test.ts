@@ -198,7 +198,7 @@ describe('TestFileRegistry', () => {
       const result = await registry.categorizeTests(files);
 
       expect(result.e2e).toHaveLength(1);
-      const testInfo = result.e2e[0];
+      const testInfo = result.e2e[0]!;
       expect(testInfo.relativePath).toBe('src/test.spec.ts');
       expect(testInfo.type).toBe('e2e');
       expect(testInfo.runner).toBe('playwright');
@@ -215,7 +215,7 @@ describe('TestFileRegistry', () => {
       const result = await registry.categorizeTests(files);
 
       expect(result.unit).toHaveLength(1);
-      const testInfo = result.unit[0];
+      const testInfo = result.unit[0]!;
       expect(testInfo.valid).toBe(false);
       expect(testInfo.errors).toContain('File not accessible: Error: File not found');
     });
@@ -229,7 +229,7 @@ describe('TestFileRegistry', () => {
 
       const result = await registry.categorizeTests(files);
 
-      const testInfo = result.unit[0];
+      const testInfo = result.unit[0]!;
       expect(testInfo.valid).toBe(false);
       expect(testInfo.errors).toContain('File is empty');
     });
@@ -244,7 +244,7 @@ describe('TestFileRegistry', () => {
 
       const result = await registry.categorizeTests(files);
 
-      const testInfo = result.unit[0];
+      const testInfo = result.unit[0]!;
       expect(testInfo.errors).toContain('No test patterns found (describe, it, test, etc.)');
     });
   });
@@ -275,9 +275,9 @@ describe('TestFileRegistry', () => {
       const results = await registry.validateTestFiles(files);
 
       expect(results).toHaveLength(1);
-      expect(results[0].valid).toBe(true);
-      expect(results[0].errors).toEqual([]);
-      expect(results[0].warnings).toEqual([]);
+      expect(results[0]!.valid).toBe(true);
+      expect(results[0]!.errors).toEqual([]);
+      expect(results[0]!.warnings).toEqual([]);
     });
 
     it('should detect focused tests', async () => {
@@ -295,7 +295,7 @@ describe('TestFileRegistry', () => {
 
       const results = await registry.validateTestFiles(files);
 
-      expect(results[0].warnings).toContain('Contains focused tests (fdescribe/fit)');
+      expect(results[0]!.warnings).toContain('Contains focused tests (fdescribe/fit)');
     });
 
     it('should detect skipped tests', async () => {
@@ -313,7 +313,7 @@ describe('TestFileRegistry', () => {
 
       const results = await registry.validateTestFiles(files);
 
-      expect(results[0].warnings).toContain('Contains skipped tests (xdescribe/xit)');
+      expect(results[0]!.warnings).toContain('Contains skipped tests (xdescribe/xit)');
     });
 
     it('should handle inaccessible files', async () => {
@@ -323,8 +323,8 @@ describe('TestFileRegistry', () => {
 
       const results = await registry.validateTestFiles(files);
 
-      expect(results[0].valid).toBe(false);
-      expect(results[0].errors).toContain('Cannot access file: Error: Permission denied');
+      expect(results[0]!.valid).toBe(false);
+      expect(results[0]!.errors).toContain('Cannot access file: Error: Permission denied');
     });
   });
 

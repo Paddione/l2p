@@ -277,7 +277,7 @@ export class ResourceCleanup {
           
           orphanedContainers.forEach(id => {
             result.removed.push({
-              id,
+              id: id || '',
               name: 'orphaned-container',
               type: 'container',
               created: new Date(),
@@ -347,13 +347,13 @@ export class ResourceCleanup {
       return output.trim().split('\n')
         .filter(line => line.trim())
         .map(line => {
-          const [id, name, created, status] = line.split('\t');
+          const [id, name, created, status]: (string | undefined)[] = line.split('\t');
           return {
-            id,
-            name,
+            id: id || '',
+            name: name || '',
             type: 'container' as const,
-            created: new Date(created),
-            inUse: status.includes('Up')
+            created: new Date(created || 0),
+            inUse: status ? status.includes('Up') : false
           };
         });
     } catch (error) {
@@ -376,8 +376,8 @@ export class ResourceCleanup {
         .map(line => {
           const [name, created] = line.split('\t');
           return {
-            id: name,
-            name,
+            id: name || '',
+            name: name || '',
             type: 'volume' as const,
             created: new Date(created || Date.now()),
             inUse: false // Will be checked separately
@@ -403,8 +403,8 @@ export class ResourceCleanup {
         .map(line => {
           const [id, name, created] = line.split('\t');
           return {
-            id,
-            name,
+            id: id || '',
+            name: name || '',
             type: 'network' as const,
             created: new Date(created || Date.now()),
             inUse: false // Will be checked separately
@@ -430,8 +430,8 @@ export class ResourceCleanup {
         .map(line => {
           const [id, name, created, size] = line.split('\t');
           return {
-            id,
-            name,
+            id: id || '',
+            name: name || '',
             type: 'image' as const,
             size,
             created: new Date(created || Date.now()),

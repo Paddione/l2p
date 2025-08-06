@@ -84,13 +84,13 @@ describe('TestRunner', () => {
       expect(plan.parallel).toBe(true);
       expect(plan.maxConcurrency).toBe(2);
       
-      expect(plan.tests[0].type).toBe('unit');
-      expect(plan.tests[0].command).toBe('npm');
-      expect(plan.tests[0].args).toContain('test:unit');
+      expect(plan.tests[0]!.type).toBe('unit');
+      expect(plan.tests[0]!.command).toBe('npm');
+      expect(plan.tests[0]!.args).toContain('test:unit');
       
-      expect(plan.tests[1].type).toBe('integration');
-      expect(plan.tests[1].command).toBe('npm');
-      expect(plan.tests[1].args).toContain('test:integration');
+      expect(plan.tests[1]!.type).toBe('integration');
+      expect(plan.tests[1]!.command).toBe('npm');
+      expect(plan.tests[1]!.args).toContain('test:integration');
     });
 
     it('should handle percentage-based max workers', () => {

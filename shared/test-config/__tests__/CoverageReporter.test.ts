@@ -103,7 +103,7 @@ describe('CoverageReporter', () => {
       mockFs.readFileSync.mockReturnValue(JSON.stringify([
         {
           timestamp: new Date('2023-01-01').toISOString(),
-          coverage: mockCoverageData[0].overall,
+          coverage: mockCoverageData[0]!.overall,
           testCount: 100
         }
       ]));
@@ -134,7 +134,7 @@ describe('CoverageReporter', () => {
         lines: 80
       };
 
-      const result = coverageReporter.checkThresholds(mockCoverageData[0], thresholds);
+      const result = coverageReporter.checkThresholds(mockCoverageData[0]!, thresholds);
 
       expect(result.met).toBe(true);
       expect(result.failures).toHaveLength(0);
@@ -149,7 +149,7 @@ describe('CoverageReporter', () => {
         lines: 95
       };
 
-      const result = coverageReporter.checkThresholds(mockCoverageData[0], thresholds);
+      const result = coverageReporter.checkThresholds(mockCoverageData[0]!, thresholds);
 
       expect(result.met).toBe(false);
       expect(result.failures.length).toBeGreaterThan(0);
@@ -164,7 +164,7 @@ describe('CoverageReporter', () => {
         lines: 90
       };
 
-      const result = coverageReporter.checkThresholds(mockCoverageData[0], thresholds);
+      const result = coverageReporter.checkThresholds(mockCoverageData[0]!, thresholds);
 
       expect(result.failures).toEqual(
         expect.arrayContaining([
@@ -196,7 +196,7 @@ describe('CoverageReporter', () => {
       const formats = ['html', 'json', 'lcov', 'xml'] as const;
       
       const exports = await coverageReporter.exportFormats(
-        mockCoverageData[0],
+        mockCoverageData[0]!,
         [...formats],
         tempDir
       );
@@ -212,7 +212,7 @@ describe('CoverageReporter', () => {
       // This should be caught by TypeScript, but test runtime behavior
       const formats = ['unsupported'] as any;
       
-      await expect(coverageReporter.exportFormats(mockCoverageData[0], formats))
+      await expect(coverageReporter.exportFormats(mockCoverageData[0]!, formats))
         .rejects.toThrow('Unsupported coverage report format');
     });
   });
@@ -227,7 +227,7 @@ describe('CoverageReporter', () => {
         includeFileDetails: true
       };
 
-      const reportPaths = await coverageReporter.generateReport([mockCoverageData[0]], options);
+      const reportPaths = await coverageReporter.generateReport([mockCoverageData[0]!], options);
       expect(reportPaths.length).toBe(1);
     });
 
@@ -262,7 +262,7 @@ describe('CoverageReporter', () => {
         includeFileDetails: true
       };
 
-      const reportPaths = await coverageReporter.generateReport([mockCoverageData[0], secondReport], options);
+      const reportPaths = await coverageReporter.generateReport([mockCoverageData[0]!, secondReport], options);
       expect(reportPaths.length).toBe(1);
 
       // Verify that writeFileSync was called with aggregated data

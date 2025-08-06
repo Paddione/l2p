@@ -359,7 +359,7 @@ describe('ServiceDiscovery', () => {
       const results = await ServiceDiscovery.checkServiceEndpoints(endpoints);
       expect(Array.isArray(results)).toBe(true);
       expect(results).toHaveLength(1);
-      expect(results[0].lastCheck).toBeInstanceOf(Date);
+      expect(results[0]!.lastCheck).toBeInstanceOf(Date);
     });
   });
 });

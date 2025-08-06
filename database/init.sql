@@ -428,6 +428,15 @@ INSERT INTO health_check (status) VALUES ('OK') ON CONFLICT DO NOTHING;
 -- GRANT PERMISSIONS
 -- ============================================================================
 
+-- Create the application user if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'l2p_user') THEN
+        CREATE ROLE l2p_user WITH LOGIN PASSWORD 'l2p_password';
+    END IF;
+END
+$$;
+
 -- Grant permissions to the application user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO l2p_user;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO l2p_user;

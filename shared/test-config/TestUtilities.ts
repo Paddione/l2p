@@ -3,7 +3,7 @@
  * Common utilities for consistent test setup across frontend and backend
  */
 
-import { TestConfigManager } from './TestConfigManager.js';
+import { TestConfigManager } from './TestConfigManager';
 import {
   TestEnvironmentType,
   TestType,

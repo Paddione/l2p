@@ -440,7 +440,7 @@ export class BlueGreenDeployment {
         { from: 'backend:', to: `backend-${environment}:` },
         { from: 'frontend:', to: `frontend-${environment}:` },
         { from: 'postgres:', to: `postgres-${environment}:` },
-        { from: 'chromadb:', to: `chromadb-${environment}:` },
+
         { from: 'redis:', to: `redis-${environment}:` }
       ];
       
@@ -454,7 +454,7 @@ export class BlueGreenDeployment {
         { from: '"3000:3000"', to: `"${3000 + portOffset}:3000"` },
         { from: '"3001:3001"', to: `"${3001 + portOffset}:3001"` },
         { from: '"5432:5432"', to: `"${5432 + portOffset}:5432"` },
-        { from: '"8000:8000"', to: `"${8000 + portOffset}:8000"` },
+
         { from: '"6379:6379"', to: `"${6379 + portOffset}:6379"` }
       ];
       
@@ -487,7 +487,7 @@ export class BlueGreenDeployment {
     const defaultEndpoints = [
       { service: 'backend', port: 3001 + portOffset, path: '/api/health' },
       { service: 'frontend', port: 3000 + portOffset, path: '/' },
-      { service: 'chromadb', port: 8000 + portOffset, path: '/api/v1/heartbeat' }
+
     ];
     
     const endpoints = target ? 
@@ -961,12 +961,12 @@ export class BlueGreenDeployment {
 
   private extractPortFromHealthCheck(endpoint: string): number {
     const match = endpoint.match(/:(\d+)/);
-    return match ? parseInt(match[1], 10) : 3001; // Default to 3001
+    return match && match[1] ? parseInt(match[1], 10) : 3001; // Default to 3001
   }
 
   private extractPathFromHealthCheck(endpoint: string): string {
     const match = endpoint.match(/https?:\/\/[^\/]+(\/.*)/);
-    return match ? match[1] : '/'; // Default to root path
+    return match && match[1] ? match[1] : '/'; // Default to root path
   }
 
   private async checkServiceHealth(

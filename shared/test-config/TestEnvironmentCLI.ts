@@ -5,7 +5,7 @@
  * Command-line interface for the TestEnvironment orchestrator
  */
 
-import { TestEnvironment, ServiceHealth } from './TestEnvironment.js';
+import { TestEnvironment, ServiceHealth } from './TestEnvironment';
 import * as path from 'path';
 
 // Colors for console output
@@ -290,7 +290,7 @@ Environment Variables:
 
 Services:
   postgres-test       PostgreSQL test database
-  chromadb-test       ChromaDB vector database
+
   backend-test        Backend API service
   frontend-test       Frontend web service
   mailhog-test        Email testing service

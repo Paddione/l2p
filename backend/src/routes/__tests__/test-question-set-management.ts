@@ -3,13 +3,11 @@ import { app } from '../../server.js';
 import { DatabaseService } from '../../services/DatabaseService.js';
 import { QuestionService } from '../../services/QuestionService.js';
 import { GeminiService } from '../../services/GeminiService.js';
-import { ChromaService } from '../../services/ChromaService.js';
 
 describe('Question Set Management - Complete Integration', () => {
   let dbService: DatabaseService;
   let questionService: QuestionService;
   let geminiService: GeminiService;
-  let chromaService: ChromaService;
   let authToken: string;
 
   beforeAll(async () => {
@@ -17,7 +15,6 @@ describe('Question Set Management - Complete Integration', () => {
     
     questionService = new QuestionService();
     geminiService = new GeminiService();
-    chromaService = new ChromaService();
 
     // Create a test user and get auth token
     const userData = {

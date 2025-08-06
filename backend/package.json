@@ -54,6 +54,7 @@
     "typescript": "^5.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.13",

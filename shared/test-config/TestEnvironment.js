@@ -31,13 +31,7 @@ export class TestEnvironment {
                     health_timeout: 30,
                     startup_timeout: 60,
                 },
-                'chromadb-test': {
-                    container_name: 'l2p-chromadb-test',
-                    port: 8001,
-                    health_endpoint: '/api/v1/heartbeat',
-                    health_timeout: 15,
-                    startup_timeout: 45,
-                },
+
                 'backend-test': {
                     container_name: 'l2p-backend-test',
                     port: 3001,
@@ -69,7 +63,7 @@ export class TestEnvironment {
             },
             volumes: {
                 test_postgres_data: { type: 'tmpfs', size: '512m', uid: 999, gid: 999 },
-                test_chroma_data: { type: 'tmpfs', size: '256m', uid: 1000, gid: 1000 },
+
                 test_redis_data: { type: 'tmpfs', size: '128m', uid: 999, gid: 999 },
                 test_backend_node_modules: { type: 'volume' },
                 test_frontend_node_modules: { type: 'volume' },
@@ -325,7 +319,6 @@ export class TestEnvironment {
         const serviceOrder = [
             'postgres-test',
             'redis-test',
-            'chromadb-test',
             'mailhog-test',
             'backend-test',
             'frontend-test'
