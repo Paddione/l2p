@@ -1,28 +1,32 @@
-import { TestUtilities } from 'shared/test-config/TestUtilities';
-import { TestExecutionContext } from 'shared/test-config/types';
 import { Server } from 'http';
 import express from 'express';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env files
+dotenv.config({ path: ['.env.test', '.env'] });
 
 export interface TestEnvironment {
   app: express.Application;
   server: Server;
 }
 
-// Get test context from global setup
-let testContext: TestExecutionContext | undefined;
-
-// Set up environment variables for tests
+// Set up environment variables for tests using .env configuration
 function setupTestEnvironmentVariables() {
   process.env.NODE_ENV = 'test';
-  process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test_user:test_pass@localhost:5433/test_db';
+  
+  // Use test database from .env files
+  const testDatabaseUrl = process.env.TEST_DATABASE_URL || 
+    process.env.DATABASE_URL?.replace('/learn2play', '/learn2play_test') ||
+    'postgresql://l2p_user:P/o09KBVVkgN52Hr8hxV7VoyNAHdb3lXLEgyepGdD/o=@localhost:5432/learn2play_test';
+  
+  process.env.DATABASE_URL = testDatabaseUrl;
+  process.env.DB_NAME = 'learn2play_test';
+  process.env.DB_SSL = 'false'; // Disable SSL for local testing
+  
+  // Use existing .env configuration for other variables
   process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_for_testing_only_not_secure';
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test_refresh_secret_for_testing_only_not_secure';
-  process.env.CHROMA_URL = process.env.CHROMA_URL || 'http://localhost:8001';
-  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'test_api_key';
-  process.env.EMAIL_HOST = process.env.EMAIL_HOST || 'localhost';
-  process.env.EMAIL_PORT = process.env.EMAIL_PORT || '587';
-  process.env.EMAIL_USER = process.env.EMAIL_USER || 'test@example.com';
-  process.env.EMAIL_PASS = process.env.EMAIL_PASS || 'test_password';
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'test_key';
 }
 
 // Global test setup
@@ -31,35 +35,9 @@ global.beforeAll(async () => {
     // Set up environment variables first
     setupTestEnvironmentVariables();
     
-    // Get context from global setup or initialize if not available
-    testContext = (global as any).__TEST_CONTEXT__;
-    
-    if (!testContext) {
-      try {
-        testContext = await TestUtilities.initializeTestEnvironment();
-      } catch (error) {
-        // Continue without test context for unit tests
-        console.warn('Could not initialize test context, using fallback configuration');
-      }
-    }
-    
-    // Setup database if needed for this test type
-    if (testContext) {
-      try {
-        await TestUtilities.setupTestDatabase(testContext);
-      } catch (error) {
-        // Ignore database setup errors for unit tests
-        if (testContext.test_type !== 'unit') {
-          console.warn('Database setup failed:', error);
-        }
-      }
-    }
-    
-    if (testContext) {
-      console.log(`Test setup complete for ${testContext.environment}/${testContext.test_type}`);
-    } else {
-      console.log('Test setup complete with fallback configuration');
-    }
+    // Set up environment variables using .env configuration
+    setupTestEnvironmentVariables();
+    console.log('Test setup complete using .env configuration');
   } catch (error) {
     console.error('Test setup failed:', error);
     // Ensure environment variables are set even if setup fails
@@ -70,9 +48,7 @@ global.beforeAll(async () => {
 // Global test teardown
 global.afterAll(async () => {
   try {
-    if (testContext) {
-      await TestUtilities.cleanupTestEnvironment(testContext);
-    }
+    console.log('Test teardown complete');
   } catch (error) {
     console.warn('Test teardown warning:', error);
   }
@@ -90,9 +66,8 @@ global.afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// Set timeout from configuration
-const timeout = testContext?.test_type_config?.timeout || 10000;
-jest.setTimeout(timeout);
+// Set timeout
+jest.setTimeout(10000);
 
 // Suppress console warnings during tests
 const originalWarn = console.warn;

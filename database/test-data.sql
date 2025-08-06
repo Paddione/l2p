@@ -17,10 +17,10 @@ INSERT INTO question_sets (id, name, description, category, difficulty, is_activ
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test lobbies (conditionally to avoid duplicates)
-INSERT INTO lobbies (id, code, host_id, status, question_count, created_at, started_at) VALUES
-(1, 'TEST001', 1, 'playing', 10, NOW(), NOW()),
-(2, 'TEST002', 2, 'playing', 15, NOW(), NOW()),
-(3, 'TEST003', 4, 'ended', 20, NOW(), NOW())
+INSERT INTO lobbies (id, code, host_id, status, current_players, question_set_id, created_at, settings, players) VALUES
+(1, 'TEST001', 1, 'playing', 2, 1, NOW(), '{"max_players": 4}'::jsonb, '[{"id": 1, "username": "testuser1"}, {"id": 2, "username": "testuser2"}]'::jsonb),
+(2, 'TEST002', 2, 'playing', 3, 2, NOW(), '{"max_players": 4}'::jsonb, '[{"id": 2, "username": "testuser2"}, {"id": 3, "username": "testuser3"}, {"id": 4, "username": "admin"}]'::jsonb),
+(3, 'TEST003', 4, 'ended', 4, 3, NOW(), '{"max_players": 4}'::jsonb, '[{"id": 1, "username": "testuser1"}, {"id": 2, "username": "testuser2"}, {"id": 3, "username": "testuser3"}, {"id": 4, "username": "admin"}]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert test questions (conditionally to avoid duplicates)

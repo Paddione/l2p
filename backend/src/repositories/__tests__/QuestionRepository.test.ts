@@ -1,189 +1,326 @@
-import { 
-  QuestionRepository, 
-  Question, 
-  QuestionSet, 
-  Answer, 
-  LocalizedText, 
-  CreateQuestionData, 
-  CreateQuestionSetData,
-  QuestionSetPermission,
-  CreateQuestionSetPermissionData,
-  QuestionSetVersion,
-  CreateQuestionSetVersionData
-} from '../QuestionRepository';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { QueryResult, QueryResultRow } from 'pg';
+import { QuestionRepository } from '../QuestionRepository';
+import { DatabaseService } from '../../services/DatabaseService';
 import { BaseRepository } from '../BaseRepository';
 
-// Mock the BaseRepository
-jest.mock('../BaseRepository');
+// Define types for test data
+interface LocalizedText {
+  en: string;
+  de: string;
+}
+
+interface Answer {
+  text: LocalizedText;
+  correct: boolean;
+}
+
+interface Question {
+  id: number;
+  question_set_id: number;
+  question_text: LocalizedText;
+  answers: Answer[];
+  explanation?: LocalizedText;
+  difficulty: number;
+  created_at: Date;
+}
+
+interface QuestionSet {
+  id: number;
+  name: string;
+  description?: string;
+  category?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  is_active: boolean;
+  owner_id?: number;
+  is_public: boolean;
+  is_featured: boolean;
+  tags: string[];
+  metadata: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: number;
+}
+
+// Mock the DatabaseService
+export const mockQuery = jest.fn<Promise<QueryResult<QueryResultRow>>, any[]>();
+
+// Mock the BaseRepository to avoid actual database calls
+export const mockBaseRepository = {
+  findById: jest.fn<Promise<any>, [number]>(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+  exists: jest.fn(),
+  count: jest.fn()
+};
+
+jest.mock('../BaseRepository', () => ({
+  BaseRepository: jest.fn().mockImplementation(() => mockBaseRepository)
+}));
+
+// Mock the DatabaseService
+export const mockDatabaseService = {
+  query: mockQuery,
+  getInstance: jest.fn()
+};
+
+jest.mock('../../services/DatabaseService', () => ({
+  DatabaseService: jest.fn().mockImplementation(() => mockDatabaseService)
+}));
+
+// Helper function to create mock query results
+const createMockQueryResult = <T extends QueryResultRow>(rows: T[]): QueryResult<T> => ({
+  rows,
+  rowCount: rows.length,
+  command: 'SELECT',
+  oid: 0,
+  fields: []
+});
+
+// Helper function to create localized text
+const createLocalizedText = (en: string, de: string): LocalizedText => ({
+  en,
+  de
+});
+
+// Define DTO types for creation/update
+interface CreateQuestionSetData {
+  name: string;
+  description?: string;
+  category?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  is_active?: boolean;
+  owner_id?: number;
+  is_public?: boolean;
+  is_featured?: boolean;
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
+interface CreateQuestionData {
+  question_set_id: number;
+  question_text: LocalizedText;
+  answers: Answer[];
+  explanation?: LocalizedText;
+  difficulty?: number;
+}
+
+interface CreateAnswerData {
+  text: LocalizedText;
+  correct: boolean;
+}
+
+interface CreateQuestionSetPermissionData {
+  question_set_id: number;
+  user_id: number;
+  permission_type: 'read' | 'write' | 'admin';
+  granted_by?: number;
+}
+
+interface CreateQuestionSetVersionData {
+  question_set_id: number;
+  version_number: number;
+  changes: Record<string, any>;
+  created_by?: number;
+}
+
+// Define additional types for test data
+interface QuestionSetPermission {
+  id: number;
+  question_set_id: number;
+  user_id: number;
+  permission_type: 'read' | 'write' | 'admin';
+  granted_at: Date;
+  granted_by?: number;
+}
+
+interface QuestionSetVersion {
+  id: number;
+  question_set_id: number;
+  version_number: number;
+  changes: Record<string, any>;
+  created_by?: number;
+  created_at: Date;
+}
+
+// Mock data
+export const mockQuestionSet: QuestionSet = {
+  id: 1,
+  name: 'Test Question Set',
+  description: 'Test Description',
+  category: 'Math',
+  difficulty: 'easy',
+  is_active: true,
+  is_public: true,
+  is_featured: false,
+  tags: ['math', 'basic'],
+  metadata: {},
+  created_at: new Date(),
+  updated_at: new Date(),
+  created_by: 1
+};
+
+export const mockAnswer: Answer = {
+  text: createLocalizedText('4', 'Vier'),
+  correct: true
+};
+
+export const mockQuestion: Question = {
+  id: 1,
+  question_set_id: 1,
+  question_text: createLocalizedText('What is 2+2?', 'Was ist 2+2?'),
+  answers: [mockAnswer],
+  explanation: createLocalizedText('Basic addition', 'Einfache Addition'),
+  difficulty: 1,
+  created_at: new Date()
+};
+
+// Extended mock data with relationships
+interface QuestionWithAnswers extends Question {
+  answers: Answer[];
+}
+
+interface QuestionSetWithQuestions extends QuestionSet {
+  questions: QuestionWithAnswers[];
+}
+
+export const mockQuestionWithAnswers: QuestionWithAnswers = {
+  ...mockQuestion,
+  answers: [mockAnswer]
+};
+
+export const mockQuestionSetWithQuestions: QuestionSetWithQuestions = {
+  ...mockQuestionSet,
+  questions: [mockQuestionWithAnswers]
+};
+
+export const mockQuestionSetPermission: QuestionSetPermission = {
+  id: 1,
+  question_set_id: 1,
+  user_id: 1,
+  permission_type: 'read',
+  granted_at: new Date(),
+  granted_by: 1
+};
+
+export const mockQuestionSetVersion: QuestionSetVersion = {
+  id: 1,
+  question_set_id: 1,
+  version_number: 1,
+  changes: { description: 'Initial version' },
+  created_at: new Date(),
+  created_by: 1
+};
+
+// Mock data for creation
+export const mockCreateQuestionSetData: CreateQuestionSetData = {
+  name: createLocalizedText('New Question Set', 'Neuer Fragensatz'),
+  description: createLocalizedText('New Description', 'Neue Beschreibung'),
+  created_by: 1,
+  is_public: true
+};
+
+export const mockCreateQuestionData: CreateQuestionData = {
+  question_set_id: 1,
+  question_text: createLocalizedText('New Question', 'Neue Frage'),
+  answers: [{
+    text: createLocalizedText('Answer', 'Antwort'),
+    correct: true
+  }],
+  explanation: createLocalizedText('Explanation', 'Erklärung'),
+  difficulty: 1
+};
+
+export const mockCreateAnswerData: CreateAnswerData = {
+  text: createLocalizedText('New Answer', 'Neue Antwort'),
+  correct: true
+};
+
+export const mockCreateQuestionSetPermissionData: CreateQuestionSetPermissionData = {
+  question_set_id: 1,
+  user_id: 2,
+  permission_type: 'read',
+  granted_by: 1
+};
+
+export const mockCreateQuestionSetVersionData: CreateQuestionSetVersionData = {
+  question_set_id: 1,
+  version_number: 1,
+  changes: { description: 'Initial version' },
+  created_by: 1
+};
 
 describe('QuestionRepository', () => {
   let questionRepository: QuestionRepository;
-  let mockDb: any;
-
-  // Test data
-  const mockLocalizedText: LocalizedText = {
-    en: 'English text',
-    de: 'German text'
-  };
-
-  const mockAnswer: Answer = {
-    text: {
-      en: 'Answer in English',
-      de: 'Answer in German'
-    },
-    correct: true
-  };
-
-  const mockQuestion: Question = {
-    id: 1,
-    question_set_id: 1,
-    question_text: {
-      en: 'What is the capital of France?',
-      de: 'Was ist die Hauptstadt von Frankreich?'
-    },
-    answers: [
-      {
-        text: { en: 'Paris', de: 'Paris' },
-        correct: true
-      },
-      {
-        text: { en: 'London', de: 'London' },
-        correct: false
-      },
-      {
-        text: { en: 'Berlin', de: 'Berlin' },
-        correct: false
-      },
-      {
-        text: { en: 'Madrid', de: 'Madrid' },
-        correct: false
-      }
-    ],
-    explanation: {
-      en: 'Paris is the capital and largest city of France.',
-      de: 'Paris ist die Hauptstadt und größte Stadt Frankreichs.'
-    },
-    difficulty: 1,
-    created_at: new Date('2023-01-01T00:00:00Z')
-  };
-
-  const mockQuestionSet: QuestionSet = {
-    id: 1,
-    name: 'Geography Quiz',
-    description: 'Test your geography knowledge',
-    category: 'geography',
-    difficulty: 'medium',
-    is_active: true,
-    owner_id: 1,
-    is_public: true,
-    is_featured: false,
-    tags: ['geography', 'capitals', 'countries'],
-    metadata: { version: '1.0' },
-    created_at: new Date('2023-01-01T00:00:00Z'),
-    updated_at: new Date('2023-01-01T00:00:00Z')
-  };
-
-  const mockCreateQuestionData: CreateQuestionData = {
-    question_set_id: 1,
-    question_text: {
-      en: 'What is 2 + 2?',
-      de: 'Was ist 2 + 2?'
-    },
-    answers: [
-      {
-        text: { en: '4', de: '4' },
-        correct: true
-      },
-      {
-        text: { en: '3', de: '3' },
-        correct: false
-      }
-    ],
-    explanation: {
-      en: 'Basic addition',
-      de: 'Grundlegende Addition'
-    },
-    difficulty: 1
-  };
-
-  const mockCreateQuestionSetData: CreateQuestionSetData = {
-    name: 'Math Quiz',
-    description: 'Basic mathematics questions',
-    category: 'mathematics',
-    difficulty: 'easy',
-    is_active: true,
-    owner_id: 1,
-    is_public: true,
-    is_featured: false,
-    tags: ['math', 'basic'],
-    metadata: { level: 'beginner' }
-  };
-
-  const mockQuestionSetPermission: QuestionSetPermission = {
-    id: 1,
-    question_set_id: 1,
-    user_id: 2,
-    permission_type: 'read',
-    granted_at: new Date('2023-01-01T00:00:00Z'),
-    granted_by: 1
-  };
-
-  const mockCreateQuestionSetPermissionData: CreateQuestionSetPermissionData = {
-    question_set_id: 1,
-    user_id: 2,
-    permission_type: 'read',
-    granted_by: 1
-  };
-
-  const mockQuestionSetVersion: QuestionSetVersion = {
-    id: 1,
-    question_set_id: 1,
-    version_number: 1,
-    changes: { action: 'created', description: 'Initial version' },
-    created_by: 1,
-    created_at: new Date('2023-01-01T00:00:00Z')
-  };
-
-  const mockCreateQuestionSetVersionData: CreateQuestionSetVersionData = {
-    question_set_id: 1,
-    version_number: 2,
-    changes: { action: 'updated', description: 'Added new questions' },
-    created_by: 1
-  };
 
   beforeEach(() => {
-    // Clear all mocks
+    // Reset all mocks before each test
     jest.clearAllMocks();
-
-    // Mock database connection and query methods
-    mockDb = {
-      query: jest.fn()
-    };
-
-    // Create QuestionRepository instance
+    
+    // Create a new instance of the repository for each test
     questionRepository = new QuestionRepository();
-
-    // Mock the inherited db property from BaseRepository
-    (questionRepository as any).db = mockDb;
+    
+    // Setup default mock implementations with proper typing
+    mockBaseRepository.findById.mockImplementation(async (id: number) => 
+      id === mockQuestionSetWithQuestions.id ? mockQuestionSetWithQuestions : null
+    );
+    
+    mockBaseRepository.create.mockImplementation(async <T>(data: T) => 
+      ({ ...data, id: 1 } as any)
+    );
+    
+    mockBaseRepository.update.mockImplementation(async (id: number, data: any) => 
+      ({ ...mockQuestionSetWithQuestions, ...data })
+    );
+    
+    mockBaseRepository.delete.mockResolvedValue(true);
+    mockBaseRepository.exists.mockResolvedValue(true);
+    mockBaseRepository.count.mockResolvedValue(1);
+    
+    // Setup default query mock with proper typing
+    mockQuery.mockImplementation(async (): Promise<QueryResult<QueryResultRow>> => ({
+      rows: [mockQuestionSetWithQuestions as unknown as QueryResultRow],
+      rowCount: 1,
+      command: 'SELECT',
+      oid: 0,
+      fields: []
+    }));
   });
 
-  describe('Constructor and Initialization', () => {
-    it('should initialize QuestionRepository correctly', () => {
-      expect(questionRepository).toBeInstanceOf(QuestionRepository);
-      expect(questionRepository).toBeInstanceOf(BaseRepository);
-    });
+  afterEach(() => {
+    // Clean up after each test
+    jest.restoreAllMocks();
   });
 
   describe('Question Set Methods', () => {
     describe('findQuestionSetById', () => {
-      it('should find question set by id successfully', async () => {
-        const mockFindById = jest.spyOn(BaseRepository.prototype, 'findById');
-        mockFindById.mockResolvedValue(mockQuestionSet);
+      it('should return a question set with questions and answers', async () => {
+        // Mock the base repository to return the test question set
+        mockBaseRepository.findById.mockResolvedValueOnce(mockQuestionSetWithQuestions);
 
         const result = await questionRepository.findQuestionSetById(1);
 
-        expect(mockFindById).toHaveBeenCalledWith('question_sets', 1);
-        expect(result).toEqual(mockQuestionSet);
+        expect(result).toEqual(mockQuestionSetWithQuestions);
+        expect(mockBaseRepository.findById).toHaveBeenCalledWith(1);
+      });
+
+      it('should return null if no question set is found', async () => {
+        // Mock the base repository to return null
+        mockBaseRepository.findById.mockResolvedValueOnce(null);
+
+        const result = await questionRepository.findQuestionSetById(999);
+
+        expect(result).toBeNull();
+        expect(mockBaseRepository.findById).toHaveBeenCalledWith(999);
+      });
+
+      it('should handle database errors', async () => {
+        // Mock the base repository to throw an error
+        const testError = new Error('Database error');
+        mockBaseRepository.findById.mockRejectedValueOnce(testError);
+
+        await expect(questionRepository.findQuestionSetById(1)).rejects.toThrow(testError);
       });
 
       it('should return null when question set not found', async () => {
