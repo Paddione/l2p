@@ -481,7 +481,7 @@ l2p/
 ### 📊 **Key Metrics**
 - **Total Files**: 200+ source files
 - **Test Coverage**: 85%+ across all modules
-- **Test Organization**: Comprehensive testing directory with 8+ test categories
+- **Test Organization**: Comprehensive test structure with 8+ test categories across backend/__tests__, frontend/e2e, and shared/test-config
 - **Languages**: TypeScript (frontend/backend), SQL (database), Shell (scripts)
 - **Frameworks**: React, Express, PostgreSQL, Docker, Playwright
 - **Architecture**: Microservices with containerized deployment
@@ -1397,7 +1397,7 @@ npm run test:e2e:all        # Full E2E suite
 - **ESLint**: Code linting and style enforcement
 - **Prettier**: Consistent code formatting
 - **Testing**: Comprehensive test suites with >85% coverage
-- **Test Organization**: Dedicated testing directory with clear structure
+- **Test Organization**: Distributed test directories with clear structure
 - **CI/CD**: Automated testing and deployment
 - **Performance**: Automated performance regression detection
 
@@ -1407,7 +1407,7 @@ npm run test:e2e:all        # Full E2E suite
 3. Add tests for new features in the appropriate `testing/` subdirectory
 4. Update documentation as needed
 5. Follow TypeScript and testing best practices
-6. Use the testing directory structure for organizing new tests
+6. Use the distributed test directory structure for organizing new tests (backend/__tests__, frontend/e2e, etc.)
 
 ## 📝 License
 

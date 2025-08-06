@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
@@ -14,14 +14,30 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["../*"],
+      "@test-config/*": ["./*"]
+    },
+    "types": ["jest", "node"]
   },
   "include": [
     "*.ts",
-    "__tests__/**/*.ts"
+    "__tests__/**/*.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "**/*.e2e.ts",
+    "**/*.playwright.ts",
+    "**/playwright.config.*"
   ]
 }

@@ -100,7 +100,15 @@ module.exports = {
     '<rootDir>/src/__tests__/cli/',
     '<rootDir>/src/__tests__/setup.ts',
     '<rootDir>/src/__tests__/globalSetup.js',
-    '<rootDir>/src/__tests__/globalTeardown.js'
+    '<rootDir>/src/__tests__/globalTeardown.js',
+    '/node_modules/',
+    '/dist/',
+    '/e2e/',
+    '**/*.e2e.{js,ts}',
+    '**/*.playwright.{js,ts}',
+    '**/playwright.config.*',
+    '**/test-results/',
+    '**/playwright-report/'
   ],
   transform: {
     '^.+\\.ts$': ['ts-jest', { 
@@ -122,8 +130,10 @@ module.exports = {
     }]
   },
   moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@/(.*)$': '<rootDir>/src/$1'
+    '^(\.{1,2}/.*)\.js$': '$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@shared/(.*)$': '<rootDir>/../shared/$1',
+    '^@test-config/(.*)$': '<rootDir>/../shared/test-config/$1'
   },
   transformIgnorePatterns: [
     'node_modules/(?!(chromadb|@google/generative-ai)/)',

@@ -105,12 +105,12 @@ function check_environment() {
     log "SUCCESS" ".env file found"
   fi
   
-  # Check if testing directory exists
+  # Check if test directories exist
   if [[ ! -d "testing" ]]; then
-    log "ERROR" "Testing directory not found"
+    log "ERROR" "Test directories not found"
     ((issues++))
   else
-    log "SUCCESS" "Testing directory found"
+    log "SUCCESS" "Test directories found"
   fi
   
   # Check if docker-compose files exist
@@ -267,9 +267,9 @@ function run_simple_tests() {
   
   # Test if we can run a simple npm command
   if cd testing && npm --version &> /dev/null; then
-    log "SUCCESS" "npm commands work in testing directory"
+    log "SUCCESS" "npm commands work in test directories"
   else
-    log "ERROR" "npm commands failed in testing directory"
+    log "ERROR" "npm commands failed in test directories"
     ((issues++))
   fi
   cd ..
@@ -282,7 +282,7 @@ function run_simple_tests() {
     ((issues++))
   fi
   
-  # Test if we can access the testing directory structure
+  # Test if we can access the distributed test directory structure
   if [[ -d "testing/unit" ]]; then
     log "SUCCESS" "Unit test directory accessible"
   else

@@ -398,9 +398,9 @@ interface ErrorResponse {
 
 ### Comprehensive Testing Architecture
 
-The Learn2Play platform implements a comprehensive testing strategy with a dedicated testing directory structure that separates different types of tests and provides clear organization for maintainability and scalability.
+The Learn2Play platform implements a comprehensive testing strategy with distributed test directories that separate different types of tests and provide clear organization for maintainability and scalability.
 
-### Testing Directory Structure
+### Test Directory Structure
 
 The testing infrastructure has been successfully migrated to a co-located structure for better maintainability and developer experience. All tests are now located alongside their source code.
 
