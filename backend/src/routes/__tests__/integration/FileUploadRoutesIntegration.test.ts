@@ -17,8 +17,7 @@ describe('File Upload Routes Integration Tests', () => {
   let testFileId: string;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     authService = new AuthService();
     chromaService = new ChromaService();

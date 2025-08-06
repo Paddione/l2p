@@ -13,8 +13,7 @@ describe('Question Routes Integration Tests', () => {
   let testQuestionId: number;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     questionService = new QuestionService();
     authService = new AuthService();

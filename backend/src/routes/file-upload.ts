@@ -8,13 +8,11 @@ import {
   cleanupUploadedFiles
 } from '../middleware/fileUpload.js';
 import FileProcessingService, { ProcessedFile, ProcessingOptions } from '../services/FileProcessingService.js';
-import { ChromaService } from '../services/ChromaService.js';
 import { DatabaseService } from '../services/DatabaseService.js';
 
 const router = Router();
 const authMiddleware = new AuthMiddleware();
 const fileProcessingService = new FileProcessingService();
-const chromaService = new ChromaService();
 const databaseService = DatabaseService.getInstance();
 
 // Rate limiting for file uploads
@@ -86,23 +84,7 @@ router.post('/single',
         return;
       }
 
-      // Add to ChromaDB
-      const document = chromaService.createDocument(processedFile.content, {
-        source: 'file_upload',
-        title: processedFile.metadata.title || processedFile.originalName,
-        course: 'file_upload',
-        subject: processedFile.fileType,
-        fileId: processedFile.id // Add fileId to metadata for retrieval
-      });
-      
-      const result = await chromaService.addDocuments([document], {
-        source: 'file_upload',
-        title: processedFile.metadata.title || processedFile.originalName,
-        course: 'file_upload',
-        subject: processedFile.fileType,
-        fileId: processedFile.id // Add fileId to metadata for retrieval
-      });
-      
+      // Store file information in database (removed ChromaDB integration)
       const documentId = `${processedFile.id}_${Date.now()}`;
 
       // Store file metadata in database
@@ -210,28 +192,14 @@ router.post('/batch',
             continue;
           }
 
-          // Add to ChromaDB
-          const document = chromaService.createDocument(processedFile.content, {
-            source: 'file_upload',
-            title: processedFile.metadata.title || processedFile.originalName,
-            course: 'file_upload',
-            subject: processedFile.fileType
-          });
-          
-          const result = await chromaService.addDocuments([document], {
-            source: 'file_upload',
-            title: processedFile.metadata.title || processedFile.originalName,
-            course: 'file_upload',
-            subject: processedFile.fileType
-          });
-          
+          // Store file information in database (removed ChromaDB integration)
           const documentId = `${processedFile.id}_${Date.now()}`;
 
           // Store file metadata in database
           await databaseService.query(`
             INSERT INTO uploaded_files (
               file_id, user_id, original_name, file_type, file_size, 
-              metadata, chroma_document_id, created_at
+              metadata, document_id, created_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
           `, [
             processedFile.id,
@@ -374,14 +342,7 @@ router.delete('/:id',
 
       const fileRecord = result.rows[0];
 
-      // Delete from ChromaDB
-      if (fileRecord.chroma_document_id) {
-        try {
-          await chromaService.deleteDocumentsBySource(`file_upload_${fileRecord.file_id}`);
-        } catch (error) {
-          console.warn('Failed to delete from ChromaDB:', error);
-        }
-      }
+      // ChromaDB integration removed - no longer needed
 
       // Delete from database
       await databaseService.query(`
@@ -588,12 +549,10 @@ router.get('/:id/versions',
         return;
       }
 
-      // Get versions from ChromaDB
-      const versions = await chromaService.getDocumentVersions(String(fileId));
-
+      // ChromaDB integration removed - versions no longer available
       res.json({
         success: true,
-        data: versions
+        data: []
       });
 
     } catch (error) {
@@ -633,40 +592,17 @@ router.post('/:id/update-version',
         return;
       }
 
-      // Update document version in ChromaDB
-      const result = await chromaService.updateDocumentVersion(String(fileId), content, {
-        source: 'file_upload',
-        title: metadata.title || String(fileResult.rows[0].original_name),
-        course: 'file_upload',
-        subject: metadata.subject || String(fileResult.rows[0].file_type),
-        fileId: String(fileId),
-        version: metadata.version || 0
+      // ChromaDB integration removed - update file record only
+      await databaseService.query(`
+        UPDATE uploaded_files 
+        SET metadata = $1, updated_at = NOW()
+        WHERE file_id = $2
+      `, [JSON.stringify(metadata), fileId]);
+
+      res.json({
+        success: true,
+        message: 'File updated successfully.'
       });
-
-      if (result.success) {
-        // Update file record
-        await databaseService.query(`
-          UPDATE uploaded_files 
-          SET metadata = $1, updated_at = NOW()
-          WHERE file_id = $2
-        `, [JSON.stringify(metadata), fileId]);
-
-        res.json({
-          success: true,
-          message: 'Document version updated successfully.',
-          data: {
-            documentsProcessed: result.documentsProcessed,
-            embeddingsCreated: result.embeddingsCreated,
-            duplicatesSkipped: result.duplicatesSkipped
-          }
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: 'Failed to update document version.',
-          details: result.error
-        });
-      }
 
     } catch (error) {
       console.error('Update version error:', error);
@@ -700,9 +636,6 @@ router.get('/stats',
         WHERE user_id = $1
       `, [userId]);
 
-      // Get ChromaDB stats
-      const chromaStats = await chromaService.getDocumentStats();
-
       res.json({
         success: true,
         data: {
@@ -711,8 +644,7 @@ router.get('/stats',
             totalSize: parseInt(userStats.rows[0].total_size || 0),
             averageSize: Math.round(parseFloat(userStats.rows[0].avg_size || 0)),
             fileTypes: parseInt(userStats.rows[0].file_types)
-          },
-          chroma: chromaStats
+          }
         }
       });
 

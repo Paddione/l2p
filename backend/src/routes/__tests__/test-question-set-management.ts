@@ -13,8 +13,7 @@ describe('Question Set Management - Complete Integration', () => {
   let authToken: string;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     questionService = new QuestionService();
     geminiService = new GeminiService();

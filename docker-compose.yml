@@ -87,19 +87,14 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       GOOGLE_CLOUD_PROJECT_ID: ${GOOGLE_CLOUD_PROJECT_ID}
       GOOGLE_SERVICE_ACCOUNT_EMAIL: ${GOOGLE_SERVICE_ACCOUNT_EMAIL}
-      CHROMA_PATH: /app/chroma/chroma_db
-      CHROMA_URL: http://chromadb:8000
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: json
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
-        condition: service_healthy
     networks:
       - l2p-network
     volumes:
-      - chroma_data:/app/chroma:rw
       - backend_logs:/app/logs:rw
     labels:
       - "traefik.enable=true"
@@ -138,44 +133,7 @@ services:
     profiles:
       - production
 
-  # ChromaDB Vector Database - Production
-  chromadb:
-    image: chromadb/chroma:latest
-    container_name: ${CHROMA_CONTAINER_NAME:-l2p-chroma}
-    restart: unless-stopped
-    environment:
-      CHROMA_SERVER_HOST: 0.0.0.0
-      CHROMA_SERVER_HTTP_PORT: 8000
-      CHROMA_SERVER_CORS_ALLOW_ORIGINS: "*"
-      CHROMA_TELEMETRY_ANONYMIZED: "false"
-    volumes:
-      - chroma_data:/chroma/chroma:rw
-    networks:
-      - l2p-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
-    security_opt:
-      - no-new-privileges:true
-    profiles:
-      - production
-      - development
+  # ChromaDB removed - no longer needed
 
   # Frontend React App - Production
   frontend:
@@ -312,11 +270,8 @@ services:
       FRONTEND_URL: http://localhost:3000
       DB_SSL: false
       LOG_LEVEL: debug
-      CHROMA_URL: http://chromadb:8000
     depends_on:
       postgres:
-        condition: service_healthy
-      chromadb:
         condition: service_healthy
     ports:
       - "3001:3001"
@@ -403,30 +358,7 @@ services:
     profiles:
       - test
 
-  # ChromaDB Test Service
-  chromadb-test:
-    image: chromadb/chroma:latest
-    container_name: l2p-chromadb-test
-    environment:
-      CHROMA_SERVER_HOST: 0.0.0.0
-      CHROMA_SERVER_HTTP_PORT: 8000
-      CHROMA_SERVER_CORS_ALLOW_ORIGINS: "*"
-      CHROMA_TELEMETRY_ANONYMIZED: "true"
-    ports:
-      - "8001:8000"
-    volumes:
-      - test_chroma_data:/chroma/chroma
-    networks:
-      - test-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    restart: unless-stopped
-    profiles:
-      - test
+  # ChromaDB Test Service removed - no longer needed
 
   # Backend Test Service
   backend-test:
@@ -447,7 +379,7 @@ services:
       FRONTEND_URL: http://frontend-test:3000
       DB_SSL: false
       LOG_LEVEL: warn
-      CHROMA_URL: http://chromadb-test:8000
+      # CHROMA_URL removed - no longer needed
       GEMINI_API_KEY: test-api-key
       SMTP_HOST: mailhog-test
       SMTP_PORT: 1025
@@ -455,8 +387,6 @@ services:
       EMAIL_SENDER_ADDRESS: test@learn2play.test
     depends_on:
       postgres-test:
-        condition: service_healthy
-      chromadb-test:
         condition: service_healthy
     ports:
       - "3001:3001"
@@ -570,12 +500,7 @@ volumes:
       type: none
       o: bind
       device: ${DATA_PATH:-./data}/letsencrypt
-  chroma_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${DATA_PATH:-./data}/chroma
+  # chroma_data removed - no longer needed
   backend_logs:
     driver: local
     driver_opts:
@@ -610,12 +535,7 @@ volumes:
       type: tmpfs
       device: tmpfs
       o: size=512m,uid=999,gid=999
-  test_chroma_data:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-      o: size=256m,uid=1000,gid=1000
+  # test_chroma_data removed - no longer needed
   test_redis_data:
     driver: local
     driver_opts:

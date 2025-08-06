@@ -31,8 +31,6 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "bcrypt": "^5.1.0",
-    "chromadb": "^1.7.3",
-    "chromadb-default-embed": "^2.14.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -42,7 +40,6 @@
     "joi": "^17.9.1",
     "jsdom": "^23.0.1",
     "jsonwebtoken": "^9.0.0",
-    "langchain": "^0.1.0",
     "mammoth": "^1.6.0",
     "marked": "^9.1.6",
     "multer": "^1.4.5-lts.1",

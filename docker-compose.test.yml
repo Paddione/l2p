@@ -13,8 +13,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./database/test-data.sql:/docker-entrypoint-initdb.d/02-test-data.sql
+      - ./database/init-test.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - test_postgres_data:/var/lib/postgresql/data
     networks:
       - test-network
@@ -29,30 +28,7 @@ services:
       - /tmp
       - /var/run/postgresql
 
-  # ChromaDB Test Vector Database
-  chromadb-test:
-    image: chromadb/chroma:latest
-    container_name: l2p-chromadb-test
-    environment:
-      CHROMA_SERVER_HOST: 0.0.0.0
-      CHROMA_SERVER_HTTP_PORT: 8000
-      CHROMA_SERVER_CORS_ALLOW_ORIGINS: "*"
-      CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER: chromadb.auth.token_authn
-      CHROMA_SERVER_AUTH_CREDENTIALS: test-token
-      CHROMA_SERVER_AUTH_PROVIDER: chromadb.auth.basic_authn
-    ports:
-      - "8001:8000"
-    volumes:
-      - test_chroma_data:/chroma/chroma
-    networks:
-      - test-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/heartbeat || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    restart: unless-stopped
+  # ChromaDB Test Service removed - no longer needed
 
   # Backend Test Service
   backend-test:
@@ -73,8 +49,7 @@ services:
       FRONTEND_URL: http://frontend-test:3000
       DB_SSL: false
       LOG_LEVEL: warn
-      CHROMA_URL: http://chromadb-test:8000
-      CHROMA_AUTH_TOKEN: test-token
+      # CHROMA_URL removed - no longer needed
       GEMINI_API_KEY: test-api-key
       SMTP_HOST: mailhog-test
       SMTP_PORT: 1025
@@ -85,8 +60,6 @@ services:
       EMAIL_SENDER_NAME: Learn2Play Test
     depends_on:
       postgres-test:
-        condition: service_healthy
-      chromadb-test:
         condition: service_healthy
     ports:
       - "3001:3001"
@@ -190,12 +163,7 @@ volumes:
       type: tmpfs
       device: tmpfs
       o: size=512m,uid=999,gid=999
-  test_chroma_data:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-      o: size=256m,uid=1000,gid=1000
+  # test_chroma_data removed - no longer needed
   test_redis_data:
     driver: local
     driver_opts:
@@ -214,4 +182,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.21.0.0/16

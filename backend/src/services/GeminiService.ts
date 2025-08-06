@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ChromaService } from './ChromaService.js';
 import { CreateQuestionData, CreateQuestionSetData } from '../repositories/QuestionRepository.js';
 
 export interface GeminiConfig {
@@ -17,8 +16,8 @@ export interface QuestionGenerationRequest {
   difficulty: 'easy' | 'medium' | 'hard';
   questionCount: number;
   language: 'en' | 'de';
-  contextSource?: 'files' | 'manual' | 'both';
-  fileContext?: string[]; // Array of file IDs to use as context
+  contextSource?: 'manual' | 'none';
+  manualContext?: string; // Manual context provided by user
 }
 
 export interface GeneratedQuestion {
@@ -56,7 +55,6 @@ export interface QuestionGenerationResult {
 export class GeminiService {
   private genAI: GoogleGenerativeAI;
   private model: any;
-  private chromaService: ChromaService;
   private config: GeminiConfig;
 
   constructor() {
@@ -99,13 +97,10 @@ export class GeminiService {
         }
       });
     }
-
-    // Initialize ChromaService
-    this.chromaService = new ChromaService();
   }
 
   /**
-   * Generate questions using Gemini AI with RAG context
+   * Generate questions using Gemini AI without RAG
    */
   async generateQuestions(request: QuestionGenerationRequest): Promise<QuestionGenerationResult> {
     try {
@@ -124,24 +119,13 @@ export class GeminiService {
         };
       }
 
-      // Get relevant context from ChromaDB based on context source
-      let context: any[] = [];
+      // Get context based on request
+      let context: string[] = [];
       let contextSources: string[] = [];
 
-      if (request.contextSource === 'files' || request.contextSource === 'both') {
-        // Get context from specific files
-        if (request.fileContext && request.fileContext.length > 0) {
-          const fileContext = await this.getFileContext(request.fileContext);
-          context = [...context, ...fileContext.context];
-          contextSources = [...contextSources, ...fileContext.sources];
-        }
-      }
-
-      if (request.contextSource === 'manual' || request.contextSource === 'both') {
-        // Get context from topic-based search
-        const topicContext = await this.getRelevantContext(request.topic);
-        context = [...context, ...topicContext];
-        contextSources = [...contextSources, ...topicContext.map(c => c.metadata?.source || 'topic-search')];
+      if (request.contextSource === 'manual' && request.manualContext) {
+        context = [request.manualContext];
+        contextSources = ['manual-context'];
       }
       
       // Create enhanced prompt with context
@@ -184,49 +168,11 @@ export class GeminiService {
   }
 
   /**
-   * Get relevant context from ChromaDB using RAG
-   */
-  private async getRelevantContext(topic: string): Promise<any[]> {
-    try {
-      // Get relevant context from ChromaDB
-      const searchResults = await this.chromaService.search(topic, 3);
-      return searchResults.map(result => result.content);
-    } catch (error) {
-      console.warn('Failed to get context from ChromaDB:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get context from specific uploaded files
-   */
-  private async getFileContext(fileIds: string[]): Promise<{ context: any[]; sources: string[] }> {
-    try {
-      const context: any[] = [];
-      const sources: string[] = [];
-
-      for (const fileId of fileIds) {
-        // Get file content from ChromaDB using file ID
-        const fileContent = await this.chromaService.getDocumentsByFileId(fileId);
-        if (fileContent && fileContent.length > 0) {
-          context.push(...fileContent);
-          sources.push(`file:${fileId}`);
-        }
-      }
-
-      return { context, sources };
-    } catch (error) {
-      console.warn('Failed to get file context from ChromaDB:', error);
-      return { context: [], sources: [] };
-    }
-  }
-
-  /**
    * Create enhanced prompt for question generation
    */
-  private createQuestionGenerationPrompt(request: QuestionGenerationRequest, context: any[]): string {
+  private createQuestionGenerationPrompt(request: QuestionGenerationRequest, context: string[]): string {
     const contextText = context.length > 0 
-      ? `\n\nRelevant context:\n${context.map(c => c.pageContent || c).join('\n\n')}`
+      ? `\n\nRelevant context:\n${context.join('\n\n')}`
       : '';
 
     const difficultyInstructions = {
@@ -403,21 +349,6 @@ Generate exactly ${request.questionCount} questions. Ensure the JSON is valid an
       
       const result = await this.model.generateContent('Hello, this is a test message.');
       await result.response;
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  /**
-   * Test ChromaDB connection
-   */
-  async testChromaConnection(): Promise<{ success: boolean; error?: string }> {
-    try {
-      await this.chromaService.testConnection();
       return { success: true };
     } catch (error) {
       return {

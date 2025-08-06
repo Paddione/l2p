@@ -12,8 +12,7 @@ describe('Authentication System - API Integration Tests', () => {
   let characterService: CharacterService;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     authService = new AuthService();
     emailService = new EmailService();

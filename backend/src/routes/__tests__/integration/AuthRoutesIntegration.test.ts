@@ -10,8 +10,7 @@ describe('Auth Routes Integration Tests', () => {
   let emailService: EmailService;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     authService = new AuthService();
     emailService = new EmailService();

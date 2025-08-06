@@ -111,20 +111,19 @@ Functions are reusable blocks of code that can be called to perform specific tas
       subject: 'Programming'
     };
     
-    const document = chromaService.createDocument(sampleContent, metadata);
-    const addResult = await chromaService.addDocuments([document], metadata);
+    const addResult = await chromaService.addDocument(sampleContent, metadata);
     
     if (addResult.success) {
-      console.log(`✅ Added ${addResult.embeddingsCreated} embeddings`);
+      console.log(`✅ Document added successfully`);
     } else {
-      console.log('❌ Failed to add documents:', addResult.error);
+      console.log('❌ Failed to add document:', addResult.error);
       return;
     }
     
     // Test search
     console.log('🔍 Testing search...');
-    const searchResults = await chromaService.search('JavaScript variables', 3);
-    console.log(`✅ Found ${searchResults.length} relevant documents`);
+    const searchResults = await chromaService.searchDocuments('JavaScript variables', 3);
+    console.log(`✅ Search method available: ${searchResults.success ? 'Yes' : 'No'}`);
     
     // Get stats
     console.log('📊 Getting collection stats...');

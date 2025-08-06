@@ -16,8 +16,7 @@ describe('Game Routes Integration Tests', () => {
   let testUserId: number;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     scoringService = new ScoringService();
     hallOfFameService = new HallOfFameService();

@@ -30,28 +30,18 @@ async function testRealAIIntegration() {
     // Get collection stats
     const stats = await chromaService.getCollectionStats();
     console.log('📊 ChromaDB Stats:');
-    console.log(`   - Total Documents: ${stats.totalDocuments}`);
-    console.log(`   - Total Embeddings: ${stats.totalEmbeddings}`);
-    console.log(`   - Sources: ${stats.sources.length}`);
-    console.log(`   - Subjects: ${stats.subjects.length}`);
-    
-    if (stats.sources.length > 0) {
-      console.log('   - Available Sources:', stats.sources.slice(0, 5).join(', '));
-    }
-    if (stats.subjects.length > 0) {
-      console.log('   - Available Subjects:', stats.subjects.slice(0, 5).join(', '));
+    console.log(`   - Status: ${stats.success ? 'Available' : 'Not Available'}`);
+    if (!stats.success) {
+      console.log(`   - Error: ${stats.error}`);
     }
     
     // Test search functionality
     console.log('\n🔍 Testing search functionality...');
-    const searchResults = await chromaService.search('programming', 3);
-    console.log(`✅ Search Results: ${searchResults.length} documents found`);
+    const searchResults = await chromaService.searchDocuments('programming', 3);
+    console.log(`✅ Search Results: ${searchResults.success ? 'Method available' : 'Method not available'}`);
     
-    if (searchResults.length > 0) {
-      if (searchResults[0]) {
-        console.log('   - First result preview:', searchResults[0].content.substring(0, 100) + '...');
-        console.log('   - Metadata:', searchResults[0].metadata);
-      }
+    if (!searchResults.success) {
+      console.log(`   - Error: ${searchResults.error}`);
     }
     
     // Test GeminiService (if API key is available)
@@ -97,8 +87,8 @@ async function testRealAIIntegration() {
     console.log('\n🎉 Real AI Integration Test Complete!');
     console.log('\n📋 Summary:');
     console.log(`   - ChromaDB: ${connectionTest.success ? '✅ Connected' : '❌ Failed'}`);
-    console.log(`   - Documents: ${stats.totalDocuments}`);
-    console.log(`   - Search: ${searchResults.length > 0 ? '✅ Working' : '❌ No results'}`);
+    console.log(`   - Documents: ${stats.success ? '✅ Available' : '❌ Not Available'}`);
+    console.log(`   - Search: ${searchResults.success ? '✅ Available' : '❌ Not Available'}`);
     console.log(`   - Gemini: ${process.env.GEMINI_API_KEY ? '✅ Available' : '⚠️  No API Key'}`);
     
   } catch (error) {

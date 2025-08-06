@@ -33,8 +33,8 @@ async function testAIIntegrationStructure() {
     const stats = await chromaService.getCollectionStats();
     console.log('✅ getCollectionStats:', stats);
     
-    const searchResult = await chromaService.search('test query');
-    console.log('✅ search:', searchResult.length, 'results');
+    const searchResult = await chromaService.searchDocuments('test query');
+    console.log('✅ searchDocuments:', searchResult.success ? 'success' : 'failed');
     
     // Test question generation request validation
     console.log('🔍 Testing request validation...');

@@ -53,7 +53,6 @@ Learn2Play is architected as a modern, scalable multiplayer quiz platform using 
 
 **AI & External Services:**
 - Google Gemini Pro API for question generation (configured with project: gen-lang-client-0899352753)
-- Chroma Vector Database for RAG knowledge base
 - Azure Communication Services for email delivery
 
 ## Components and Interfaces
@@ -94,8 +93,7 @@ Learn2Play is architected as a modern, scalable multiplayer quiz platform using 
 - **QuestionSetService**: Question set management and CRUD operations
 - **ScoringService**: Score calculation and multiplier logic
 - **ExperienceService**: Character leveling and experience calculation
-- **GeminiService**: AI-powered question generation with RAG
-- **ChromaService**: Vector database for RAG knowledge base
+- **GeminiService**: AI-powered question generation
 - **SocketService**: WebSocket event handling
 
 #### Repository Layer
@@ -637,10 +635,9 @@ interface AzureEmailConfig {
 
 #### Question Generation Workflow
 1. User provides topic prompt in Question Set Manager
-2. System queries Chroma Vector DB for relevant context (RAG)
-3. Enhanced prompt sent to Gemini Pro API
-4. AI generates 20 questions with 4 answer options each
-5. Generated questions validated and imported to database
+2. Enhanced prompt sent to Gemini Pro API
+3. AI generates questions with 4 answer options each
+4. Generated questions validated and imported to database
 
 #### Gemini API Configuration
 ```typescript
@@ -654,11 +651,11 @@ interface GeminiConfig {
 }
 ```
 
-#### RAG Implementation with Chroma
-- Vector embeddings for university course content PDFs
-- Semantic search for relevant academic context
-- Context injection into Gemini prompts for educational accuracy
-- Knowledge base: University course materials converted to vector database
+#### AI Question Generation
+- Direct integration with Gemini Pro API
+- Context-aware question generation based on user prompts
+- Educational accuracy through AI model training
+- Support for multiple languages (English/German)
 
 
 

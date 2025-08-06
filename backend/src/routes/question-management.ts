@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import { Pool } from 'pg';
 import { AuthMiddleware } from '../middleware/auth.js';
 import { GeminiService, QuestionGenerationRequest } from '../services/GeminiService.js';
-import { ChromaService } from '../services/ChromaService.js';
 import { QuestionService } from '../services/QuestionService.js';
 
 const router = express.Router();
@@ -10,7 +9,6 @@ const authMiddleware = new AuthMiddleware();
 
 // Initialize services
 const geminiService = new GeminiService();
-const chromaService = new ChromaService();
 const questionService = new QuestionService();
 
 // Database connection
@@ -338,104 +336,6 @@ router.get('/ai/test-gemini', authMiddleware.authenticate, async (req: Request, 
   }
 });
 
-// Test ChromaDB connection
-router.get('/ai/test-chroma', authMiddleware.authenticate, async (req: Request, res: Response) => {
-  try {
-    const result = await chromaService.testConnection();
-    return res.json(result);
-  } catch (error) {
-    return res.status(500).json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    });
-  }
-});
-
-// Get ChromaDB statistics
-router.get('/ai/chroma-stats', authMiddleware.authenticate, async (req: Request, res: Response) => {
-  try {
-    const stats = await chromaService.getCollectionStats();
-    return res.json(stats);
-  } catch (error) {
-    return res.status(500).json({ 
-      error: 'Failed to get ChromaDB statistics',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Add documents to ChromaDB
-router.post('/ai/add-documents', authMiddleware.authenticate, async (req: Request, res: Response) => {
-  try {
-    const { content, metadata } = req.body;
-    
-    if (!content || !metadata) {
-      return res.status(400).json({ 
-        error: 'Content and metadata are required' 
-      });
-    }
-    
-    const document = chromaService.createDocument(content, metadata);
-    const result = await chromaService.addDocuments([document], metadata);
-    
-    return res.json(result);
-  } catch (error) {
-    return res.status(500).json({ 
-      error: 'Failed to add documents',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Search ChromaDB for context
-router.post('/ai/search-context', authMiddleware.authenticate, async (req: Request, res: Response) => {
-  try {
-    const { query, nResults = 5, subject } = req.body;
-    
-    if (!query) {
-      return res.status(400).json({ 
-        error: 'Query is required' 
-      });
-    }
-    
-    let results;
-    if (subject) {
-      results = await chromaService.searchBySubject(subject, query, nResults);
-    } else {
-      results = await chromaService.search(query, nResults);
-    }
-    
-    return res.json({
-      success: true,
-      results,
-      count: results.length
-    });
-  } catch (error) {
-    return res.status(500).json({ 
-      error: 'Failed to search context',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-// Get available sources and subjects
-router.get('/ai/available-data', authMiddleware.authenticate, async (req: Request, res: Response) => {
-  try {
-    const [sources, subjects] = await Promise.all([
-      chromaService.getAvailableSources(),
-      chromaService.getAvailableSubjects()
-    ]);
-    
-    return res.json({
-      sources,
-      subjects
-    });
-  } catch (error) {
-    return res.status(500).json({ 
-      error: 'Failed to get available data',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// ChromaDB endpoints removed - no longer needed
 
 export default router; 

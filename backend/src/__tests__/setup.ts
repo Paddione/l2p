@@ -98,8 +98,8 @@ jest.setTimeout(timeout);
 const originalWarn = console.warn;
 console.warn = (...args: any[]) => {
   // Suppress specific warnings that are expected in test environment
-  if (args[0]?.includes('Invalid DATABASE_URL') || 
-      args[0]?.includes('Database connection test failed')) {
+  if (typeof args[0] === 'string' && (args[0].includes('Invalid DATABASE_URL') || 
+      args[0].includes('Database connection test failed'))) {
     return;
   }
   originalWarn(...args);
@@ -109,8 +109,8 @@ console.warn = (...args: any[]) => {
 const originalError = console.error;
 console.error = (...args: any[]) => {
   // Suppress specific errors that are expected in test environment
-  if (args[0]?.includes('Database connection test failed') ||
-      args[0]?.includes('ECONNREFUSED')) {
+  if (args[0] && typeof args[0] === 'string' && (args[0].includes('Database connection test failed') ||
+      args[0].includes('ECONNREFUSED'))) {
     return;
   }
   originalError(...args);
@@ -128,15 +128,7 @@ jest.mock('../services/DatabaseService.js', () => ({
   }
 }));
 
-jest.mock('../services/ChromaService.js', () => ({
-  ChromaService: {
-    getInstance: jest.fn().mockReturnValue({
-      createCollection: jest.fn().mockResolvedValue({}),
-      addDocuments: jest.fn().mockResolvedValue({}),
-      queryCollection: jest.fn().mockResolvedValue({ documents: [], metadatas: [] })
-    })
-  }
-}));
+// ChromaService mock removed - no longer needed
 
 jest.mock('../services/GeminiService.js', () => ({
   GeminiService: {

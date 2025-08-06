@@ -13,8 +13,7 @@ describe('Lobby Routes Integration Tests', () => {
   let testLobbyCode: string;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     lobbyService = new LobbyService();
     authService = new AuthService();

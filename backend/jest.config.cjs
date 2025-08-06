@@ -104,11 +104,11 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/e2e/',
-    '**/*.e2e.{js,ts}',
-    '**/*.playwright.{js,ts}',
-    '**/playwright.config.*',
-    '**/test-results/',
-    '**/playwright-report/'
+    '.*\\.e2e\\.(js|ts)$',
+    '.*\\.playwright\\.(js|ts)$',
+    '.*playwright\\.config\\..*',
+    '.*test-results.*',
+    '.*playwright-report.*'
   ],
   transform: {
     '^.+\\.ts$': ['ts-jest', { 

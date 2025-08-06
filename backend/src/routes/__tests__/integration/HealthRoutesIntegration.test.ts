@@ -8,8 +8,7 @@ describe('Health Routes Integration Tests', () => {
   let migrationService: MigrationService;
 
   beforeAll(async () => {
-    dbService = new DatabaseService();
-    await dbService.initialize();
+    dbService = DatabaseService.getInstance();
     
     migrationService = new MigrationService();
   });
