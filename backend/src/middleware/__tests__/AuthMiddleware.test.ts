@@ -16,6 +16,8 @@ describe('AuthMiddleware', () => {
     userId: 123,
     username: 'testuser',
     email: 'test@example.com',
+    selectedCharacter: 'warrior',
+    characterLevel: 1,
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + 3600
   };

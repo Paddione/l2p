@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 });
 
 // File filter function
-const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   const allowedTypes = ['.md', '.pdf', '.docx', '.html'];
   const fileExt = path.extname(file.originalname).toLowerCase();
   
@@ -91,7 +91,7 @@ export const uploadMultiple = upload.array('files', 10);
 
 // Custom middleware for single file with error handling
 export const uploadSingleFile = (req: Request, res: Response, next: NextFunction): void => {
-  uploadSingle(req, res, (err: any) => {
+  uploadSingle(req as any, res as any, (err: any) => {
     if (err) {
       handleFileUploadError(err, req, res, next);
       return;
@@ -102,7 +102,7 @@ export const uploadSingleFile = (req: Request, res: Response, next: NextFunction
 
 // Custom middleware for multiple files with error handling
 export const uploadMultipleFiles = (req: Request, res: Response, next: NextFunction): void => {
-  uploadMultiple(req, res, (err: any) => {
+  uploadMultiple(req as any, res as any, (err: any) => {
     if (err) {
       handleFileUploadError(err, req, res, next);
       return;

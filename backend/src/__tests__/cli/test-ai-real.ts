@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { GeminiService } from '../services/GeminiService.js';
-import { ChromaService } from '../services/ChromaService.js';
+import { GeminiService, QuestionGenerationRequest } from '../../services/GeminiService.js';
+import { ChromaService } from '../../services/ChromaService.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -48,8 +48,10 @@ async function testRealAIIntegration() {
     console.log(`✅ Search Results: ${searchResults.length} documents found`);
     
     if (searchResults.length > 0) {
-      console.log('   - First result preview:', searchResults[0].content.substring(0, 100) + '...');
-      console.log('   - Metadata:', searchResults[0].metadata);
+      if (searchResults[0]) {
+        console.log('   - First result preview:', searchResults[0].content.substring(0, 100) + '...');
+        console.log('   - Metadata:', searchResults[0].metadata);
+      }
     }
     
     // Test GeminiService (if API key is available)
@@ -70,14 +72,15 @@ async function testRealAIIntegration() {
         console.log('📝 Generating questions for:', generationRequest.topic);
         const result = await geminiService.generateQuestions(generationRequest);
         
-        if (result.success && result.data) {
+        if (result.success && (result as any).data) {
           console.log('✅ Question Generation Successful!');
-          console.log(`   - Generated ${result.data.questions.length} questions`);
-          console.log(`   - Question Set: ${result.data.questionSet.name}`);
-          console.log(`   - Context Used: ${result.data.metadata.contextUsed.length} sources`);
+          const resultData = (result as any).data;
+          console.log(`   - Generated ${resultData.questions.length} questions`);
+          console.log(`   - Question Set: ${resultData.questionSet.name}`);
+          console.log(`   - Context Used: ${resultData.metadata.contextUsed.length} sources`);
           
-          if (result.data.questions.length > 0) {
-            const firstQuestion = result.data.questions[0];
+          if (resultData.questions.length > 0) {
+            const firstQuestion = resultData.questions[0];
             console.log('   - Sample Question:', firstQuestion.question_text);
           }
         } else {

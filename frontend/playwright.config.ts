@@ -12,6 +12,22 @@ export default defineConfig({
   /* Output directories */
   outputDir: './e2e/test-results',
   
+  /* Test file patterns - exclude Jest test files */
+  testMatch: [
+    '**/e2e/**/*.{test,spec}.{js,ts}',
+    '**/*.e2e.{js,ts}',
+    '**/*.playwright.{js,ts}'
+  ],
+  
+  /* Ignore Jest test files */
+  testIgnore: [
+    '**/*.test.{js,ts,tsx}',
+    '**/*.spec.{js,ts,tsx}',
+    '**/src/**/__tests__/**',
+    '**/jest.config.*',
+    '**/coverage/**'
+  ],
+  
   /* Run tests in files in parallel */
   fullyParallel: true,
   
@@ -33,7 +49,7 @@ export default defineConfig({
     ['json', { outputFile: './e2e/test-results.json' }],
     ['junit', { outputFile: './e2e/test-results.xml' }],
     ['line'],
-    ...(process.env.CI ? [['github']] : [])
+    ...(process.env.CI ? [['github'] as const] : [])
   ],
   
   /* Global test configuration */

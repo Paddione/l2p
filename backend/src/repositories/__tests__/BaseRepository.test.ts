@@ -3,9 +3,26 @@ import { DatabaseService } from '../../services/DatabaseService.js';
 import { QueryResult, QueryResultRow } from 'pg';
 
 // Mock DatabaseService
-jest.mock('../../services/DatabaseService.js');
+jest.mock('../../services/DatabaseService.js', () => ({
+  DatabaseService: {
+    getInstance: jest.fn()
+  }
+}));
 
-const mockDatabaseService = DatabaseService.getInstance() as jest.Mocked<DatabaseService>;
+const mockDatabaseService = {
+  query: jest.fn(),
+  getClient: jest.fn(),
+  beginTransaction: jest.fn(),
+  commitTransaction: jest.fn(),
+  rollbackTransaction: jest.fn(),
+  testConnection: jest.fn(),
+  transaction: jest.fn(),
+  getPoolStatus: jest.fn(),
+  isHealthy: jest.fn(),
+  healthCheck: jest.fn()
+} as unknown as jest.Mocked<DatabaseService>;
+
+(DatabaseService.getInstance as jest.Mock).mockReturnValue(mockDatabaseService);
 
 // Create a concrete implementation for testing
 class TestRepository extends BaseRepository {

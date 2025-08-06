@@ -20,11 +20,15 @@ async function checkChromaCollections() {
     console.log('✅ Collections found:', collections.length);
     
     for (const collection of collections) {
-      console.log(`\n📁 Collection: ${collection.name || 'unnamed'}`);
-      console.log(`   - ID: ${collection.id || 'unknown'}`);
-      console.log(`   - Metadata:`, collection.metadata);
+      const collectionName = typeof collection === 'string' ? collection : (collection as any)?.name || collection;
+      console.log(`\n📁 Collection: ${collectionName || 'unnamed'}`);
       
-      if (!collection.name) {
+      if (typeof collection === 'object' && collection !== null) {
+        console.log(`   - ID: ${(collection as any).id || 'unknown'}`);
+        console.log(`   - Metadata:`, (collection as any).metadata);
+      }
+      
+      if (!collectionName) {
         console.log(`   - ⚠️  Collection has no name, skipping details`);
         continue;
       }
@@ -32,8 +36,8 @@ async function checkChromaCollections() {
       try {
         // Get collection details
         const collectionDetails = await client.getCollection({
-          name: collection.name
-        });
+          name: collectionName
+        } as any);
         
         // Get some documents from the collection
         const results = await collectionDetails.get({
@@ -43,11 +47,11 @@ async function checkChromaCollections() {
         console.log(`   - Documents: ${results.documents?.length || 0}`);
         console.log(`   - Embeddings: ${results.embeddings?.length || 0}`);
         
-        if (results.documents && results.documents.length > 0) {
+        if (results.documents && results.documents.length > 0 && results.documents[0]) {
           console.log(`   - Sample document: ${results.documents[0].substring(0, 100)}...`);
         }
         
-        if (results.metadatas && results.metadatas.length > 0) {
+        if (results.metadatas && results.metadatas.length > 0 && results.metadatas[0]) {
           console.log(`   - Sample metadata:`, results.metadatas[0]);
         }
         

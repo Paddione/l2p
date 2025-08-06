@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { GeminiService } from '../services/GeminiService.js';
-import { ChromaService } from '../services/ChromaService.js';
+import { GeminiService, QuestionGenerationRequest } from '../../services/GeminiService.js';
+import { ChromaService } from '../../services/ChromaService.js';
 import dotenv from 'dotenv';
 
 // Load environment variables

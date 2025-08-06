@@ -1,36 +1,61 @@
 // Mock Web Audio API before importing AudioManager
 const mockGainNode = {
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  gain: { value: 1 }
+  connect: jest.fn().mockReturnThis(),
+  disconnect: jest.fn().mockReturnThis(),
+  gain: { 
+    value: 1,
+    setValueAtTime: jest.fn(),
+    linearRampToValueAtTime: jest.fn(),
+    exponentialRampToValueAtTime: jest.fn()
+  },
+  context: null as any
 }
 
 const mockBufferSource = {
-  connect: jest.fn(),
-  disconnect: jest.fn(),
+  connect: jest.fn().mockReturnThis(),
+  disconnect: jest.fn().mockReturnThis(),
   start: jest.fn(),
   stop: jest.fn(),
   buffer: null,
-  loop: false
+  loop: false,
+  loopStart: 0,
+  loopEnd: 0,
+  playbackRate: { value: 1 },
+  onended: null,
+  context: null as any
 }
 
 const mockAudioBuffer = {
   duration: 1.0,
   numberOfChannels: 2,
   sampleRate: 44100,
-  length: 44100
+  length: 44100,
+  getChannelData: jest.fn(() => new Float32Array(44100))
 }
 
 const mockAudioContext = {
-  createGain: jest.fn(() => mockGainNode),
-  createBufferSource: jest.fn(() => mockBufferSource),
+  createGain: jest.fn(() => {
+    const gain = { ...mockGainNode }
+    gain.context = mockAudioContext
+    return gain
+  }),
+  createBufferSource: jest.fn(() => {
+    const source = { ...mockBufferSource }
+    source.context = mockAudioContext
+    return source
+  }),
   decodeAudioData: jest.fn(() => Promise.resolve(mockAudioBuffer)),
   destination: mockGainNode,
   state: 'running',
   resume: jest.fn(() => Promise.resolve()),
   suspend: jest.fn(() => Promise.resolve()),
   close: jest.fn(() => Promise.resolve()),
-  currentTime: 0
+  currentTime: 0,
+  sampleRate: 44100,
+  listener: {
+    setPosition: jest.fn(),
+    setOrientation: jest.fn()
+  }
 }
 
 // Mock AudioContext constructor

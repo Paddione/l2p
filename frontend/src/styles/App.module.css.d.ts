@@ -39,6 +39,8 @@ declare const styles: {
   readonly buttonOutline: string
   readonly card: string
   readonly spinner: string
+  readonly loading: string
+  readonly loadingSpinner: string
   readonly error: string
   readonly success: string
   readonly warning: string

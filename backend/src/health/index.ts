@@ -13,7 +13,7 @@ export async function initializeBackendHealthChecks(): Promise<void> {
     name: 'database-connection-failed',
     condition: (health) => {
       const dbCheck = health.checks['database'];
-      return dbCheck && dbCheck.status === 'unhealthy';
+      return Boolean(dbCheck && dbCheck.status === 'unhealthy');
     },
     severity: 'critical',
     cooldown: 5, // 5 minutes
@@ -24,7 +24,7 @@ export async function initializeBackendHealthChecks(): Promise<void> {
     name: 'database-slow-response',
     condition: (health) => {
       const dbCheck = health.checks['database'];
-      return dbCheck && dbCheck.status === 'degraded' && dbCheck.responseTime > 2000;
+      return Boolean(dbCheck && dbCheck.status === 'degraded' && dbCheck.responseTime && dbCheck.responseTime > 2000);
     },
     severity: 'high',
     cooldown: 15, // 15 minutes

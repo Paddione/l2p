@@ -12,6 +12,8 @@ export interface ErrorContext {
   environment: string;
   service: string;
   version?: string;
+  metadata?: Record<string, any>;
+  queueLength?: number;
 }
 
 export interface ErrorDetails {

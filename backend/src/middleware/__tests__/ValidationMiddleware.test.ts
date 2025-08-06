@@ -380,7 +380,7 @@ describe('ValidationMiddleware', () => {
     it('should handle missing IP address', () => {
       // Arrange
       const rateLimit = ValidationMiddleware.rateLimitValidation(1, 60000);
-      mockRequest.ip = undefined;
+      (mockRequest as any).ip = undefined;
 
       // Act
       rateLimit(mockRequest as Request, mockResponse as Response, mockNext);

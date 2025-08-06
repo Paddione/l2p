@@ -1,10 +1,25 @@
-# Learn2Play - Multiplayer Quiz Platform
+# Learn2Play - Comprehensive Multiplayer Quiz Platform
 
 ![Learn2Play Logo](https://via.placeholder.com/300x100/4F46E5/FFFFFF?text=Learn2Play)
 
-A real-time multiplayer quiz game platform supporting up to 8 simultaneous players in synchronized gaming sessions. Features advanced scoring mechanics, comprehensive audio system, dual language support (English/German), modern responsive UI, and **comprehensive testing infrastructure**.
+A production-ready, real-time multiplayer quiz game platform supporting up to 8 simultaneous players in synchronized gaming sessions. Features advanced scoring mechanics, comprehensive audio system, dual language support (English/German), modern responsive UI, AI-powered question generation, and **industry-leading testing infrastructure**.
 
-📋 **For detailed architecture and design decisions, see [design.md](design.md)**
+📋 **Complete documentation consolidated from all project markdown files. See [INDEX.md](docs/INDEX.md) for navigation overview.**
+
+## 📖 Table of Contents
+
+- [🌟 Features](#-features)
+- [🧪 Comprehensive Testing Infrastructure](#-comprehensive-testing-infrastructure)
+- [🏗️ Architecture & Design](#️-architecture--design)
+- [📋 Requirements & User Stories](#-requirements--user-stories)
+- [🐳 Docker Configuration](#-docker-configuration)
+- [🚨 Error Handling & Logging](#-error-handling--logging)
+- [📊 Coverage & Quality Assurance](#-coverage--quality-assurance)
+- [🚀 Production Deployment](#-production-deployment)
+- [🔧 Development](#-development)
+- [🛠️ Troubleshooting](#️-troubleshooting)
+- [📈 Maintenance](#-maintenance)
+- [📝 License](#-license)
 
 ## 🌟 Features
 
@@ -504,6 +519,606 @@ l2p/
 - **Instant Switching**: Flag icons for language toggle
 - **Full Localization**: UI, questions, and explanations
 - **Persistent Preference**: Language choice saved
+
+## 🏗️ Architecture & Design
+
+### High-Level Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Traefik       │    │   Frontend      │    │   Backend       │
+│   (SSL/Proxy)   │◄──►│   (React App)   │◄──►│   (Node.js)     │
+│   Port 80/443   │    │   Port 3000     │    │   Port 3001     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                                         │
+                                                ┌─────────────────┐
+                                                │   PostgreSQL    │
+                                                │   Port 5432     │
+                                                └─────────────────┘
+```
+
+### Technology Stack
+
+**Frontend:**
+- React 18 with TypeScript
+- Zustand for state management
+- React Router for navigation
+- Socket.IO client for real-time communication
+- Vite for build tooling
+- CSS Modules for styling
+
+**Backend:**
+- Node.js with Express framework
+- TypeScript for type safety
+- Socket.IO for WebSocket communication
+- JWT for authentication
+- Helmet for security headers
+- Rate limiting for API protection
+
+**Database:**
+- PostgreSQL with connection pooling
+- JSONB for flexible data storage
+- Migration system for schema versioning
+- Comprehensive indexing strategy
+
+**Infrastructure:**
+- Docker containers for all services
+- Traefik for reverse proxy and SSL
+- Let's Encrypt for automatic SSL certificates
+- Health checks and monitoring
+
+### System Components
+
+#### Frontend Components
+- **Game Interface**: Real-time quiz gameplay with WebSocket integration
+- **Lobby Management**: Player management and game configuration
+- **Authentication**: Secure user registration and login
+- **Settings**: Audio, theme, and language preferences
+- **Leaderboards**: Hall of Fame and scoring displays
+
+#### Backend Services
+- **AuthService**: User authentication and JWT management
+- **GameService**: Game session orchestration and state management
+- **LobbyService**: Lobby creation and player coordination
+- **DatabaseService**: Database connection and query management
+- **GeminiService**: AI question generation and RAG integration
+- **EmailService**: User communication and notifications
+
+#### Database Schema
+- **Users**: Authentication and profile data
+- **Lobbies**: Game lobby state and configuration
+- **Games**: Game session data and results
+- **Questions**: Question sets with localization
+- **Scores**: Player performance and leaderboards
+
+### Real-time Communication
+
+#### WebSocket Events
+- **Lobby Events**: Player join/leave, ready status, game start
+- **Game Events**: Question delivery, answer submission, scoring
+- **System Events**: Heartbeat, error handling, reconnection
+
+#### State Synchronization
+- **Client-side State**: Zustand stores for UI state management
+- **Server-side State**: In-memory game state with database persistence
+- **Conflict Resolution**: Server authority with client prediction
+
+### Security Architecture
+
+#### Authentication & Authorization
+- **JWT Tokens**: Secure token-based authentication
+- **Password Hashing**: bcrypt with salt rounds
+- **Rate Limiting**: API endpoint protection
+- **CORS Configuration**: Cross-origin request security
+
+#### Data Protection
+- **Input Validation**: Comprehensive request validation
+- **SQL Injection Prevention**: Parameterized queries
+- **XSS Protection**: Content Security Policy headers
+- **HTTPS Enforcement**: SSL/TLS encryption
+
+### Performance Optimization
+
+#### Frontend Performance
+- **Code Splitting**: Dynamic imports for route-based splitting
+- **Asset Optimization**: Image compression and lazy loading
+- **Caching Strategy**: Browser caching for static assets
+- **Bundle Analysis**: Webpack bundle optimization
+
+#### Backend Performance
+- **Connection Pooling**: Database connection management
+- **Query Optimization**: Indexed queries and efficient joins
+- **Caching Layer**: Redis for session and game state caching
+- **Load Balancing**: Horizontal scaling support
+
+### Monitoring & Observability
+
+#### Health Checks
+- **Application Health**: Service availability monitoring
+- **Database Health**: Connection and query performance
+- **External Services**: Third-party API monitoring
+- **Resource Monitoring**: CPU, memory, and disk usage
+
+#### Logging Strategy
+- **Structured Logging**: JSON format with consistent fields
+- **Log Levels**: Debug, Info, Warn, Error, Critical
+- **Centralized Logging**: Docker log aggregation
+- **Error Tracking**: Comprehensive error reporting
+
+## 📋 Requirements & User Stories
+
+### Core Requirements
+
+#### Requirement 1: Lobby Management
+**User Story:** As a player, I want to create and join game lobbies, so that I can play multiplayer quiz games with friends.
+
+**Acceptance Criteria:**
+1. WHEN a user creates a lobby THEN the system SHALL generate a unique 6-character lobby code
+2. WHEN a user joins a lobby with a valid code THEN the system SHALL add them to the lobby and notify other players
+3. WHEN a lobby reaches 8 players THEN the system SHALL prevent additional players from joining
+4. WHEN a player leaves a lobby THEN the system SHALL remove them and notify remaining players
+5. IF the host leaves a lobby THEN the system SHALL transfer host privileges to another player
+
+#### Requirement 2: Game Configuration
+**User Story:** As a host, I want to configure game settings and start games, so that I can control the quiz experience.
+
+**Acceptance Criteria:**
+1. WHEN a host configures question count THEN the system SHALL allow selection between 1 and 100 questions
+2. WHEN a host selects question sets THEN the system SHALL display available question categories
+3. WHEN all players are ready THEN the system SHALL enable the start game button for the host
+4. WHEN a host starts the game THEN the system SHALL transition all players to the game interface
+5. WHEN a game is started THEN the system SHALL prevent new players from joining
+
+#### Requirement 3: Real-time Gameplay
+**User Story:** As a player, I want to answer quiz questions within a time limit, so that I can compete in real-time gameplay.
+
+**Acceptance Criteria:**
+1. WHEN a question is displayed THEN the system SHALL show a 60-second countdown timer
+2. WHEN a player selects an answer THEN the system SHALL record their response and timestamp
+3. WHEN the timer expires THEN the system SHALL automatically submit no answer for remaining players
+4. WHEN all players answer THEN the system SHALL immediately proceed to the next question
+5. WHEN a question ends THEN the system SHALL display correct answer and explanations
+
+#### Requirement 4: Scoring System
+**User Story:** As a player, I want to see my score and multiplier progress, so that I can track my performance during the game.
+
+**Acceptance Criteria:**
+1. WHEN a player answers correctly THEN the system SHALL award points based on response time
+2. WHEN a player answers consecutively correct THEN the system SHALL apply multiplier bonuses (up to 5x)
+3. WHEN a player answers incorrectly THEN the system SHALL reset their multiplier to 1x
+4. WHEN the game ends THEN the system SHALL display final scores and rankings
+5. WHEN scores are calculated THEN the system SHALL update the Hall of Fame if applicable
+
+#### Requirement 5: User Management
+**User Story:** As a player, I want to register and manage my account, so that I can track my progress and customize my experience.
+
+**Acceptance Criteria:**
+1. WHEN a user registers THEN the system SHALL require email verification
+2. WHEN a user logs in THEN the system SHALL authenticate credentials and create a session
+3. WHEN a user updates profile THEN the system SHALL validate and save changes
+4. WHEN a user forgets password THEN the system SHALL provide secure reset mechanism
+5. WHEN a user deletes account THEN the system SHALL remove all personal data
+
+#### Requirement 6: AI Question Generation
+**User Story:** As an administrator, I want to generate questions using AI, so that I can expand the question database efficiently.
+
+**Acceptance Criteria:**
+1. WHEN uploading a document THEN the system SHALL process and extract relevant content
+2. WHEN generating questions THEN the system SHALL create multiple choice questions with explanations
+3. WHEN questions are generated THEN the system SHALL allow review and editing before saving
+4. WHEN questions are approved THEN the system SHALL add them to the available question sets
+5. WHEN using RAG THEN the system SHALL maintain source attribution and context
+
+## 🐳 Docker Configuration
+
+### Environment Profiles
+
+The Learn2Play Docker configuration supports three distinct environments:
+
+- **Development**: Local development with hot reloading and debugging tools
+- **Test**: Isolated testing environment with test data and services
+- **Production**: Optimized production deployment with security hardening
+
+### Production Architecture
+
+```mermaid
+graph TB
+    subgraph "External"
+        USER[Users]
+        LB[Load Balancer/CDN]
+    end
+    
+    subgraph "Docker Network"
+        TRAEFIK[Traefik Proxy]
+        FRONTEND[Frontend Container]
+        BACKEND[Backend Container]
+        POSTGRES[PostgreSQL]
+        CHROMA[ChromaDB]
+    end
+    
+    subgraph "Volumes"
+        PG_DATA[PostgreSQL Data]
+        CHROMA_DATA[ChromaDB Data]
+        LOGS[Application Logs]
+        SSL[SSL Certificates]
+    end
+    
+    USER --> LB
+    LB --> TRAEFIK
+    TRAEFIK --> FRONTEND
+    TRAEFIK --> BACKEND
+    BACKEND --> POSTGRES
+    BACKEND --> CHROMA
+    
+    POSTGRES --> PG_DATA
+    CHROMA --> CHROMA_DATA
+    TRAEFIK --> SSL
+    BACKEND --> LOGS
+```
+
+### Quick Start
+
+```bash
+# Production deployment
+docker-compose up -d
+
+# Development environment
+docker-compose -f docker-compose.dev.yml up -d
+
+# Test environment
+docker-compose -f docker-compose.test.yml up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Complete cleanup (removes volumes)
+docker-compose down -v
+```
+
+### Configuration Files
+
+#### Production Configuration (`docker-compose.yml`)
+- **Optimized Images**: Multi-stage builds for minimal image size
+- **Security Hardening**: Non-root users, read-only filesystems
+- **Resource Limits**: CPU and memory constraints
+- **Health Checks**: Comprehensive service monitoring
+- **SSL Termination**: Automatic HTTPS with Let's Encrypt
+
+#### Development Configuration (`docker-compose.dev.yml`)
+- **Hot Reloading**: Live code updates without rebuilds
+- **Debug Support**: Exposed debug ports and verbose logging
+- **Development Tools**: Additional debugging and profiling tools
+- **Relaxed Security**: Easier development workflow
+
+#### Test Configuration (`docker-compose.test.yml`)
+- **Isolated Environment**: Separate test database and services
+- **Test Data**: Pre-populated test data and fixtures
+- **Fast Startup**: Optimized for quick test execution
+- **Cleanup Automation**: Automatic resource cleanup
+
+### Security Features
+
+#### Container Security
+- **Non-root Users**: All services run as non-privileged users
+- **Read-only Filesystems**: Immutable container filesystems where possible
+- **Resource Limits**: CPU and memory constraints to prevent resource exhaustion
+- **Network Isolation**: Services communicate through dedicated Docker networks
+- **Secret Management**: Environment variables and Docker secrets for sensitive data
+
+#### SSL/TLS Configuration
+- **Automatic SSL**: Let's Encrypt integration via Traefik
+- **Certificate Renewal**: Automatic certificate renewal
+- **HTTPS Enforcement**: Automatic HTTP to HTTPS redirects
+- **Security Headers**: HSTS, CSP, and other security headers
+
+#### Network Security
+- **Firewall Rules**: Only necessary ports exposed
+- **Internal Networks**: Service-to-service communication on private networks
+- **Rate Limiting**: API endpoint protection
+- **CORS Configuration**: Cross-origin request security
+
+### Monitoring and Logging
+
+#### Health Checks
+- **Application Health**: Service availability and readiness probes
+- **Database Health**: Connection and query performance monitoring
+- **External Services**: Third-party API health monitoring
+- **Resource Monitoring**: CPU, memory, and disk usage tracking
+
+#### Logging Strategy
+- **Centralized Logging**: All services log to stdout/stderr for Docker log collection
+- **Structured Logging**: JSON format with consistent fields
+- **Log Rotation**: Automatic log rotation based on size and age
+- **Log Aggregation**: Centralized log collection and analysis
+
+#### Metrics Collection
+- **Application Metrics**: Custom business metrics and KPIs
+- **System Metrics**: Container resource usage and performance
+- **Database Metrics**: Query performance and connection pool status
+- **Network Metrics**: Request rates, response times, and error rates
+
+### Volume Management
+
+#### Persistent Volumes
+- **Database Data**: PostgreSQL data persistence
+- **ChromaDB Data**: Vector database persistence
+- **SSL Certificates**: Let's Encrypt certificate storage
+- **Application Logs**: Log file persistence
+
+#### Backup Strategy
+- **Database Backups**: Automated PostgreSQL backups
+- **Configuration Backups**: Environment and configuration backups
+- **SSL Certificate Backups**: Certificate and key backups
+- **Disaster Recovery**: Complete system restoration procedures
+
+### Environment Variables
+
+#### Required Variables
+```bash
+# Database Configuration
+POSTGRES_DB=l2p_db
+POSTGRES_USER=l2p_user
+POSTGRES_PASSWORD=your_secure_password
+DATABASE_URL=postgresql://l2p_user:password@postgres:5432/l2p_db
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_minimum_32_characters
+JWT_EXPIRES_IN=24h
+
+# Domain Configuration
+DOMAIN=your-domain.com
+LETSENCRYPT_EMAIL=your@email.com
+
+# API Keys (Optional)
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+#### Optional Variables
+```bash
+# ChromaDB Configuration
+CHROMA_HOST=chromadb
+CHROMA_PORT=8000
+
+# Email Configuration
+AZURE_COMMUNICATION_CONNECTION_STRING=your_connection_string
+
+# Monitoring
+LOG_LEVEL=info
+ENABLE_METRICS=true
+```
+
+### Docker-based Test Environment
+
+#### Test Services
+- **postgres-test**: PostgreSQL 15 database with test data
+- **chromadb-test**: ChromaDB vector database for AI features
+- **backend-test**: Node.js backend API service
+- **frontend-test**: React frontend application
+- **mailhog-test**: Email testing service
+- **redis-test**: Redis cache service
+
+#### Test Environment Features
+- **Health Checks**: All services have proper health checks with retry logic
+- **Port Conflict Resolution**: Automatic detection and resolution of port conflicts
+- **Resource Management**: Isolated test data using tmpfs volumes for performance
+- **Volume Management**: Proper cleanup of containers, volumes, networks, and images
+
+#### Test Environment Usage
+```bash
+# Validate environment
+npm run test:env:validate
+
+# Start test environment
+npm run test:env:start
+
+# Check status
+npm run test:env:status
+
+# Run health checks
+npm run test:env:health
+
+# View service URLs
+npm run test:env:urls
+
+# Stop environment
+npm run test:env:stop
+
+# Complete cleanup
+npm run test:env:cleanup
+```
+
+### Troubleshooting Docker Issues
+
+#### Common Problems
+1. **Port Conflicts**: Use `docker ps` to check running containers
+2. **Volume Issues**: Use `docker volume ls` and `docker volume rm` to manage volumes
+3. **Network Issues**: Use `docker network ls` to check network configuration
+4. **Image Issues**: Use `docker image prune` to clean up unused images
+
+#### Debug Commands
+```bash
+# View container logs
+docker-compose logs [service-name]
+
+# Execute commands in running container
+docker-compose exec [service-name] /bin/bash
+
+# Check container status
+docker-compose ps
+
+# View resource usage
+docker stats
+
+# Inspect container configuration
+docker inspect [container-name]
+```
+
+## 🚨 Error Handling & Logging
+
+### Centralized Error Handler
+- **Structured Error Handling**: Consistent error format with context, severity, and categorization
+- **Error Recovery**: Automatic recovery strategies for common failure scenarios
+- **Error Queuing**: Background processing of errors with retry logic
+- **Context Enrichment**: Automatic addition of request context, user information, and metadata
+
+### Advanced Logging
+- **Multiple Log Levels**: Debug, Info, Warn, Error, Critical
+- **Multiple Outputs**: Console, File, Remote endpoint
+- **Log Rotation**: Automatic file rotation based on size and count
+- **Structured Logging**: JSON format with consistent fields
+- **Performance Monitoring**: Request timing and slow query detection
+
+### Health Monitoring
+- **System Health Checks**: Memory, CPU, disk, database, and custom checks
+- **Real-time Metrics**: System resource monitoring and alerting
+- **Health Endpoints**: REST endpoints for health status and readiness probes
+- **Alert Rules**: Configurable alerting based on system conditions
+
+### Notification System
+- **Multiple Channels**: Email, Slack, SMS, Webhooks
+- **Severity-based Routing**: Different notification channels based on error severity
+- **Template System**: Customizable notification templates
+- **Queue Processing**: Background notification delivery with retry logic
+
+### Error Handling Implementation
+
+#### Quick Start
+```typescript
+import { initializeErrorHandling } from './shared/error-handling';
+
+await initializeErrorHandling({
+  logLevel: 'info',
+  enableFileLogging: true,
+  enableRemoteLogging: false,
+  enableHealthMonitoring: true,
+  enableNotifications: true
+});
+```
+
+#### Error Handling Usage
+```typescript
+import { ErrorHandler, Logger } from './shared/error-handling';
+
+// Handle errors with context
+try {
+  await riskyOperation();
+} catch (error) {
+  await ErrorHandler.handle(error, {
+    context: 'user-registration',
+    userId: user.id,
+    severity: 'high'
+  });
+}
+
+// Structured logging
+Logger.info('User registered successfully', {
+  userId: user.id,
+  email: user.email,
+  timestamp: new Date().toISOString()
+});
+```
+
+#### Health Monitoring
+```typescript
+import { HealthMonitor } from './shared/error-handling';
+
+// Add custom health check
+HealthMonitor.addCheck('database', async () => {
+  const result = await db.query('SELECT 1');
+  return result.rows.length > 0;
+});
+
+// Get system health status
+const health = await HealthMonitor.getStatus();
+console.log('System health:', health);
+```
+
+## 📊 Coverage & Quality Assurance
+
+### Multi-Format Reporting
+- **HTML Reports**: Interactive coverage reports with drill-down capabilities
+- **LCOV Format**: For CI/CD integration and external tools
+- **JSON Format**: For programmatic access and custom reporting
+- **XML (Cobertura)**: For build systems and Jenkins integration
+- **Text Format**: For console output and quick checks
+- **SVG Badges**: For documentation and README files
+
+### Threshold Management
+- **Configurable Thresholds**: Separate thresholds for statements, branches, functions, and lines
+- **Component-specific Thresholds**: Different thresholds for frontend, backend, and shared components
+- **Detailed Failure Reporting**: Specific metrics and recommendations for improvement
+- **Automatic Threshold Validation**: Fail builds when coverage drops below thresholds
+
+### Historical Tracking
+- **Coverage Trends**: Track coverage changes over time
+- **Historical Data Storage**: Maintain coverage history for comparison
+- **Visual Trend Indicators**: Show improving, declining, or stable trends
+- **Baseline Comparisons**: Compare current coverage against established baselines
+
+### CI/CD Integration
+- **Automated Coverage Collection**: Collect coverage from all test suites
+- **Badge Generation**: Generate coverage badges for documentation
+- **Summary Reports**: Provide coverage summaries for build systems
+- **Exit Codes**: Return appropriate exit codes for pipeline integration
+
+### Coverage Configuration
+
+#### Default Configuration
+```json
+{
+  "frontend": {
+    "collectFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/main.tsx",
+      "!src/setupTests.ts",
+      "!src/**/*.test.{ts,tsx}",
+      "!src/**/*.spec.{ts,tsx}"
+    ],
+    "thresholds": {
+      "statements": 80,
+      "branches": 75,
+      "functions": 80,
+      "lines": 80
+    }
+  },
+  "backend": {
+    "collectFrom": [
+      "src/**/*.{ts,js}",
+      "!src/**/*.d.ts",
+      "!src/**/*.test.{ts,js}",
+      "!src/**/*.spec.{ts,js}"
+    ],
+    "thresholds": {
+      "statements": 85,
+      "branches": 80,
+      "functions": 85,
+      "lines": 85
+    }
+  }
+}
+```
+
+#### Coverage Commands
+```bash
+# View current configuration
+npm run coverage:show
+
+# Generate coverage report
+npm run coverage:collect
+
+# Generate coverage badge
+npm run coverage:badge
+
+# Check coverage thresholds
+npm run coverage:check
+
+# Generate historical report
+npm run coverage:history
+```
 
 ## 🔧 Management Commands
 

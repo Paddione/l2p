@@ -18,7 +18,6 @@ import scoringRoutes from './routes/scoring.js';
 import hallOfFameRoutes from './routes/hall-of-fame.js';
 import characterRoutes from './routes/characters.js';
 import fileUploadRoutes from './routes/file-upload.js';
-import healthRoutes from './routes/health.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { requestLogger, errorLogger } from './middleware/logging.js';
 import { sanitize } from './middleware/validation.js';

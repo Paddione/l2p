@@ -19,7 +19,7 @@ jest.mock('multer', () => {
     array: jest.fn().mockReturnValue(jest.fn())
   };
   
-  const mockMulter = jest.fn().mockReturnValue(mockUpload);
+  const mockMulter = jest.fn().mockReturnValue(mockUpload) as any;
   mockMulter.diskStorage = jest.fn().mockReturnValue({
     destination: jest.fn(),
     filename: jest.fn()
@@ -36,6 +36,8 @@ jest.mock('multer', () => {
   }
   
   mockMulter.MulterError = MockMulterError;
+  mockMulter.single = jest.fn().mockReturnValue(mockUpload);
+  mockMulter.array = jest.fn().mockReturnValue(mockUpload);
   
   return mockMulter;
 });
@@ -81,10 +83,8 @@ describe('FileUploadMiddleware', () => {
     // Create mock next function
     mockNext = jest.fn();
 
-    // Mock multer
+    // Mock multer (already mocked in jest.mock)
     mockMulter = multer as jest.Mocked<typeof multer>;
-    mockMulter.single = jest.fn();
-    mockMulter.array = jest.fn();
 
     // Mock fs functions
     (fs.existsSync as jest.Mock).mockReturnValue(true);
@@ -459,8 +459,9 @@ describe('FileUploadMiddleware', () => {
         destination: '/uploads',
         filename: 'test.pdf',
         path: undefined,
-        buffer: Buffer.from('test')
-      } as Express.Multer.File;
+        buffer: Buffer.from('test'),
+        stream: {} as any
+      } as unknown as Express.Multer.File;
 
       cleanupUploadedFiles(
         mockRequest as Request,

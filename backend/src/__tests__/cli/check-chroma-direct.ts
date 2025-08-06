@@ -40,14 +40,18 @@ async function checkChromaDirect() {
       if (results.documents && results.documents.length > 0) {
         console.log(`\n📄 Sample Documents:`);
         results.documents.slice(0, 3).forEach((doc, index) => {
-          console.log(`   ${index + 1}. ${doc.substring(0, 150)}...`);
+          if (doc) {
+            console.log(`   ${index + 1}. ${doc.substring(0, 150)}...`);
+          }
         });
       }
       
       if (results.metadatas && results.metadatas.length > 0) {
         console.log(`\n🏷️  Sample Metadatas:`);
         results.metadatas.slice(0, 3).forEach((meta, index) => {
-          console.log(`   ${index + 1}.`, meta);
+          if (meta) {
+            console.log(`   ${index + 1}.`, meta);
+          }
         });
       }
       
@@ -60,7 +64,9 @@ async function checkChromaDirect() {
     const collections = await client.listCollections();
     console.log(`   - Total: ${collections.length}`);
     collections.forEach((col, index) => {
-      console.log(`   ${index + 1}. Name: "${col.name || 'unnamed'}", ID: "${col.id || 'unknown'}"`);
+      const colName = typeof col === 'string' ? col : (col as any)?.name || col;
+      const colId = typeof col === 'object' && col !== null ? (col as any)?.id || 'unknown' : 'unknown';
+      console.log(`   ${index + 1}. Name: "${colName || 'unnamed'}", ID: "${colId}"`);
     });
     
   } catch (error) {

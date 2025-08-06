@@ -4,6 +4,10 @@ export { RequestLogger } from './Logger.js';
 export { HealthMonitor, healthMonitor } from './HealthMonitor.js';
 export { NotificationService, notificationService } from './NotificationService.js';
 
+// Import instances for internal use
+import { RequestLogger } from './Logger.js';
+import { healthMonitor } from './HealthMonitor.js';
+
 // Type exports
 export type { 
   ErrorContext, 

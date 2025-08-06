@@ -91,15 +91,13 @@ describe('LobbyRepository', () => {
     // Mock the inherited db property from BaseRepository
     (lobbyRepository as any).db = mockDb;
 
-    // Mock BaseRepository methods
-    const mockBaseRepository = BaseRepository as jest.MockedClass<typeof BaseRepository>;
-    mockBaseRepository.prototype.findById = jest.fn();
-    mockBaseRepository.prototype.create = jest.fn();
-    mockBaseRepository.prototype.update = jest.fn();
-    mockBaseRepository.prototype.delete = jest.fn();
-    mockBaseRepository.prototype.exists = jest.fn();
-    mockBaseRepository.prototype.count = jest.fn();
-    mockBaseRepository.prototype.count = jest.fn();
+    // Mock BaseRepository methods using type assertions to bypass protected access
+    (BaseRepository.prototype as any).findById = jest.fn();
+    (BaseRepository.prototype as any).create = jest.fn();
+    (BaseRepository.prototype as any).update = jest.fn();
+    (BaseRepository.prototype as any).delete = jest.fn();
+    (BaseRepository.prototype as any).exists = jest.fn();
+    (BaseRepository.prototype as any).count = jest.fn();
   });
 
   describe('Constructor and Initialization', () => {
@@ -116,7 +114,7 @@ describe('LobbyRepository', () => {
   describe('Basic CRUD Operations', () => {
     describe('findLobbyById', () => {
       it('should find lobby by ID successfully', async () => {
-        const mockFindById = (BaseRepository.prototype.findById as jest.Mock);
+        const mockFindById = ((BaseRepository.prototype as any).findById as jest.Mock);
         mockFindById.mockResolvedValue(mockLobby);
 
         const result = await lobbyRepository.findLobbyById(1);
@@ -126,7 +124,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should return null when lobby not found', async () => {
-        const mockFindById = (BaseRepository.prototype.findById as jest.Mock);
+        const mockFindById = ((BaseRepository.prototype as any).findById as jest.Mock);
         mockFindById.mockResolvedValue(null);
 
         const result = await lobbyRepository.findLobbyById(999);
@@ -136,7 +134,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should handle database errors', async () => {
-        const mockFindById = (BaseRepository.prototype.findById as jest.Mock);
+        const mockFindById = ((BaseRepository.prototype as any).findById as jest.Mock);
         mockFindById.mockRejectedValue(new Error('Database connection failed'));
 
         await expect(lobbyRepository.findLobbyById(1)).rejects.toThrow('Database connection failed');
@@ -145,7 +143,7 @@ describe('LobbyRepository', () => {
 
     describe('createLobby', () => {
       it('should create lobby with provided data', async () => {
-        const mockCreate = jest.spyOn(BaseRepository.prototype, 'create');
+        const mockCreate = jest.spyOn(BaseRepository.prototype as any, 'create');
         mockCreate.mockResolvedValue(mockLobby);
 
         const result = await lobbyRepository.createLobby(mockCreateLobbyData);
@@ -160,7 +158,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should create lobby with default values when optional fields missing', async () => {
-        const mockCreate = jest.spyOn(BaseRepository.prototype, 'create');
+        const mockCreate = jest.spyOn(BaseRepository.prototype as any, 'create');
         mockCreate.mockResolvedValue(mockLobby);
 
         const minimalLobbyData: CreateLobbyData = {
@@ -181,14 +179,14 @@ describe('LobbyRepository', () => {
       });
 
       it('should handle duplicate lobby code error', async () => {
-        const mockCreate = jest.spyOn(BaseRepository.prototype, 'create');
+        const mockCreate = jest.spyOn(BaseRepository.prototype as any, 'create');
         mockCreate.mockRejectedValue(new Error('duplicate key value violates unique constraint "lobbies_code_key"'));
 
         await expect(lobbyRepository.createLobby(mockCreateLobbyData)).rejects.toThrow('duplicate key');
       });
 
       it('should handle foreign key constraint errors', async () => {
-        const mockCreate = jest.spyOn(BaseRepository.prototype, 'create');
+        const mockCreate = jest.spyOn(BaseRepository.prototype as any, 'create');
         mockCreate.mockRejectedValue(new Error('violates foreign key constraint "lobbies_host_id_fkey"'));
 
         await expect(lobbyRepository.createLobby(mockCreateLobbyData)).rejects.toThrow('foreign key constraint');
@@ -197,7 +195,7 @@ describe('LobbyRepository', () => {
 
     describe('updateLobby', () => {
       it('should update lobby successfully', async () => {
-        const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+        const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
         const updatedLobby = { ...mockLobby, ...mockUpdateLobbyData };
         mockUpdate.mockResolvedValue(updatedLobby);
 
@@ -208,7 +206,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should return null when lobby not found for update', async () => {
-        const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+        const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
         mockUpdate.mockResolvedValue(null);
 
         const result = await lobbyRepository.updateLobby(999, mockUpdateLobbyData);
@@ -218,7 +216,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should handle partial updates', async () => {
-        const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+        const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
         const partialUpdate = { status: 'playing' as const };
         const updatedLobby = { ...mockLobby, status: 'playing' as const };
         mockUpdate.mockResolvedValue(updatedLobby);
@@ -232,7 +230,7 @@ describe('LobbyRepository', () => {
 
     describe('deleteLobby', () => {
       it('should delete lobby successfully', async () => {
-        const mockDelete = (BaseRepository.prototype.delete as jest.Mock);
+        const mockDelete = ((BaseRepository.prototype as any).delete as jest.Mock);
         mockDelete.mockResolvedValue(true);
 
         const result = await lobbyRepository.deleteLobby(1);
@@ -242,7 +240,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should return false when lobby not found for deletion', async () => {
-        const mockDelete = (BaseRepository.prototype.delete as jest.Mock);
+        const mockDelete = ((BaseRepository.prototype as any).delete as jest.Mock);
         mockDelete.mockResolvedValue(false);
 
         const result = await lobbyRepository.deleteLobby(999);
@@ -252,7 +250,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should handle deletion errors', async () => {
-        const mockDelete = (BaseRepository.prototype.delete as jest.Mock);
+        const mockDelete = ((BaseRepository.prototype as any).delete as jest.Mock);
         mockDelete.mockRejectedValue(new Error('Foreign key constraint violation'));
 
         await expect(lobbyRepository.deleteLobby(1)).rejects.toThrow('Foreign key constraint violation');
@@ -652,7 +650,7 @@ describe('LobbyRepository', () => {
   describe('Utility and Statistical Operations', () => {
     describe('codeExists', () => {
       it('should return true when lobby code exists', async () => {
-        const mockExists = jest.spyOn(BaseRepository.prototype, 'exists');
+        const mockExists = jest.spyOn(BaseRepository.prototype as any, 'exists');
         mockExists.mockResolvedValue(true);
 
         const result = await lobbyRepository.codeExists('ABC123');
@@ -662,7 +660,7 @@ describe('LobbyRepository', () => {
       });
 
       it('should return false when lobby code does not exist', async () => {
-        const mockExists = jest.spyOn(BaseRepository.prototype, 'exists');
+        const mockExists = jest.spyOn(BaseRepository.prototype as any, 'exists');
         mockExists.mockResolvedValue(false);
 
         const result = await lobbyRepository.codeExists('NONEXISTENT');
@@ -674,16 +672,16 @@ describe('LobbyRepository', () => {
 
     describe('getLobbyCount', () => {
       it('should return total lobby count', async () => {
-        (BaseRepository.prototype.count as jest.Mock).mockResolvedValue(25);
+        ((BaseRepository.prototype as any).count as jest.Mock).mockResolvedValue(25);
 
         const result = await lobbyRepository.getLobbyCount();
 
-        expect(BaseRepository.prototype.count).toHaveBeenCalledWith('lobbies');
+        expect((BaseRepository.prototype as any).count).toHaveBeenCalledWith('lobbies');
         expect(result).toBe(25);
       });
 
       it('should return zero when no lobbies', async () => {
-        (BaseRepository.prototype.count as jest.Mock).mockResolvedValue(0);
+        ((BaseRepository.prototype as any).count as jest.Mock).mockResolvedValue(0);
 
         const result = await lobbyRepository.getLobbyCount();
 
@@ -693,11 +691,11 @@ describe('LobbyRepository', () => {
 
     describe('getActiveLobbyCount', () => {
       it('should return active lobby count', async () => {
-        (BaseRepository.prototype.count as jest.Mock).mockResolvedValue(15);
+        ((BaseRepository.prototype as any).count as jest.Mock).mockResolvedValue(15);
 
         const result = await lobbyRepository.getActiveLobbyCount();
 
-        expect(BaseRepository.prototype.count).toHaveBeenCalledWith('lobbies', 'status IN ($1, $2)', ['waiting', 'starting']);
+        expect((BaseRepository.prototype as any).count).toHaveBeenCalledWith('lobbies', 'status IN ($1, $2)', ['waiting', 'starting']);
         expect(result).toBe(15);
       });
     });
@@ -756,7 +754,7 @@ describe('LobbyRepository', () => {
     });
 
     it('should handle malformed JSON in settings', async () => {
-      const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+      const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
       const malformedSettings = { invalidJson: 'test' };
       mockUpdate.mockResolvedValue(mockLobby);
 
@@ -790,7 +788,7 @@ describe('LobbyRepository', () => {
     });
 
     it('should handle negative lobby IDs', async () => {
-      const mockFindById = (BaseRepository.prototype.findById as jest.Mock);
+      const mockFindById = ((BaseRepository.prototype as any).findById as jest.Mock);
       mockFindById.mockResolvedValue(null);
 
       const result = await lobbyRepository.findLobbyById(-1);
@@ -813,7 +811,7 @@ describe('LobbyRepository', () => {
     });
 
     it('should handle null settings gracefully', async () => {
-      const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+      const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
       mockUpdate.mockResolvedValue(mockLobby);
 
       await lobbyRepository.updateLobby(1, { settings: null as any });
@@ -936,7 +934,7 @@ describe('LobbyRepository', () => {
         }
       };
 
-      const mockUpdate = (BaseRepository.prototype.update as jest.Mock);
+      const mockUpdate = ((BaseRepository.prototype as any).update as jest.Mock);
       mockUpdate.mockResolvedValue({ ...mockLobby, settings: complexSettings });
 
       const result = await lobbyRepository.updateLobby(1, { settings: complexSettings });

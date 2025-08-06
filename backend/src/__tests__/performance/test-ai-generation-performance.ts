@@ -55,7 +55,9 @@ test.describe('AI Generation and Vector Database Performance Tests', () => {
     const pages = [];
     
     for (let i = 0; i < 3; i++) {
-      const newContext = await context.browser().newContext();
+      const browser = context.browser();
+      if (!browser) throw new Error('Browser not available');
+      const newContext = await browser.newContext();
       const newPage = await newContext.newPage();
       
       // Login in each context
@@ -72,13 +74,15 @@ test.describe('AI Generation and Vector Database Performance Tests', () => {
     
     // Create question sets in each context
     for (let i = 0; i < pages.length; i++) {
-      await pages[i].click('[data-testid="create-question-set-button"]');
-      await pages[i].fill('[data-testid="question-set-name"]', `Concurrent Test Set ${i}`);
-      await pages[i].fill('[data-testid="question-set-description"]', `Set ${i} for concurrent testing`);
-      await pages[i].selectOption('[data-testid="question-set-category"]', 'Science');
-      await pages[i].click('[data-testid="save-question-set-button"]');
-      await pages[i].click('[data-testid="open-question-set-button"]');
-      await pages[i].click('[data-testid="ai-generate-button"]');
+      const page = pages[i];
+      if (!page) throw new Error(`Page ${i} not available`);
+      await page.click('[data-testid="create-question-set-button"]');
+      await page.fill('[data-testid="question-set-name"]', `Concurrent Test Set ${i}`);
+      await page.fill('[data-testid="question-set-description"]', `Set ${i} for concurrent testing`);
+      await page.selectOption('[data-testid="question-set-category"]', 'Science');
+      await page.click('[data-testid="save-question-set-button"]');
+      await page.click('[data-testid="open-question-set-button"]');
+      await page.click('[data-testid="ai-generate-button"]');
     }
     
     // Start concurrent AI generation
@@ -105,7 +109,9 @@ test.describe('AI Generation and Vector Database Performance Tests', () => {
     
     // Verify all generations completed successfully
     for (let i = 0; i < pages.length; i++) {
-      await expect(pages[i].locator('[data-testid="generated-question"]')).toHaveCount(3);
+      const page = pages[i];
+      if (!page) throw new Error(`Page ${i} not available`);
+      await expect(page.locator('[data-testid="generated-question"]')).toHaveCount(3);
     }
     
     console.log(`Concurrent AI generation took ${duration.toFixed(2)}ms`);

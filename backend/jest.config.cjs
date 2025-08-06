@@ -108,13 +108,16 @@ module.exports = {
       tsconfig: {
         module: 'ESNext',
         target: 'ES2022',
-        lib: ['ES2022'],
+        lib: ['ES2022', 'DOM'],
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
         moduleResolution: 'node',
         allowImportingTsExtensions: false,
         noImplicitAny: false,
-        strict: false
+        strict: false,
+        skipLibCheck: true,
+        resolveJsonModule: true,
+        allowJs: true
       }
     }]
   },
@@ -123,7 +126,8 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(chromadb|@google/generative-ai)/)'
+    'node_modules/(?!(chromadb|@google/generative-ai)/)',
+    '!../shared/error-handling/.*\.js$'
   ],
   // Use unified coverage configuration
   collectCoverageFrom: coverageConfig.collectCoverageFrom,

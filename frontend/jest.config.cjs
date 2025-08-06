@@ -106,7 +106,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: {
         target: 'ES2020',
-        lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+        lib: ['ES2020', 'DOM', 'DOM.Iterable', 'WebAudio'],
         module: 'CommonJS',
         moduleResolution: 'node',
         esModuleInterop: true,
@@ -114,26 +114,31 @@ module.exports = {
         jsx: 'react-jsx',
         strict: false,
         skipLibCheck: true,
-        isolatedModules: true
+        isolatedModules: true,
+        resolveJsonModule: true,
+        allowJs: true
       },
       useESM: false,
-      esModuleInterop: true
+      esModuleInterop: true,
+      isolatedModules: true
     }],
     '^.+\\.(js|jsx)$': 'babel-jest'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(react-dropzone|react-router-dom|zustand)/)'
+    'node_modules/(?!(react-dropzone|react-router-dom|zustand|@testing-library)/)'
   ],
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
+    '<rootDir>/src/**/__tests__/**/*.(test|spec).(ts|tsx|js)',
     '<rootDir>/src/**/*.(test|spec).(ts|tsx|js)'
   ],
   testPathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/src/__tests__/e2e/',
     '<rootDir>/e2e/',
-    '\\.spec\\.ts$',
-    '\\.e2e\\.ts$'
+    '<rootDir>/playwright-report/',
+    '<rootDir>/test-results/',
+    '\\.e2e\\.(ts|js)$',
+    '\\.playwright\\.(ts|js)$'
   ],
   // Use unified coverage configuration
   collectCoverageFrom: coverageConfig.collectCoverageFrom,

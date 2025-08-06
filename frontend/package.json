@@ -17,12 +17,14 @@
     "test:integration": "TEST_ENVIRONMENT=local TEST_TYPE=integration jest src/__tests__/integration --passWithNoTests",
     "test:integration:local": "TEST_ENVIRONMENT=local TEST_TYPE=integration jest src/__tests__/integration --passWithNoTests",
     "test:integration:ci": "TEST_ENVIRONMENT=ci TEST_TYPE=integration jest src/__tests__/integration --passWithNoTests",
-    "test:e2e": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test",
-    "test:e2e:smoke": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test smoke",
-    "test:e2e:integration": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test integration",
-    "test:e2e:performance": "TEST_ENVIRONMENT=local TEST_TYPE=performance playwright test performance",
-    "test:e2e:accessibility": "TEST_ENVIRONMENT=local TEST_TYPE=accessibility playwright test accessibility",
-    "test:e2e:error-handling": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test error-handling"
+    "test:e2e": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test --config=playwright.config.ts",
+    "test:e2e:smoke": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test smoke --config=playwright.config.ts",
+    "test:e2e:integration": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test integration --config=playwright.config.ts",
+    "test:e2e:performance": "TEST_ENVIRONMENT=local TEST_TYPE=performance playwright test performance --config=playwright.config.ts",
+    "test:e2e:accessibility": "TEST_ENVIRONMENT=local TEST_TYPE=accessibility playwright test accessibility --config=playwright.config.ts",
+    "test:e2e:error-handling": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test error-handling --config=playwright.config.ts",
+    "test:e2e:headed": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test --headed --config=playwright.config.ts",
+    "test:e2e:ui": "TEST_ENVIRONMENT=local TEST_TYPE=e2e playwright test --ui --config=playwright.config.ts"
   },
   "dependencies": {
     "@types/react": "^18.0.28",

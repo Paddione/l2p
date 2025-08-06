@@ -220,7 +220,7 @@ describe('ErrorHandler', () => {
   describe('handle - Custom API Errors', () => {
     it('should handle custom errors with status codes', () => {
       const error = new Error('Custom error') as ApiError;
-      error.statusCode = 418;
+      (error as any).statusCode = 418;
       error.code = 'TEAPOT_ERROR';
       error.details = { reason: 'I am a teapot' };
 
@@ -244,7 +244,7 @@ describe('ErrorHandler', () => {
     it('should handle custom errors with custom names', () => {
       const error = new Error('Custom error') as ApiError;
       error.name = 'CustomError';
-      error.statusCode = 422;
+      (error as any).statusCode = 422;
       error.code = 'CUSTOM_ERROR';
 
       ErrorHandler.handle(
@@ -577,7 +577,7 @@ describe('ErrorHandler', () => {
     it('should handle errors without message', () => {
       const error = new Error();
       error.name = 'CustomError';
-      error.statusCode = 400;
+      (error as any).statusCode = 400;
 
       ErrorHandler.handle(
         error,

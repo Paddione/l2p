@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Install dependencies first (better caching)
 COPY package*.json ./
-RUN npm ci --include=dev && \
+RUN npm install --legacy-peer-deps && \
     npm cache clean --force
 
 # Copy source code
@@ -51,7 +51,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies
-RUN npm ci --include=dev && \
+RUN npm install --legacy-peer-deps && \
     npm cache clean --force
 
 # Build stage with optimized caching
